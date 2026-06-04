@@ -17,9 +17,14 @@ export function togglePause(world: World): void {
   else if (world.state === GameState.PAUSED) world.state = GameState.PLAYING;
 }
 
+/**
+ * R semantics split (data-model §10):
+ * GAME_COMPLETE → brand-new run (fresh world, READY).
+ * DEFEAT → retry the CURRENT level (handled by level.retryLevel, not here).
+ */
 export function restartToReady(world: World): World {
-  if (world.state === GameState.VICTORY || world.state === GameState.DEFEAT) {
-    return createWorld(); // full reset: score, lives, map sub-blocks, spawn counters
+  if (world.state === GameState.GAME_COMPLETE) {
+    return createWorld(); // full reset: scores, lives, map sub-blocks, spawn counters
   }
   return world;
 }

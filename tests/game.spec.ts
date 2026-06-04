@@ -124,8 +124,10 @@ describe('T-SM-6 illegal transitions are no-ops', () => {
   });
 });
 
-describe('T-SM-7 tenth kill with clear field → VICTORY', () => {
-  it('all spawned + none alive → VICTORY', () => {
+// 基线修订 2026-06-04（共识 v2 §3.7，数据模型 §10）：VICTORY 拆分为
+// LEVEL_CLEAR（L1/L2）与 GAME_COMPLETE（L3）。L1 清场断言改为 LEVEL_CLEAR。
+describe('T-SM-7 tenth kill with clear field → LEVEL_CLEAR (level 1 of 3)', () => {
+  it('all spawned + none alive on L1 → LEVEL_CLEAR', () => {
     const world = makeWorld();
     world.spawnedCount = ENEMY_TOTAL;
     const e = addEnemy(world, EnemyType.BASIC, 6, 8);
@@ -134,14 +136,16 @@ describe('T-SM-7 tenth kill with clear field → VICTORY', () => {
     expect(world.state).toBe(GameState.PLAYING); // one still alive
     e.alive = false;
     judge(world);
-    expect(world.state).toBe(GameState.VICTORY);
+    expect(world.state).toBe(GameState.LEVEL_CLEAR);
   });
 });
 
+// 基线修订 2026-06-04（数据模型 §10）：全新 run 入口从 VICTORY 改为 GAME_COMPLETE
+//（DEFEAT 的 R 改走 retryLevel，由 T-LVL-4 覆盖）。
 describe('T-SM-8 restart fully resets the world', () => {
-  it('fresh world from VICTORY: score, lives, map, spawn counters', () => {
+  it('fresh world from GAME_COMPLETE: score, lives, map, spawn counters', () => {
     const world = makeWorld();
-    world.state = GameState.VICTORY;
+    world.state = GameState.GAME_COMPLETE;
     world.score = 1234;
     world.player.lives = 1;
     world.spawnedCount = ENEMY_TOTAL;

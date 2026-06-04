@@ -2,12 +2,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { EnemyType } from '../src/core/types';
-import {
-  createEnemy,
-  trySpawnEnemy,
-  SPAWN_SEQUENCE,
-  SPAWN_CELLS,
-} from '../src/enemy/enemy';
+import { createEnemy, trySpawnEnemy, SPAWN_CELLS } from '../src/enemy/enemy';
 import {
   ENEMY_TOTAL,
   ENEMY_CONCURRENT,
@@ -88,15 +83,23 @@ describe('T-ENM-3 spawn point cursor rotation', () => {
   });
 });
 
-describe('T-ENM-4 spawn type sequence', () => {
-  it('types follow SPAWN_SEQUENCE order', () => {
+// 基线修订 2026-06-04（共识 v2 §3.7/3.8）：v1 固定 SPAWN_SEQUENCE 废弃，
+// 改为按构成生成（数据模型 §11）；断言改为构成计数 + 携带者位（AC-16）。
+describe('T-ENM-4 spawn composition + carrier positions (L1)', () => {
+  it('spawned types match L1 counts (4/3/3) and carriers sit at #4/#8', () => {
     const world = makeWorld();
     world.player.pos = cellCenter(12, 6);
     for (let round = 0; round < 8; round++) {
       runSpawner(world, SPAWN_INTERVAL_MS * 3);
       killAll(world);
     }
-    expect(world.enemies.map((e) => e.type)).toEqual([...SPAWN_SEQUENCE]);
+    const types = world.enemies.map((e) => e.type);
+    expect(types).toHaveLength(ENEMY_TOTAL);
+    expect(types.filter((t) => t === EnemyType.BASIC)).toHaveLength(4);
+    expect(types.filter((t) => t === EnemyType.FAST)).toHaveLength(3);
+    expect(types.filter((t) => t === EnemyType.ARMORED)).toHaveLength(3);
+    const carrierIdx = world.enemies.flatMap((e, i) => (e.carrier ? [i + 1] : []));
+    expect(carrierIdx).toEqual([4, 8]); // L1 total 10 → only positions 4/8
   });
 });
 

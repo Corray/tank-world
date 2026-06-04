@@ -4,8 +4,17 @@ export enum GameState {
   READY = 'READY',
   PLAYING = 'PLAYING',
   PAUSED = 'PAUSED',
-  VICTORY = 'VICTORY',
+  /** A level (1..2) was cleared — interlude before the next level (R2 §3.7). */
+  LEVEL_CLEAR = 'LEVEL_CLEAR',
+  /** Level 3 cleared — the whole run is complete (R2 §3.7). */
+  GAME_COMPLETE = 'GAME_COMPLETE',
   DEFEAT = 'DEFEAT',
+}
+
+export enum PowerupType {
+  SHIELD = 'SHIELD',
+  DOUBLE_FIRE = 'DOUBLE_FIRE',
+  BOMB = 'BOMB',
 }
 
 export enum Terrain {
@@ -51,6 +60,10 @@ export interface PlayerTank extends Tank {
   /** Timestamp (game clock, ms) until which the player is invincible. */
   invincibleUntil: number;
   spawnPos: Vec;
+  /** R2: shield powerup invincibility deadline (game clock, ms). */
+  shieldUntil: number;
+  /** R2: double-fire powerup active (2 bullets on screen). */
+  doubleFire: boolean;
 }
 
 export interface EnemyTank extends Tank {
@@ -59,6 +72,14 @@ export interface EnemyTank extends Tank {
   score: number;
   /** AI timers, ms remaining. */
   ai: { turnMs: number; fireMs: number };
+  /** R2: carries a powerup; flickers and drops it on death (consensus §3.8). */
+  carrier: boolean;
+}
+
+/** R2: a dropped powerup waiting on the field to be picked up. */
+export interface Powerup {
+  type: PowerupType;
+  pos: Vec;
 }
 
 export interface Bullet {

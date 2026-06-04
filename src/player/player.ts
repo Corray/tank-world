@@ -23,6 +23,8 @@ export function updatePlayer(world: World, dtMs: number, input: InputState): voi
 export function damagePlayer(world: World): void {
   const p = world.player;
   p.lives -= 1;
+  p.doubleFire = false; // R2: double fire is lost on death (AC-18)
+  p.shieldUntil = 0;
   if (p.lives > 0) {
     p.pos = { ...p.spawnPos };
     p.dir = Direction.UP;

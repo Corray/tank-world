@@ -1,9 +1,10 @@
 // Render module: procedural Canvas drawing, read-only over world state (N5).
 
 import { GRID, CELL, SUB, FIELD, TANK_SIZE, BULLET_SIZE } from '../core/constants';
-import { GameState, Terrain, Direction, BulletOwner, type EnemyType } from '../core/types';
+import { GameState, Terrain, Direction, BulletOwner, PowerupType, type EnemyType } from '../core/types';
 import type { Tank } from '../core/types';
 import { SUB_TL, SUB_TR, SUB_BL } from '../map/map';
+import { POWERUP_SIZE } from '../powerup/powerup';
 import type { World } from '../core/world';
 
 const COLOR = {
@@ -23,10 +24,38 @@ const COLOR = {
 export function render(ctx: CanvasRenderingContext2D, world: World): void {
   ctx.clearRect(0, 0, FIELD, FIELD);
   drawTerrain(ctx, world);
-  for (const e of world.enemies) if (e.alive) drawTank(ctx, e, COLOR.enemy[e.type as EnemyType]);
+  drawPowerups(ctx, world);
+  for (const e of world.enemies) {
+    if (!e.alive) continue;
+    // R2: carriers flicker between type color and gold (AC-16).
+    const flicker = e.carrier && Math.floor(world.clock / 150) % 2 === 0;
+    drawTank(ctx, e, flicker ? '#ffd700' : COLOR.enemy[e.type as EnemyType]);
+  }
   if (world.player.alive) drawPlayer(ctx, world);
   drawBullets(ctx, world);
   drawOverlay(ctx, world);
+}
+
+/** R2: dropped powerups — white tile with a type letter (S/F/B). */
+function drawPowerups(ctx: CanvasRenderingContext2D, world: World): void {
+  const LETTER: Record<PowerupType, string> = {
+    [PowerupType.SHIELD]: 'S',
+    [PowerupType.DOUBLE_FIRE]: 'F',
+    [PowerupType.BOMB]: 'B',
+  };
+  for (const pu of world.powerups) {
+    const half = POWERUP_SIZE / 2;
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(pu.pos.x - half, pu.pos.y - half, POWERUP_SIZE, POWERUP_SIZE);
+    ctx.strokeStyle = '#e91e63';
+    ctx.strokeRect(pu.pos.x - half + 1, pu.pos.y - half + 1, POWERUP_SIZE - 2, POWERUP_SIZE - 2);
+    ctx.fillStyle = '#e91e63';
+    ctx.font = 'bold 16px monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(LETTER[pu.type], pu.pos.x, pu.pos.y + 1);
+    ctx.textBaseline = 'alphabetic';
+  }
 }
 
 function drawTerrain(ctx: CanvasRenderingContext2D, world: World): void {
@@ -102,14 +131,16 @@ function drawTank(ctx: CanvasRenderingContext2D, tank: Tank, color: string): voi
 
 function drawPlayer(ctx: CanvasRenderingContext2D, world: World): void {
   const invincible = world.clock < world.player.invincibleUntil;
-  // Invincibility flicker: skip drawing every other 100ms slot.
+  const shielded = world.clock < world.player.shieldUntil;
+  // Invincibility flicker: alternate body shade every 100ms slot.
   if (invincible && Math.floor(world.clock / 100) % 2 === 0) {
     drawTank(ctx, world.player, '#a5d6a7');
   } else {
     drawTank(ctx, world.player, COLOR.player);
   }
-  if (invincible) {
-    ctx.strokeStyle = '#ffffff';
+  if (invincible || shielded) {
+    // R2: shield powerup ring is cyan; respawn ring stays white (AC-17).
+    ctx.strokeStyle = shielded ? '#00e5ff' : '#ffffff';
     ctx.strokeRect(
       world.player.pos.x - TANK_SIZE / 2 - 2,
       world.player.pos.y - TANK_SIZE / 2 - 2,
@@ -127,11 +158,25 @@ function drawBullets(ctx: CanvasRenderingContext2D, world: World): void {
 }
 
 function drawOverlay(ctx: CanvasRenderingContext2D, world: World): void {
+  const total = world.bankedScore + world.score;
   const messages: Partial<Record<GameState, string[]>> = {
     [GameState.READY]: ['TANK WORLD', 'Press any move/fire key to start'],
     [GameState.PAUSED]: ['PAUSED', 'Press P to resume'],
-    [GameState.VICTORY]: ['VICTORY!', `Score: ${world.score}`, 'Press R to restart'],
-    [GameState.DEFEAT]: ['GAME OVER', `Score: ${world.score}`, 'Press R to restart'],
+    [GameState.LEVEL_CLEAR]: [
+      `LEVEL ${world.level} CLEAR!`,
+      `Level score: ${world.lastLevelScore}   Total: ${total}`,
+      'Press any move/fire key for next level',
+    ],
+    [GameState.GAME_COMPLETE]: [
+      'YOU WIN!',
+      `Total score: ${total}`,
+      'Press R for a new run',
+    ],
+    [GameState.DEFEAT]: [
+      'GAME OVER',
+      `Total: ${total}`,
+      `Press R to retry level ${world.level}`,
+    ],
   };
   const lines = messages[world.state];
   if (!lines) return;
