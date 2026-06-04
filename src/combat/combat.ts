@@ -1,0 +1,182 @@
+// Combat module: bullet lifecycle + the single collision matrix C1~C12
+// (data-model §5). All collision rules live here — never inside entities.
+
+import { FIELD, CELL, TANK_SIZE, BULLET_SIZE, BULLET_SPEED } from '../core/constants';
+import { Terrain, BulletOwner, DIR_VEC } from '../core/types';
+import type { World } from '../core/world';
+import type { Bullet, EnemyTank, Tank, Direction, Vec } from '../core/types';
+import { damagePlayer } from '../player/player';
+
+/** Max pixels a bullet moves per inner sub-step (anti-tunneling, risk §8.3). */
+const BULLET_SUBSTEP_PX = 4;
+/** Max pixels a tank moves per inner sub-step. */
+const TANK_SUBSTEP_PX = 1;
+/** Muzzle offset from tank center to bullet center. */
+const MUZZLE_OFFSET = TANK_SIZE / 2 + BULLET_SIZE / 2;
+
+// ---------------------------------------------------------------------------
+// Tank movement (C10 terrain / C11 tanks / C12 bounds)
+// ---------------------------------------------------------------------------
+
+/** Whether a TANK_SIZE box centered at (x, y) is free of terrain/bounds/tanks. */
+export function tankAreaFree(world: World, x: number, y: number, self?: Tank): boolean {
+  const half = TANK_SIZE / 2;
+  if (x - half < 0 || x + half > FIELD || y - half < 0 || y + half > FIELD) return false;
+
+  // Terrain sampling: corners + edge midpoints (≤16px spacing covers SUB=16 grid).
+  const e = 0.01; // inset so flush contact does not count as overlap
+  const xs = [x - half + e, x, x + half - e];
+  const ys = [y - half + e, y, y + half - e];
+  for (const sx of xs) {
+    for (const sy of ys) {
+      if (world.map.solidForTankAt(sx, sy)) return false;
+    }
+  }
+
+  // Other tanks: boxes must not overlap (flush contact allowed).
+  const others: Tank[] = [world.player, ...world.enemies];
+  for (const t of others) {
+    if (t === self || !t.alive) continue;
+    if (Math.abs(t.pos.x - x) < TANK_SIZE && Math.abs(t.pos.y - y) < TANK_SIZE) return false;
+  }
+  return true;
+}
+
+/**
+ * Try to move a tank in `dir`. Turns first, then advances in 1px sub-steps
+ * until blocked by terrain / bounds / another tank. Returns true if it moved.
+ */
+export function moveTank(world: World, tank: Tank, dir: Direction, dtMs: number): boolean {
+  tank.dir = dir;
+  const vec = DIR_VEC[dir];
+  let remaining = (tank.speed * dtMs) / 1000;
+  let moved = false;
+  while (remaining > 0) {
+    const d = Math.min(TANK_SUBSTEP_PX, remaining);
+    const nx = tank.pos.x + vec.x * d;
+    const ny = tank.pos.y + vec.y * d;
+    if (!tankAreaFree(world, nx, ny, tank)) break;
+    tank.pos.x = nx;
+    tank.pos.y = ny;
+    moved = true;
+    remaining -= d;
+  }
+  return moved;
+}
+
+// ---------------------------------------------------------------------------
+// Firing
+// ---------------------------------------------------------------------------
+
+function spawnBullet(world: World, shooter: Tank, owner: BulletOwner): void {
+  const vec = DIR_VEC[shooter.dir];
+  const pos: Vec = {
+    x: shooter.pos.x + vec.x * MUZZLE_OFFSET,
+    y: shooter.pos.y + vec.y * MUZZLE_OFFSET,
+  };
+  world.bullets.push({ pos, dir: shooter.dir, speed: BULLET_SPEED, owner });
+}
+
+/**
+ * Fire the player's bullet. Enforces the one-on-screen rule (consensus §3.2):
+ * any death path of the previous bullet releases the slot (T-PLY-3).
+ */
+export function firePlayerBullet(world: World): boolean {
+  if (!world.player.alive) return false;
+  if (world.bullets.some((b) => b.owner === BulletOwner.PLAYER)) return false;
+  spawnBullet(world, world.player, BulletOwner.PLAYER);
+  return true;
+}
+
+/** Fire an enemy bullet from the given tank (no on-screen cap per enemy). */
+export function fireEnemyBullet(world: World, enemy: EnemyTank): void {
+  if (!enemy.alive) return;
+  spawnBullet(world, enemy, BulletOwner.ENEMY);
+}
+
+// ---------------------------------------------------------------------------
+// Bullet advance + collision matrix
+// ---------------------------------------------------------------------------
+
+export function updateCombat(world: World, dtMs: number): void {
+  const survivors: Bullet[] = [];
+  for (const bullet of world.bullets) {
+    if (advanceBullet(world, bullet, dtMs)) survivors.push(bullet);
+  }
+  world.bullets = annihilate(survivors);
+}
+
+/** Advance one bullet; returns false if it was consumed (C1~C6, C9 skip). */
+function advanceBullet(world: World, b: Bullet, dtMs: number): boolean {
+  const vec = DIR_VEC[b.dir];
+  let remaining = (b.speed * dtMs) / 1000;
+  while (remaining > 0) {
+    const d = Math.min(BULLET_SUBSTEP_PX, remaining);
+    b.pos.x += vec.x * d;
+    b.pos.y += vec.y * d;
+    remaining -= d;
+
+    // C4 — field bounds.
+    if (b.pos.x < 0 || b.pos.x > FIELD || b.pos.y < 0 || b.pos.y > FIELD) return false;
+
+    // C1/C2/C3 — terrain at the bullet center.
+    const row = Math.floor(b.pos.y / CELL);
+    const col = Math.floor(b.pos.x / CELL);
+    const terrain = world.map.terrainAt(row, col);
+    if (terrain === Terrain.STEEL) return false; // C2
+    if (terrain === Terrain.BASE) {
+      world.map.destroyBase(); // C3 — judge() flips to DEFEAT
+      return false;
+    }
+    if (terrain === Terrain.BRICK && world.map.brickSolidAt(b.pos.x, b.pos.y)) {
+      world.map.hitBrick(row, col, b.dir); // C1 — impact-side sub-blocks
+      return false;
+    }
+
+    // C5 — player bullet vs enemies.
+    if (b.owner === BulletOwner.PLAYER) {
+      const hit = world.enemies.find((e) => e.alive && bulletHitsTank(b, e));
+      if (hit) {
+        hit.hp -= 1;
+        if (hit.hp <= 0) {
+          hit.alive = false;
+          world.score += hit.score;
+        }
+        return false;
+      }
+    } else {
+      // C6 — enemy bullet vs player (C9: enemy tanks are skipped entirely).
+      const p = world.player;
+      if (p.alive && bulletHitsTank(b, p)) {
+        if (world.clock >= p.invincibleUntil) damagePlayer(world);
+        return false; // bullet consumed either way
+      }
+    }
+  }
+  return true;
+}
+
+function bulletHitsTank(b: Bullet, t: Tank): boolean {
+  const reach = (TANK_SIZE + BULLET_SIZE) / 2;
+  return Math.abs(b.pos.x - t.pos.x) < reach && Math.abs(b.pos.y - t.pos.y) < reach;
+}
+
+/** C7 player×enemy bullets annihilate; C8 enemy×enemy pass through. */
+function annihilate(bullets: Bullet[]): Bullet[] {
+  const dead = new Set<Bullet>();
+  for (const a of bullets) {
+    if (a.owner !== BulletOwner.PLAYER || dead.has(a)) continue;
+    for (const b of bullets) {
+      if (b.owner !== BulletOwner.ENEMY || dead.has(b)) continue;
+      if (
+        Math.abs(a.pos.x - b.pos.x) < BULLET_SIZE &&
+        Math.abs(a.pos.y - b.pos.y) < BULLET_SIZE
+      ) {
+        dead.add(a);
+        dead.add(b);
+        break;
+      }
+    }
+  }
+  return dead.size === 0 ? bullets : bullets.filter((b) => !dead.has(b));
+}
