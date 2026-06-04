@@ -29,6 +29,8 @@ export class Keyboard {
   onPause: () => void = () => {};
   onRestart: () => void = () => {};
   onAnyAction: () => void = () => {};
+  /** R3: M key mute toggle (consensus §3.12). */
+  onMute: () => void = () => {};
 
   attach(target: Window): void {
     target.addEventListener('keydown', (e) => {
@@ -45,6 +47,8 @@ export class Keyboard {
         this.onPause();
       } else if (e.code === 'KeyR') {
         this.onRestart();
+      } else if (e.code === 'KeyM') {
+        this.onMute();
       }
     });
     target.addEventListener('keyup', (e) => {

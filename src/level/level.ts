@@ -2,7 +2,17 @@
 // level progression / retry with layered scoring (consensus §3.7, data-model §11).
 
 import { EnemyType, Direction, GameState } from '../core/types';
-import { INVINCIBLE_MS, PLAYER_LIVES } from '../core/constants';
+import {
+  INVINCIBLE_MS,
+  PLAYER_LIVES,
+  ENDLESS_TOTAL_STEP,
+  ENDLESS_INTERVAL_STEP_MS,
+  ENDLESS_INTERVAL_MIN_MS,
+  ENDLESS_ARMOR_BASE,
+  ENDLESS_ARMOR_STEP,
+  ENDLESS_ARMOR_CAP,
+  ENDLESS_CONFIRM_DELAY_MS,
+} from '../core/constants';
 import { GameMap } from '../map/map';
 import type { World } from '../core/world';
 
@@ -100,7 +110,7 @@ export function generateSpawnSequence(counts: LevelConfig['enemyCounts']): Enemy
  * retryLevel clears it explicitly on the death path).
  */
 export function loadLevel(world: World, level: number): void {
-  const cfg = LEVELS[level - 1];
+  const cfg = level <= LEVELS.length ? LEVELS[level - 1] : endlessConfig(level);
   world.level = level;
   world.map = new GameMap(cfg.layout);
   world.enemies = [];
@@ -145,11 +155,20 @@ export function retryLevel(world: World): void {
 
 // --- R3: endless mode (consensus §3.13, data-model §19) ---
 
-/** Dynamic config for endless levels (level ≥ 4). */
+/** Dynamic config for endless levels (level ≥ 4) — data-model §19 formula. */
 export function endlessConfig(level: number): LevelConfig {
-  void level;
-  // TODO(slice-S3) — stub fails skeletons
-  return LEVELS[0];
+  const k = level - 3;
+  const layout = LEVELS[(level - 4) % LEVELS.length].layout; // L1→L2→L3 rotation
+  const total = 18 + ENDLESS_TOTAL_STEP * k;
+  const armoredRatio = Math.min(ENDLESS_ARMOR_CAP, ENDLESS_ARMOR_BASE + ENDLESS_ARMOR_STEP * k);
+  const ARMORED = Math.round(total * armoredRatio);
+  const FAST = Math.round((total - ARMORED) / 2);
+  const BASIC = total - ARMORED - FAST;
+  const spawnIntervalMs = Math.max(
+    ENDLESS_INTERVAL_MIN_MS,
+    2000 - ENDLESS_INTERVAL_STEP_MS * k,
+  );
+  return { layout, enemyCounts: { BASIC, FAST, ARMORED }, spawnIntervalMs };
 }
 
 /**
@@ -157,7 +176,9 @@ export function endlessConfig(level: number): LevelConfig {
  * elapsed (risk §21). Lives are NOT reset (consensus §3.13).
  */
 export function enterEndless(world: World, wallNowMs: number): void {
-  void world;
-  void wallNowMs;
-  // TODO(slice-S3)
+  if (world.state !== GameState.GAME_COMPLETE) return;
+  if (wallNowMs - world.gameCompleteWallMs <= ENDLESS_CONFIRM_DELAY_MS) return;
+  world.endlessStartBanked = world.bankedScore;
+  loadLevel(world, 4);
+  world.state = GameState.PLAYING;
 }
