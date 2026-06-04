@@ -63,6 +63,28 @@ export const PLAYER_BULLETS_BASE = 1;
 export const PLAYER_BULLETS_DOUBLE = 2;
 /** AI direction bias probability for FAST (→base) / ARMORED (→player), §3.9. */
 export const AI_BIAS_PROBABILITY = 0.5;
-/** localStorage keys (data-model §14). */
+/** localStorage keys (data-model §14/§21). */
 export const KEY_BEST_TOTAL = 'tank-world.best-total';
 export const KEY_BEST_LEVEL = 'tank-world.best-level';
+export const KEY_BEST_ENDLESS = 'tank-world.best-endless';
+export const KEY_MUTED = 'tank-world.muted';
+
+// --- R3 additions (consensus §3.11~3.13) ---
+
+/** Effect durations, ms (consensus §3.11 table). */
+export const EXPLOSION_MS = 400;
+export const BASE_EXPLOSION_MS = 800;
+export const SPARK_MS = 150;
+export const SCORE_FLOAT_MS = 600;
+/** Player-hit full-screen flash duration, ms (≤200 per AC-25). */
+export const FLASH_MS = 150;
+
+/** Endless progression formula parameters (data-model §19). */
+export const ENDLESS_TOTAL_STEP = 2;
+export const ENDLESS_INTERVAL_STEP_MS = 100;
+export const ENDLESS_INTERVAL_MIN_MS = 1200;
+export const ENDLESS_ARMOR_BASE = 1 / 3;
+export const ENDLESS_ARMOR_STEP = 0.05;
+export const ENDLESS_ARMOR_CAP = 0.5;
+/** Anti-misfire window after GAME_COMPLETE before endless entry, ms (risk §21). */
+export const ENDLESS_CONFIRM_DELAY_MS = 1000;

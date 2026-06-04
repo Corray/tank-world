@@ -11,6 +11,11 @@ import {
   PLAYER_BULLETS_DOUBLE,
 } from '../core/constants';
 import { dropFromCarrier } from '../powerup/powerup';
+import { spawnExplosion, spawnBaseExplosion, spawnSpark, spawnScoreFloat } from '../effects/effects';
+import { playSound, SoundEvent } from '../audio/audio';
+
+/** Explosion primary colors (enemy vs player — consensus §3.11). */
+const EXPLOSION_COLOR_ENEMY = '#ff7043';
 import { Terrain, BulletOwner, DIR_VEC } from '../core/types';
 import type { World } from '../core/world';
 import type { Bullet, EnemyTank, Tank, Direction, Vec } from '../core/types';
@@ -96,6 +101,7 @@ export function firePlayerBullet(world: World): boolean {
   const onScreen = world.bullets.filter((b) => b.owner === BulletOwner.PLAYER).length;
   if (onScreen >= cap) return false;
   spawnBullet(world, world.player, BulletOwner.PLAYER);
+  playSound(SoundEvent.FIRE); // player shots only — enemy fire would spam (impl note)
   return true;
 }
 
@@ -134,13 +140,20 @@ function advanceBullet(world: World, b: Bullet, dtMs: number): boolean {
     const row = Math.floor(b.pos.y / CELL);
     const col = Math.floor(b.pos.x / CELL);
     const terrain = world.map.terrainAt(row, col);
-    if (terrain === Terrain.STEEL) return false; // C2
+    if (terrain === Terrain.STEEL) {
+      spawnSpark(world, b.pos); // C2
+      playSound(SoundEvent.HIT_STEEL);
+      return false;
+    }
     if (terrain === Terrain.BASE) {
-      world.map.destroyBase(); // C3 — judge() flips to DEFEAT
+      world.map.destroyBase(); // C3 — judge() flips to DEFEAT/ENDLESS_OVER
+      spawnBaseExplosion(world, { x: col * CELL + CELL / 2, y: row * CELL + CELL / 2 });
       return false;
     }
     if (terrain === Terrain.BRICK && world.map.brickSolidAt(b.pos.x, b.pos.y)) {
       world.map.hitBrick(row, col, b.dir); // C1 — impact-side sub-blocks
+      spawnSpark(world, b.pos);
+      playSound(SoundEvent.HIT_BRICK);
       return false;
     }
 
@@ -154,6 +167,10 @@ function advanceBullet(world: World, b: Bullet, dtMs: number): boolean {
           world.score += hit.score;
           // R2: carriers drop the next cycle powerup at the death spot (§3.8).
           if (hit.carrier) dropFromCarrier(world, hit.pos);
+          // R3: kill feedback (AC-23/24).
+          spawnExplosion(world, hit.pos, EXPLOSION_COLOR_ENEMY);
+          spawnScoreFloat(world, hit.pos, hit.score);
+          playSound(SoundEvent.ENEMY_DOWN);
         }
         return false;
       }

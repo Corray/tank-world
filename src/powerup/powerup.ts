@@ -5,6 +5,7 @@ import { PowerupType } from '../core/types';
 import type { Vec } from '../core/types';
 import type { World } from '../core/world';
 import { TANK_SIZE, SHIELD_MS } from '../core/constants';
+import { playSound, SoundEvent } from '../audio/audio';
 
 /** Pickup box edge for a dropped powerup, px (module-local by usage scope). */
 export const POWERUP_SIZE = 24;
@@ -36,6 +37,7 @@ export function updatePowerups(world: World): void {
       Math.abs(pu.pos.x - p.pos.x) < reach && Math.abs(pu.pos.y - p.pos.y) < reach;
     if (!overlap) return true;
     applyEffect(world, pu.type);
+    playSound(SoundEvent.PICKUP); // R3 (AC-26)
     return false;
   });
 }

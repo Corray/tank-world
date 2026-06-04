@@ -2,7 +2,17 @@
 // level progression / retry with layered scoring (consensus §3.7, data-model §11).
 
 import { EnemyType, Direction, GameState } from '../core/types';
-import { INVINCIBLE_MS, PLAYER_LIVES } from '../core/constants';
+import {
+  INVINCIBLE_MS,
+  PLAYER_LIVES,
+  ENDLESS_TOTAL_STEP,
+  ENDLESS_INTERVAL_STEP_MS,
+  ENDLESS_INTERVAL_MIN_MS,
+  ENDLESS_ARMOR_BASE,
+  ENDLESS_ARMOR_STEP,
+  ENDLESS_ARMOR_CAP,
+  ENDLESS_CONFIRM_DELAY_MS,
+} from '../core/constants';
 import { GameMap } from '../map/map';
 import type { World } from '../core/world';
 
@@ -100,7 +110,7 @@ export function generateSpawnSequence(counts: LevelConfig['enemyCounts']): Enemy
  * retryLevel clears it explicitly on the death path).
  */
 export function loadLevel(world: World, level: number): void {
-  const cfg = LEVELS[level - 1];
+  const cfg = level <= LEVELS.length ? LEVELS[level - 1] : endlessConfig(level);
   world.level = level;
   world.map = new GameMap(cfg.layout);
   world.enemies = [];
@@ -132,6 +142,7 @@ export function advanceLevel(world: World): void {
 /**
  * DEFEAT → retry current level (consensus AC-15): level score reset, banked
  * kept, lives back to 3, double-fire lost, map/powerups/spawns reset.
+ * Retry exists for L1~3 only — endless death goes to ENDLESS_OVER (§3.13).
  */
 export function retryLevel(world: World): void {
   if (world.state !== GameState.DEFEAT) return;
@@ -139,5 +150,35 @@ export function retryLevel(world: World): void {
   world.player.lives = PLAYER_LIVES;
   world.player.doubleFire = false;
   loadLevel(world, world.level);
+  world.state = GameState.PLAYING;
+}
+
+// --- R3: endless mode (consensus §3.13, data-model §19) ---
+
+/** Dynamic config for endless levels (level ≥ 4) — data-model §19 formula. */
+export function endlessConfig(level: number): LevelConfig {
+  const k = level - 3;
+  const layout = LEVELS[(level - 4) % LEVELS.length].layout; // L1→L2→L3 rotation
+  const total = 18 + ENDLESS_TOTAL_STEP * k;
+  const armoredRatio = Math.min(ENDLESS_ARMOR_CAP, ENDLESS_ARMOR_BASE + ENDLESS_ARMOR_STEP * k);
+  const ARMORED = Math.round(total * armoredRatio);
+  const FAST = Math.round((total - ARMORED) / 2);
+  const BASIC = total - ARMORED - FAST;
+  const spawnIntervalMs = Math.max(
+    ENDLESS_INTERVAL_MIN_MS,
+    2000 - ENDLESS_INTERVAL_STEP_MS * k,
+  );
+  return { layout, enemyCounts: { BASIC, FAST, ARMORED }, spawnIntervalMs };
+}
+
+/**
+ * GAME_COMPLETE → endless L4. Requires the anti-misfire window to have
+ * elapsed (risk §21). Lives are NOT reset (consensus §3.13).
+ */
+export function enterEndless(world: World, wallNowMs: number): void {
+  if (world.state !== GameState.GAME_COMPLETE) return;
+  if (wallNowMs - world.gameCompleteWallMs <= ENDLESS_CONFIRM_DELAY_MS) return;
+  world.endlessStartBanked = world.bankedScore;
+  loadLevel(world, 4);
   world.state = GameState.PLAYING;
 }

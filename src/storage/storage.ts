@@ -1,6 +1,6 @@
 // Storage module (R2): localStorage best scores, fail-silent (data-model §14).
 
-import { KEY_BEST_TOTAL, KEY_BEST_LEVEL } from '../core/constants';
+import { KEY_BEST_TOTAL, KEY_BEST_LEVEL, KEY_BEST_ENDLESS, KEY_MUTED } from '../core/constants';
 
 function read(key: string): number {
   try {
@@ -36,4 +36,31 @@ export function submitLevelScore(score: number): void {
 /** Submit a full-run total (GAME_COMPLETE only). */
 export function submitTotal(total: number): void {
   writeIfHigher(KEY_BEST_TOTAL, total);
+}
+
+// --- R3 additions (data-model §21) ---
+
+export function getBestEndless(): number {
+  return read(KEY_BEST_ENDLESS);
+}
+
+/** Submit an endless-run score (ENDLESS_OVER settlement only). */
+export function submitEndless(score: number): void {
+  writeIfHigher(KEY_BEST_ENDLESS, score);
+}
+
+export function getMutedPref(): boolean {
+  try {
+    return globalThis.localStorage?.getItem(KEY_MUTED) === '1';
+  } catch {
+    return false;
+  }
+}
+
+export function setMutedPref(muted: boolean): void {
+  try {
+    globalThis.localStorage?.setItem(KEY_MUTED, muted ? '1' : '0');
+  } catch {
+    // degrade silently
+  }
 }

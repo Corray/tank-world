@@ -1,7 +1,8 @@
 // Entry point: wire modules together and start the loop (architecture §2).
 
 import { GameLoop, startGame, togglePause, restartToReady } from './core/game';
-import { advanceLevel, retryLevel } from './level/level';
+import { advanceLevel, retryLevel, enterEndless } from './level/level';
+import { toggleMute } from './audio/audio';
 import { createWorld } from './core/world';
 import { GameState } from './core/types';
 import { Keyboard } from './input/input';
@@ -30,8 +31,11 @@ const loop = new GameLoop(
 keyboard.onAnyAction = () => {
   startGame(loop.world); // READY → PLAYING
   if (loop.world.state === GameState.LEVEL_CLEAR) advanceLevel(loop.world);
+  // R3: GAME_COMPLETE → endless (guarded by the anti-misfire window).
+  if (loop.world.state === GameState.GAME_COMPLETE) enterEndless(loop.world, Date.now());
 };
 keyboard.onPause = () => togglePause(loop.world);
+keyboard.onMute = () => toggleMute();
 keyboard.onRestart = () => {
   if (loop.world.state === GameState.DEFEAT) {
     retryLevel(loop.world); // R2: retry current level (AC-15)

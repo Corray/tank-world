@@ -1,7 +1,7 @@
 // Render module: procedural Canvas drawing, read-only over world state (N5).
 
 import { GRID, CELL, SUB, FIELD, TANK_SIZE, BULLET_SIZE } from '../core/constants';
-import { GameState, Terrain, Direction, BulletOwner, PowerupType, type EnemyType } from '../core/types';
+import { GameState, Terrain, Direction, BulletOwner, PowerupType, EffectKind, type EnemyType } from '../core/types';
 import type { Tank } from '../core/types';
 import { SUB_TL, SUB_TR, SUB_BL } from '../map/map';
 import { POWERUP_SIZE } from '../powerup/powerup';
@@ -33,7 +33,50 @@ export function render(ctx: CanvasRenderingContext2D, world: World): void {
   }
   if (world.player.alive) drawPlayer(ctx, world);
   drawBullets(ctx, world);
+  drawEffects(ctx, world);
+  drawFlash(ctx, world);
   drawOverlay(ctx, world);
+}
+
+/** R3: visual effects — read-only, driven purely by clock age (AC-23~24). */
+function drawEffects(ctx: CanvasRenderingContext2D, world: World): void {
+  for (const e of world.effects) {
+    const t = Math.min(1, (world.clock - e.bornAt) / e.durationMs); // 0..1 age
+    if (e.kind === EffectKind.EXPLOSION || e.kind === EffectKind.BASE_EXPLOSION) {
+      const maxR = e.kind === EffectKind.BASE_EXPLOSION ? CELL * 2 : CELL * 0.8;
+      ctx.globalAlpha = 1 - t;
+      ctx.strokeStyle = e.color ?? '#ffab40';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.arc(e.pos.x, e.pos.y, 4 + maxR * t, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.arc(e.pos.x, e.pos.y, (4 + maxR * t) * 0.55, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+    } else if (e.kind === EffectKind.SPARK) {
+      ctx.globalAlpha = 1 - t;
+      ctx.fillStyle = '#fff59d';
+      const s = 3 + 3 * (1 - t);
+      ctx.fillRect(e.pos.x - s / 2, e.pos.y - s / 2, s, s);
+      ctx.globalAlpha = 1;
+    } else if (e.kind === EffectKind.SCORE_FLOAT) {
+      ctx.globalAlpha = 1 - t;
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 13px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(e.text ?? '', e.pos.x, e.pos.y - 18 * t);
+      ctx.globalAlpha = 1;
+    }
+  }
+  ctx.lineWidth = 1;
+}
+
+/** R3: player-hit full-screen white flash, ≤200ms (AC-25). */
+function drawFlash(ctx: CanvasRenderingContext2D, world: World): void {
+  if (world.clock >= world.flashUntil) return;
+  ctx.fillStyle = 'rgba(255, 255, 255, 0.45)';
+  ctx.fillRect(0, 0, FIELD, FIELD);
 }
 
 /** R2: dropped powerups — white tile with a type letter (S/F/B). */
@@ -159,6 +202,8 @@ function drawBullets(ctx: CanvasRenderingContext2D, world: World): void {
 
 function drawOverlay(ctx: CanvasRenderingContext2D, world: World): void {
   const total = world.bankedScore + world.score;
+  const endlessScore =
+    world.endlessStartBanked >= 0 ? total - world.endlessStartBanked : 0;
   const messages: Partial<Record<GameState, string[]>> = {
     [GameState.READY]: ['TANK WORLD', 'Press any move/fire key to start'],
     [GameState.PAUSED]: ['PAUSED', 'Press P to resume'],
@@ -170,12 +215,18 @@ function drawOverlay(ctx: CanvasRenderingContext2D, world: World): void {
     [GameState.GAME_COMPLETE]: [
       'YOU WIN!',
       `Total score: ${total}`,
+      'Press any move/fire key for ENDLESS mode',
       'Press R for a new run',
     ],
     [GameState.DEFEAT]: [
       'GAME OVER',
       `Total: ${total}`,
       `Press R to retry level ${world.level}`,
+    ],
+    [GameState.ENDLESS_OVER]: [
+      'ENDLESS OVER',
+      `Endless score: ${endlessScore}   Reached level ${world.level}`,
+      'Press R for a new run',
     ],
   };
   const lines = messages[world.state];
