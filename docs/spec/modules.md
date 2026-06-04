@@ -2,7 +2,8 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
-| v2 | 2026-06-04 | R2 增量：新增 level / powerup / storage 三模块；core/enemy/hud 职责扩展（待 R2-G1 确认） |
+| v3 | 2026-06-04 | R3 增量：新增 effects / audio 两模块；level（无尽配置）/storage（best-endless+muted）/core/input/render/hud 职责扩展（待 R3-G1 确认） |
+| v2 | 2026-06-04 | R2 增量：新增 level / powerup / storage 三模块；core/enemy/hud 职责扩展（R2-G1 已确认） |
 | v1.1 | 2026-06-04 | G1 通过；map 补 1/4 子块粒度职责，combat 补子弹相消（AC-12） |
 | v1 | 2026-06-04 | 初版（从共识文档 v1.1 拆解，待 G1 确认） |
 
@@ -27,6 +28,13 @@
 | **storage**（存档，R2 新增） | localStorage 两档最高分读写与展示数据源 | §3.10 / F10 / AC-20 | core |
 
 **R2 既有模块职责扩展**：core（状态机增 LEVEL_CLEAR / GAME_COMPLETE）、enemy（AI 威胁分层 + 携带者标记，§3.9）、hud（关卡号/最高分展示）、combat（玩家×道具拾取判定并入碰撞矩阵）。
+
+| 模块（R3 新增） | 职责边界 | 对应共识文档 | 依赖 |
+|------|---------|-------------|------|
+| **effects**（特效） | 特效实体生命周期（爆炸/火花/飘字/白闪），纯视觉无碰撞，暂停冻结 | §3.11 / F11 / AC-23~25,31 | core（事件源：combat/player） |
+| **audio**（音效） | 8 类事件音的程序化合成；dispatch 层（事件→配方+静音判断）与 synth 层（WebAudio）分离以便单测；M 键静音持久化 | §3.12 / F12 / AC-26,27 | input, storage |
+
+**R3 既有模块职责扩展**：level（无尽关动态配置生成 + ENDLESS_OVER 结算）、storage（best-endless / muted 两个新 key）、core（状态机增 ENDLESS_OVER；GAME_COMPLETE 增「继续无尽」转换）、input（M 键）、render（特效绘制 + 白闪 + LEVEL n/∞）、hud（静音状态 + best-endless 展示）、combat/player（击毁/受击事件发射给 effects 与 audio）。
 
 ## 覆盖性自检
 

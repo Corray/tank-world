@@ -2,7 +2,8 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
-| v2 | 2026-06-04 | R2 增量：§10~14（关卡/道具/AI 分层/存档/状态机扩展），碰撞矩阵增 C13（待 R2-G3 确认） |
+| v3 | 2026-06-04 | R3 增量：§17~21（特效/音效/无尽/状态机 ENDLESS_OVER/存档新档位）（待 R3-G3 确认） |
+| v2 | 2026-06-04 | R2 增量：§10~14（关卡/道具/AI 分层/存档/状态机扩展），碰撞矩阵增 C13（R2-G3 已确认） |
 | v1 | 2026-06-04 | 初版（从共识 v1.2 推导，G3 已确认） |
 
 > 关联：共识文档 v1.2（规则源）/ architecture.md v1（承载结构）。〔默认〕= 可调常量，集中于 `core/constants.ts`。
@@ -195,4 +196,96 @@ Q3 AI 威胁分层 + 射击间隔重调
 Q4 道具全链路（携带者→掉落→拾取→三效果）
 Q5 存档 + 画面/HUD 展示
 Q6 平衡试调（指标：首局存活≥60s）+ 打包验收
+```
+
+---
+
+# R3 增量（共识 v3 §3.11~3.13 推导）
+
+## 17. 特效模型（effects 模块）
+
+```ts
+enum EffectKind { EXPLOSION, BASE_EXPLOSION, SPARK, SCORE_FLOAT }
+interface Effect {
+  kind: EffectKind;
+  pos: Vec;
+  bornAt: number;        // world.clock
+  durationMs: number;    // 常量表：400 / 800 / 150 / 600
+  text?: string;         // SCORE_FLOAT 用（'+100' 等）
+  color?: string;        // 爆炸主色（敌/玩家区分）
+}
+// World 增量：effects: Effect[]; flashUntil: number（受击全屏白闪截止钟）
+```
+
+- 生成点：combat 击毁敌（EXPLOSION+SCORE_FLOAT）/ damagePlayer（EXPLOSION + flashUntil=clock+150ms〔默认〕）/ 基地毁（BASE_EXPLOSION）/ 子弹命中砖钢（SPARK）
+- `updateEffects(world)`：按 clock 过期清除——纯函数式时间判断，**不参与任何碰撞**（AC-23）
+- 暂停冻结天然成立：clock 不前进 → 特效静止（沿用 AC-11 单闸门）
+
+## 18. 音效模型（audio 模块，两层分离设计）
+
+```ts
+enum SoundEvent { FIRE, HIT_BRICK, HIT_STEEL, ENEMY_DOWN, PLAYER_DOWN, PICKUP, LEVEL_CLEAR, DEFEAT }
+// dispatch 层（可单测）：playSound(event) → muted 判断 + 配方选择 → synth 层
+// synth 层（浏览器 only）：WebAudio oscillator/noise + envelope；node 环境静默降级
+```
+
+- 配方概要〔默认，实现微调〕：射击=方波短促 / 命中砖=噪声脆响 / 钢=金属高频 / 击毁=噪声爆裂 / 玩家死=下行扫频 / 拾取=上行双音 / 过关=三连上行 / 失败=低频长音
+- `muted` 状态：内存 + `tank-world.muted` 持久化；M 键 toggle（input 模块新指令）
+- AudioContext 懒初始化，首次按键 resume（autoplay 策略）；无 AudioContext 环境（node/老浏览器）全链路静默降级
+
+## 19. 无尽模式（level 模块扩展）
+
+```ts
+function endlessConfig(level: number): LevelConfig {   // level ≥ 4
+  const k = level - 3;
+  const layout = LEVELS[(level - 4) % 3].layout;       // L1→L2→L3 轮换
+  const total = 18 + 2 * k;
+  const armoredRatio = Math.min(0.5, 1 / 3 + 0.05 * k);
+  const ARMORED = Math.round(total * armoredRatio);
+  const FAST = Math.round((total - ARMORED) / 2);
+  const BASIC = total - ARMORED - FAST;
+  const spawnIntervalMs = Math.max(1200, 2000 - 100 * k);
+  return { layout, enemyCounts: { BASIC, FAST, ARMORED }, spawnIntervalMs };
+}
+```
+
+- `loadLevel` 扩展：level ≤ 3 用 LEVELS 表，level ≥ 4 用 endlessConfig
+- **进入无尽**：GAME_COMPLETE 画面按操作键 → `enterEndless(world)`：记录 `endlessStartBanked = bankedScore`，loadLevel(4)，state=PLAYING；命数不重置（共识 §3.13）
+- **无尽结算分** = `bankedScore + score − endlessStartBanked`（仅 L4 起的累计）
+- World 增量：`endlessStartBanked: number`（非无尽期为 −1 哨兵〔默认〕，用于判别是否处于无尽 run）
+
+## 20. 状态机扩展（替换 §10 图）
+
+```
+GAME_COMPLETE ──(R)──→ READY(全新 run)
+      └──(操作键)──→ PLAYING(L4 无尽，enterEndless)
+PLAYING(L≥4) ──(本关敌全灭)──→ LEVEL_CLEAR ──(操作键)──→ PLAYING(L+1)   ← 照旧
+PLAYING(L≥4) ──(基地毁/命尽)──→ ENDLESS_OVER（结算 best-endless）──(R)──→ READY(全新 run)
+```
+
+- 新枚举值 `GameState.ENDLESS_OVER`；**无尽死亡无重试**（DEFEAT-R 重试仅 L1~3）
+- ENDLESS_OVER 中 P/射击/操作键均无效（非法转换家族延续）
+- judge 扩展：死亡分支按 `level > 3` 路由 DEFEAT vs ENDLESS_OVER；ENDLESS_OVER 时提交 `submitEndless(无尽结算分)`
+
+## 21. 存档扩展 + R3 风险
+
+```ts
+const KEY_BEST_ENDLESS = 'tank-world.best-endless';  // 无尽段累计分
+const KEY_MUTED = 'tank-world.muted';                // '1' / '0'
+```
+
+| 风险 | 缓解 |
+|------|------|
+| 特效数量峰值（炸弹清场 = 同帧 N 个爆炸+飘字）GC 压力 | Effect 为纯数据对象，数组过滤复用；AC-31 压测覆盖 |
+| WebAudio 在 node 测试环境不存在 | dispatch/synth 两层分离，synth 全部 try/catch + 环境探测 |
+| GAME_COMPLETE 操作键二义（截图/误触立即进无尽） | 进入 GAME_COMPLETE 后 1s 内忽略操作键〔默认，防误触〕 |
+| best-total 与 best-endless 档位互渗 | T-EN-5 显式断言互不污染 |
+
+## 22. R3 实现切片
+
+```
+S1 特效全链路（实体/生成点/过期/白闪/渲染）
+S2 音效两层（dispatch+synth+静音持久化+M 键）
+S3 无尽模式（endlessConfig/enterEndless/ENDLESS_OVER/best-endless）
+S4 打包 + 压测（AC-31）+ 浏览器验收
 ```
