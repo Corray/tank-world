@@ -73,6 +73,14 @@ export class GameMap {
     return false;
   }
 
+  /** Whether an alive brick sub-block covers pixel (x, y). Used by bullets (C1). */
+  brickSolidAt(x: number, y: number): boolean {
+    const row = Math.floor(y / CELL);
+    const col = Math.floor(x / CELL);
+    if (this.terrainAt(row, col) !== Terrain.BRICK) return false;
+    return (this.subMask(row, col) & this.subBitAt(row, col, x, y)) !== 0;
+  }
+
   /** Sub-block bit covering pixel (x, y) inside brick cell (row, col). */
   private subBitAt(row: number, col: number, x: number, y: number): number {
     const right = x - col * CELL >= SUB;
