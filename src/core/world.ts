@@ -9,6 +9,7 @@ import {
   type Bullet,
   type Powerup,
   type EnemyType,
+  type Effect,
 } from './types';
 import { GameMap } from '../map/map';
 import { LEVELS, generateSpawnSequence } from '../level/level';
@@ -40,6 +41,14 @@ export interface World {
   /** R2: dropped powerups on the field + fixed drop cycle cursor. */
   powerups: Powerup[];
   powerupDropCursor: number;
+  /** R3: live visual effects (pure data, no collision — data-model §17). */
+  effects: Effect[];
+  /** R3: player-hit white flash deadline (game clock, ms). */
+  flashUntil: number;
+  /** R3: bankedScore at endless entry; -1 sentinel = not in an endless run. */
+  endlessStartBanked: number;
+  /** R3: wall-clock ms when GAME_COMPLETE was entered (anti-misfire window). */
+  gameCompleteWallMs: number;
 }
 
 /** Player spawn cell (12,2) — data-model §11 (moved left for the double ring). */
@@ -80,5 +89,9 @@ export function createWorld(): World {
     spawnCursor: 0,
     powerups: [],
     powerupDropCursor: 0,
+    effects: [],
+    flashUntil: 0,
+    endlessStartBanked: -1,
+    gameCompleteWallMs: 0,
   };
 }

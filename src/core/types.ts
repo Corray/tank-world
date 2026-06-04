@@ -9,6 +9,28 @@ export enum GameState {
   /** Level 3 cleared — the whole run is complete (R2 §3.7). */
   GAME_COMPLETE = 'GAME_COMPLETE',
   DEFEAT = 'DEFEAT',
+  /** R3: died in endless mode — settlement screen, no retry (consensus §3.13). */
+  ENDLESS_OVER = 'ENDLESS_OVER',
+}
+
+/** R3: visual effect kinds (consensus §3.11) — pure visuals, no collision. */
+export enum EffectKind {
+  EXPLOSION = 'EXPLOSION',
+  BASE_EXPLOSION = 'BASE_EXPLOSION',
+  SPARK = 'SPARK',
+  SCORE_FLOAT = 'SCORE_FLOAT',
+}
+
+export interface Effect {
+  kind: EffectKind;
+  pos: Vec;
+  /** world.clock at spawn — pause freezes effects for free (AC-23). */
+  bornAt: number;
+  durationMs: number;
+  /** SCORE_FLOAT text, e.g. '+400'. */
+  text?: string;
+  /** Explosion primary color (enemy vs player distinction). */
+  color?: string;
 }
 
 export enum PowerupType {

@@ -132,6 +132,7 @@ export function advanceLevel(world: World): void {
 /**
  * DEFEAT → retry current level (consensus AC-15): level score reset, banked
  * kept, lives back to 3, double-fire lost, map/powerups/spawns reset.
+ * Retry exists for L1~3 only — endless death goes to ENDLESS_OVER (§3.13).
  */
 export function retryLevel(world: World): void {
   if (world.state !== GameState.DEFEAT) return;
@@ -140,4 +141,23 @@ export function retryLevel(world: World): void {
   world.player.doubleFire = false;
   loadLevel(world, world.level);
   world.state = GameState.PLAYING;
+}
+
+// --- R3: endless mode (consensus §3.13, data-model §19) ---
+
+/** Dynamic config for endless levels (level ≥ 4). */
+export function endlessConfig(level: number): LevelConfig {
+  void level;
+  // TODO(slice-S3) — stub fails skeletons
+  return LEVELS[0];
+}
+
+/**
+ * GAME_COMPLETE → endless L4. Requires the anti-misfire window to have
+ * elapsed (risk §21). Lives are NOT reset (consensus §3.13).
+ */
+export function enterEndless(world: World, wallNowMs: number): void {
+  void world;
+  void wallNowMs;
+  // TODO(slice-S3)
 }
