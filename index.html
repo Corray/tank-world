@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Tank World</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: #1a1a1a;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: 'Courier New', monospace;
+      }
+      #app {
+        display: flex;
+        gap: 16px;
+        align-items: flex-start;
+      }
+      canvas {
+        background: #000;
+        image-rendering: pixelated;
+      }
+      #hud {
+        color: #eee;
+        min-width: 140px;
+        font-size: 14px;
+        line-height: 1.8;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="app">
+      <canvas id="game" width="416" height="416"></canvas>
+      <div id="hud"></div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
