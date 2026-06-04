@@ -1,7 +1,9 @@
 // Level module (R2): three-level configs, spawn sequence generation,
 // level progression / retry with layered scoring (consensus §3.7, data-model §11).
 
-import { EnemyType } from '../core/types';
+import { EnemyType, Direction, GameState } from '../core/types';
+import { INVINCIBLE_MS, PLAYER_LIVES } from '../core/constants';
+import { GameMap } from '../map/map';
 import type { World } from '../core/world';
 
 export interface LevelConfig {
@@ -77,21 +79,54 @@ export const LEVELS: readonly LevelConfig[] = [
  * BASIC → FAST → ARMORED while counts remain (data-model §11).
  */
 export function generateSpawnSequence(counts: LevelConfig['enemyCounts']): EnemyType[] {
-  void counts;
-  return []; // TODO(slice-Q2) — stub fails skeletons
+  const remaining = { ...counts };
+  const rotation = [EnemyType.BASIC, EnemyType.FAST, EnemyType.ARMORED] as const;
+  const total = counts.BASIC + counts.FAST + counts.ARMORED;
+  const seq: EnemyType[] = [];
+  while (seq.length < total) {
+    for (const t of rotation) {
+      if (remaining[t] > 0) {
+        seq.push(t);
+        remaining[t] -= 1;
+      }
+    }
+  }
+  return seq;
 }
 
-/** Reset the world to play the given level (1-based). Score fields untouched. */
+/**
+ * Reset the world to play the given level (1-based). Score fields untouched
+ * (banking is judge's job); doubleFire untouched (AC-18: survives level clear,
+ * retryLevel clears it explicitly on the death path).
+ */
 export function loadLevel(world: World, level: number): void {
-  void world;
-  void level;
-  // TODO(slice-Q1)
+  const cfg = LEVELS[level - 1];
+  world.level = level;
+  world.map = new GameMap(cfg.layout);
+  world.enemies = [];
+  world.bullets = [];
+  world.powerups = [];
+  world.powerupDropCursor = 0;
+  world.spawnedCount = 0;
+  world.spawnCursor = 0;
+  world.spawnCooldownMs = 0;
+  world.spawnSequence = generateSpawnSequence(cfg.enemyCounts);
+  world.enemyTotal = cfg.enemyCounts.BASIC + cfg.enemyCounts.FAST + cfg.enemyCounts.ARMORED;
+  world.spawnIntervalMs = cfg.spawnIntervalMs;
+
+  const p = world.player;
+  p.pos = { ...p.spawnPos };
+  p.dir = Direction.UP;
+  p.alive = true;
+  p.invincibleUntil = world.clock + INVINCIBLE_MS;
+  p.shieldUntil = 0;
 }
 
 /** LEVEL_CLEAR → next level: banking already happened at judgement time. */
 export function advanceLevel(world: World): void {
-  void world;
-  // TODO(slice-Q1)
+  if (world.state !== GameState.LEVEL_CLEAR) return;
+  loadLevel(world, world.level + 1);
+  world.state = GameState.PLAYING;
 }
 
 /**
@@ -99,6 +134,10 @@ export function advanceLevel(world: World): void {
  * kept, lives back to 3, double-fire lost, map/powerups/spawns reset.
  */
 export function retryLevel(world: World): void {
-  void world;
-  // TODO(slice-Q1)
+  if (world.state !== GameState.DEFEAT) return;
+  world.score = 0;
+  world.player.lives = PLAYER_LIVES;
+  world.player.doubleFire = false;
+  loadLevel(world, world.level);
+  world.state = GameState.PLAYING;
 }

@@ -1,7 +1,16 @@
 // Combat module: bullet lifecycle + the single collision matrix C1~C12
 // (data-model §5). All collision rules live here — never inside entities.
 
-import { FIELD, CELL, TANK_SIZE, BULLET_SIZE, BULLET_SPEED } from '../core/constants';
+import {
+  FIELD,
+  CELL,
+  TANK_SIZE,
+  BULLET_SIZE,
+  BULLET_SPEED,
+  PLAYER_BULLETS_BASE,
+  PLAYER_BULLETS_DOUBLE,
+} from '../core/constants';
+import { dropFromCarrier } from '../powerup/powerup';
 import { Terrain, BulletOwner, DIR_VEC } from '../core/types';
 import type { World } from '../core/world';
 import type { Bullet, EnemyTank, Tank, Direction, Vec } from '../core/types';
@@ -83,7 +92,9 @@ function spawnBullet(world: World, shooter: Tank, owner: BulletOwner): void {
  */
 export function firePlayerBullet(world: World): boolean {
   if (!world.player.alive) return false;
-  if (world.bullets.some((b) => b.owner === BulletOwner.PLAYER)) return false;
+  const cap = world.player.doubleFire ? PLAYER_BULLETS_DOUBLE : PLAYER_BULLETS_BASE;
+  const onScreen = world.bullets.filter((b) => b.owner === BulletOwner.PLAYER).length;
+  if (onScreen >= cap) return false;
   spawnBullet(world, world.player, BulletOwner.PLAYER);
   return true;
 }
@@ -141,6 +152,8 @@ function advanceBullet(world: World, b: Bullet, dtMs: number): boolean {
         if (hit.hp <= 0) {
           hit.alive = false;
           world.score += hit.score;
+          // R2: carriers drop the next cycle powerup at the death spot (§3.8).
+          if (hit.carrier) dropFromCarrier(world, hit.pos);
         }
         return false;
       }
@@ -148,7 +161,9 @@ function advanceBullet(world: World, b: Bullet, dtMs: number): boolean {
       // C6 — enemy bullet vs player (C9: enemy tanks are skipped entirely).
       const p = world.player;
       if (p.alive && bulletHitsTank(b, p)) {
-        if (world.clock >= p.invincibleUntil) damagePlayer(world);
+        // R2: shield powerup shares the invincibility branch (data-model §12).
+        const invincible = world.clock < Math.max(p.invincibleUntil, p.shieldUntil);
+        if (!invincible) damagePlayer(world);
         return false; // bullet consumed either way
       }
     }

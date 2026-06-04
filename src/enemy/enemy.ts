@@ -13,6 +13,7 @@ import {
   ENEMY_TURN_INTERVAL_MS,
   ENEMY_FIRE_INTERVAL_MS,
   CARRIER_POSITIONS,
+  AI_BIAS_PROBABILITY,
 } from '../core/constants';
 import { moveTank, fireEnemyBullet, tankAreaFree } from '../combat/combat';
 
@@ -84,13 +85,37 @@ export function updateEnemies(world: World, dtMs: number): void {
   }
 }
 
+const DIRECTIONS: readonly Direction[] = [
+  Direction.UP,
+  Direction.DOWN,
+  Direction.LEFT,
+  Direction.RIGHT,
+];
+
+/** Base center pixel position (cell 12,6 — shared by all level layouts). */
+const BASE_POS: Vec = { x: 6 * CELL + CELL / 2, y: 12 * CELL + CELL / 2 };
+
+/** Dominant-axis direction from `from` toward `to`. */
+function directionToward(from: Vec, to: Vec): Direction {
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  if (Math.abs(dy) >= Math.abs(dx) && dy !== 0) return dy > 0 ? Direction.DOWN : Direction.UP;
+  if (dx !== 0) return dx > 0 ? Direction.RIGHT : Direction.LEFT;
+  return Direction.DOWN;
+}
+
 /**
  * R2 threat layering (consensus §3.9): one turn decision for an enemy.
  * BASIC: uniform random; FAST: 50% biased toward the base; ARMORED: 50%
  * biased toward the player; otherwise uniform random fallback.
  */
 export function decideDirection(world: World, enemy: EnemyTank): Direction {
-  void world;
-  void enemy;
-  return Direction.UP; // TODO(slice-Q3) — stub fails AI stats skeletons
+  const biased = Math.random() < AI_BIAS_PROBABILITY;
+  if (biased && enemy.type === EnemyType.FAST) {
+    return directionToward(enemy.pos, BASE_POS);
+  }
+  if (biased && enemy.type === EnemyType.ARMORED && world.player.alive) {
+    return directionToward(enemy.pos, world.player.pos);
+  }
+  return DIRECTIONS[Math.floor(Math.random() * DIRECTIONS.length)];
 }
