@@ -7,10 +7,13 @@ import type { InputState } from '../input/input';
 import { updatePlayer } from '../player/player';
 import { updateEnemies, trySpawnEnemy } from '../enemy/enemy';
 import { updateCombat } from '../combat/combat';
-import { ENEMY_TOTAL } from './constants';
+import { updatePowerups } from '../powerup/powerup';
+import { submitLevelScore, submitTotal } from '../storage/storage';
+import { LEVEL_COUNT } from './constants';
 
 export function updateWorld(world: World, dtMs: number, input: InputState): void {
   updatePlayer(world, dtMs, input);
+  updatePowerups(world); // before combat: bomb kills exclude same-frame scoring (risk §15)
   trySpawnEnemy(world, dtMs);
   updateEnemies(world, dtMs);
   updateCombat(world, dtMs);
@@ -18,9 +21,9 @@ export function updateWorld(world: World, dtMs: number, input: InputState): void
 }
 
 /**
- * Victory / defeat judgement (data-model §4). Single exit per step:
- * defeat conditions win over victory if both fire in the same frame (T-SM-4
- * locks the behaviour: base/lives defeat is checked first).
+ * Judgement (data-model §10). Single exit per step; defeat conditions win
+ * over clear if both fire in the same frame (T-SM-4). Level clear banks the
+ * level score immediately and settles best-level storage.
  */
 export function judge(world: World): void {
   if (world.state !== GameState.PLAYING) return;
@@ -28,9 +31,18 @@ export function judge(world: World): void {
     world.state = GameState.DEFEAT;
     return;
   }
-  const allSpawned = world.spawnedCount >= ENEMY_TOTAL;
+  const allSpawned = world.spawnedCount >= world.enemyTotal;
   const fieldClear = world.enemies.every((e) => !e.alive);
   if (allSpawned && fieldClear) {
-    world.state = GameState.VICTORY;
+    world.lastLevelScore = world.score;
+    world.bankedScore += world.score;
+    world.score = 0;
+    submitLevelScore(world.lastLevelScore);
+    if (world.level < LEVEL_COUNT) {
+      world.state = GameState.LEVEL_CLEAR;
+    } else {
+      world.state = GameState.GAME_COMPLETE;
+      submitTotal(world.bankedScore);
+    }
   }
 }

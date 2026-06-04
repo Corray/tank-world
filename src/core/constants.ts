@@ -28,12 +28,12 @@ export const PLAYER_LIVES = 3;
 /** Respawn invincibility window, ms (consensus §3.2). */
 export const INVINCIBLE_MS = 2000;
 
-/** Total enemies per game (consensus §3.3). */
+/** Total enemies for level 1 (per-level totals live in LEVELS, data-model §11). */
 export const ENEMY_TOTAL = 10;
 /** Max concurrent enemies on field (consensus §3.3). */
 export const ENEMY_CONCURRENT = 4;
-/** Minimum interval between enemy spawns, ms. */
-export const SPAWN_INTERVAL_MS = 2000;
+/** Level-1 spawn interval, ms (per-level values in LEVELS; kept for v1 tests). */
+export const SPAWN_INTERVAL_MS = 3000;
 
 /** Fixed logic timestep frequency, Hz. */
 export const LOGIC_HZ = 60;
@@ -47,5 +47,22 @@ export const ENEMY_SCORE = { BASIC: 100, FAST: 200, ARMORED: 400 } as const;
 
 /** Enemy AI: ms between direction re-rolls. */
 export const ENEMY_TURN_INTERVAL_MS = 1500;
-/** Enemy AI: ms between shots. */
-export const ENEMY_FIRE_INTERVAL_MS = 1200;
+/** Enemy AI: ms between shots (R2 balance: 1200 → 1800, consensus §3.9). */
+export const ENEMY_FIRE_INTERVAL_MS = 1800;
+
+// --- R2 additions (consensus §3.7~3.10) ---
+
+/** Number of levels in a run. */
+export const LEVEL_COUNT = 3;
+/** 1-based spawn positions of powerup carriers within a level (consensus §3.8). */
+export const CARRIER_POSITIONS: readonly number[] = [4, 8, 12];
+/** Shield powerup duration, ms. */
+export const SHIELD_MS = 10_000;
+/** Player on-screen bullet cap: base / with DOUBLE_FIRE. */
+export const PLAYER_BULLETS_BASE = 1;
+export const PLAYER_BULLETS_DOUBLE = 2;
+/** AI direction bias probability for FAST (→base) / ARMORED (→player), §3.9. */
+export const AI_BIAS_PROBABILITY = 0.5;
+/** localStorage keys (data-model §14). */
+export const KEY_BEST_TOTAL = 'tank-world.best-total';
+export const KEY_BEST_LEVEL = 'tank-world.best-level';

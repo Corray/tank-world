@@ -127,11 +127,25 @@ function drawBullets(ctx: CanvasRenderingContext2D, world: World): void {
 }
 
 function drawOverlay(ctx: CanvasRenderingContext2D, world: World): void {
+  const total = world.bankedScore + world.score;
   const messages: Partial<Record<GameState, string[]>> = {
     [GameState.READY]: ['TANK WORLD', 'Press any move/fire key to start'],
     [GameState.PAUSED]: ['PAUSED', 'Press P to resume'],
-    [GameState.VICTORY]: ['VICTORY!', `Score: ${world.score}`, 'Press R to restart'],
-    [GameState.DEFEAT]: ['GAME OVER', `Score: ${world.score}`, 'Press R to restart'],
+    [GameState.LEVEL_CLEAR]: [
+      `LEVEL ${world.level} CLEAR!`,
+      `Level score: ${world.lastLevelScore}   Total: ${total}`,
+      'Press any move/fire key for next level',
+    ],
+    [GameState.GAME_COMPLETE]: [
+      'YOU WIN!',
+      `Total score: ${total}`,
+      'Press R for a new run',
+    ],
+    [GameState.DEFEAT]: [
+      'GAME OVER',
+      `Total: ${total}`,
+      `Press R to retry level ${world.level}`,
+    ],
   };
   const lines = messages[world.state];
   if (!lines) return;

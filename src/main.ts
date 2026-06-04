@@ -1,6 +1,7 @@
 // Entry point: wire modules together and start the loop (architecture §2).
 
 import { GameLoop, startGame, togglePause, restartToReady } from './core/game';
+import { advanceLevel, retryLevel } from './level/level';
 import { createWorld } from './core/world';
 import { GameState } from './core/types';
 import { Keyboard } from './input/input';
@@ -26,10 +27,17 @@ const loop = new GameLoop(
   },
 );
 
-keyboard.onAnyAction = () => startGame(loop.world);
+keyboard.onAnyAction = () => {
+  startGame(loop.world); // READY → PLAYING
+  if (loop.world.state === GameState.LEVEL_CLEAR) advanceLevel(loop.world);
+};
 keyboard.onPause = () => togglePause(loop.world);
 keyboard.onRestart = () => {
-  const next = restartToReady(loop.world);
+  if (loop.world.state === GameState.DEFEAT) {
+    retryLevel(loop.world); // R2: retry current level (AC-15)
+    return;
+  }
+  const next = restartToReady(loop.world); // GAME_COMPLETE → fresh run
   if (next !== loop.world) loop.world = next;
 };
 
