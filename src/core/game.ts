@@ -35,18 +35,27 @@ export class GameLoop {
     private renderFrame: RenderFn,
   ) {}
 
+  /**
+   * Advance game time by `deltaMs` in fixed steps. Updates run only while
+   * PLAYING — this single gate implements the AC-11 full freeze.
+   * Extracted from the rAF tick so it is unit-testable (T-SM-5).
+   */
+  advance(deltaMs: number): void {
+    this.accumulator += Math.min(deltaMs, 250); // clamp huge tab-switch gaps
+    while (this.accumulator >= STEP_MS) {
+      if (this.world.state === GameState.PLAYING) {
+        this.world.clock += STEP_MS;
+        this.update(this.world, STEP_MS);
+      }
+      this.accumulator -= STEP_MS;
+    }
+  }
+
   start(): void {
     this.lastTs = performance.now();
     const tick = (ts: number) => {
-      this.accumulator += Math.min(ts - this.lastTs, 250); // clamp huge tab-switch gaps
+      this.advance(ts - this.lastTs);
       this.lastTs = ts;
-      while (this.accumulator >= STEP_MS) {
-        if (this.world.state === GameState.PLAYING) {
-          this.world.clock += STEP_MS;
-          this.update(this.world, STEP_MS);
-        }
-        this.accumulator -= STEP_MS;
-      }
       this.renderFrame(this.world);
       this.rafId = requestAnimationFrame(tick);
     };

@@ -25,6 +25,26 @@ export const SPAWN_CELLS: readonly { row: number; col: number }[] = [
 ];
 
 /**
+ * Pure factory: build an enemy of `type` at pixel position. Type attributes
+ * (speed / hp / score) come from constants (T-ENM-5~7 contract).
+ */
+export function createEnemy(type: EnemyType, pos: { x: number; y: number }): import('../core/types').EnemyTank {
+  void type;
+  void pos;
+  // TODO(slice-P4) — stub returns deliberately wrong values so skeletons FAIL.
+  return {
+    pos: { ...pos },
+    dir: 0 as never,
+    speed: 0,
+    alive: false,
+    type,
+    hp: 0,
+    score: 0,
+    ai: { turnMs: 0, fireMs: 0 },
+  };
+}
+
+/**
  * Spawn scheduling per step: concurrent < 4, total < 10, spawn point free,
  * cooldown elapsed; occupied point defers to next eligible tick.
  */

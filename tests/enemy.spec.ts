@@ -1,0 +1,107 @@
+// T-ENM-1~7 — enemy spawn scheduling + type attributes (test-plan §3.3, data-model §6).
+
+import { describe, it, expect } from 'vitest';
+import { EnemyType } from '../src/core/types';
+import {
+  createEnemy,
+  trySpawnEnemy,
+  SPAWN_SEQUENCE,
+  SPAWN_CELLS,
+} from '../src/enemy/enemy';
+import {
+  ENEMY_TOTAL,
+  ENEMY_CONCURRENT,
+  ENEMY_SPEED,
+  ENEMY_FAST_FACTOR,
+  ENEMY_HP,
+  ENEMY_SCORE,
+  SPAWN_INTERVAL_MS,
+  STEP_MS,
+  CELL,
+} from '../src/core/constants';
+import { makeWorld, cellCenter } from './helpers';
+import type { World } from '../src/core/world';
+
+/** Run only the spawner for `ms`. */
+function runSpawner(world: World, ms: number): void {
+  for (let t = 0; t < ms; t += STEP_MS) trySpawnEnemy(world, STEP_MS);
+}
+
+function killAll(world: World): void {
+  for (const e of world.enemies) e.alive = false;
+}
+
+describe('T-ENM-1 spawn caps: concurrent ≤ 4, total ≤ 10', () => {
+  it('field saturates at 4 concurrent enemies', () => {
+    const world = makeWorld();
+    runSpawner(world, SPAWN_INTERVAL_MS * 8);
+    expect(world.enemies.filter((e) => e.alive)).toHaveLength(ENEMY_CONCURRENT);
+  });
+
+  it('total spawn count never exceeds 10', () => {
+    const world = makeWorld();
+    for (let round = 0; round < 8; round++) {
+      runSpawner(world, SPAWN_INTERVAL_MS * 3);
+      killAll(world);
+    }
+    expect(world.spawnedCount).toBe(ENEMY_TOTAL);
+  });
+});
+
+describe('T-ENM-2 occupied spawn point defers, never stacks', () => {
+  it('no spawn while the target point is occupied; spawns after it frees up', () => {
+    const world = makeWorld();
+    // Occupy the first spawn point with the player.
+    world.player.pos = cellCenter(SPAWN_CELLS[0].row, SPAWN_CELLS[0].col);
+    runSpawner(world, SPAWN_INTERVAL_MS * 4);
+    expect(world.spawnedCount).toBe(0);
+    // Free the point: move the player far away.
+    world.player.pos = cellCenter(12, 6);
+    runSpawner(world, SPAWN_INTERVAL_MS * 2);
+    expect(world.spawnedCount).toBeGreaterThanOrEqual(1);
+    const first = world.enemies[0];
+    expect(first.pos).toEqual(cellCenter(SPAWN_CELLS[0].row, SPAWN_CELLS[0].col));
+  });
+});
+
+describe('T-ENM-3 spawn point cursor rotation', () => {
+  it('first three spawns land on (0,0) → (0,6) → (0,12)', () => {
+    const world = makeWorld();
+    world.player.pos = cellCenter(12, 6);
+    runSpawner(world, SPAWN_INTERVAL_MS * 4);
+    expect(world.enemies.length).toBeGreaterThanOrEqual(3);
+    for (let i = 0; i < 3; i++) {
+      expect(world.enemies[i].pos).toEqual(
+        cellCenter(SPAWN_CELLS[i % 3].row, SPAWN_CELLS[i % 3].col),
+      );
+    }
+  });
+});
+
+describe('T-ENM-4 spawn type sequence', () => {
+  it('types follow SPAWN_SEQUENCE order', () => {
+    const world = makeWorld();
+    world.player.pos = cellCenter(12, 6);
+    for (let round = 0; round < 8; round++) {
+      runSpawner(world, SPAWN_INTERVAL_MS * 3);
+      killAll(world);
+    }
+    expect(world.enemies.map((e) => e.type)).toEqual([...SPAWN_SEQUENCE]);
+  });
+});
+
+describe('T-ENM-5/6/7 type attribute matrix (family: type × {speed, hp, score})', () => {
+  const expected: Array<[EnemyType, number, number, number]> = [
+    [EnemyType.BASIC, ENEMY_SPEED, ENEMY_HP.BASIC, ENEMY_SCORE.BASIC],
+    [EnemyType.FAST, ENEMY_SPEED * ENEMY_FAST_FACTOR, ENEMY_HP.FAST, ENEMY_SCORE.FAST],
+    [EnemyType.ARMORED, ENEMY_SPEED, ENEMY_HP.ARMORED, ENEMY_SCORE.ARMORED],
+  ];
+  for (const [type, speed, hp, score] of expected) {
+    it(`${type}: speed=${speed} hp=${hp} score=${score}`, () => {
+      const e = createEnemy(type, { x: CELL, y: CELL });
+      expect(e.speed).toBe(speed);
+      expect(e.hp).toBe(hp);
+      expect(e.score).toBe(score);
+    });
+  }
+});
