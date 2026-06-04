@@ -2,7 +2,8 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
-| v1 | 2026-06-04 | 初版（从共识 v1.2 推导，待 G3 确认） |
+| v2 | 2026-06-04 | R2 增量：§10~14（关卡/道具/AI 分层/存档/状态机扩展），碰撞矩阵增 C13（待 R2-G3 确认） |
+| v1 | 2026-06-04 | 初版（从共识 v1.2 推导，G3 已确认） |
 
 > 关联：共识文档 v1.2（规则源）/ architecture.md v1（承载结构）。〔默认〕= 可调常量，集中于 `core/constants.ts`。
 
@@ -113,3 +114,85 @@ P7 singlefile 打包 + AC 全量验收                   ← 交付
 ```
 
 每片独立可运行验证（incremental-verification），P1→P7 严格顺序依赖。
+
+---
+
+# R2 增量（共识 v2 §3.7~3.10 推导）
+
+## 10. 状态机扩展（替换 §4）
+
+```
+READY ──(操作键)──→ PLAYING ──(P)──→ PAUSED（互通）
+                      │
+                      ├──(本关敌全灭 且 当前关 < 3)──→ LEVEL_CLEAR ──(操作键)──→ PLAYING(下一关)
+                      ├──(本关敌全灭 且 当前关 = 3)──→ GAME_COMPLETE ──(R)──→ READY(L1 全新 run)
+                      └──(基地毁 / 命尽)──→ DEFEAT ──(R)──→ PLAYING(当前关重试)
+```
+
+- 新增枚举值：`GameState.LEVEL_CLEAR` / `GameState.GAME_COMPLETE`
+- **DEFEAT 的 R 语义变更**（v1 为回 READY 全重置）：重试当前关——命数重置 3、本关得分清零、地图与道具重置、累计得分保留（AC-15）
+- LEVEL_CLEAR / GAME_COMPLETE / DEFEAT 中暂停与射击无效（非法转换家族延续 T-SM-6）
+
+## 11. 关卡模型
+
+```ts
+interface LevelConfig {
+  layout: number[][];            // 13×13，三关各不相同
+  enemyCounts: { BASIC: number; FAST: number; ARMORED: number };
+  spawnIntervalMs: number;
+}
+const LEVELS: LevelConfig[3]     // L1 4/3/3@3000 · L2 5/5/4@2500 · L3 6/6/6@2000（共识 §3.7）
+```
+
+- World 增量字段：`level`(1~3) / `levelScore`(本关) / `bankedScore`(前关累计)；展示总分 = banked + level
+- 出生序列改为**按构成生成**：每关按「普→快→装甲循环交错」生成定序数组〔默认，可测〕；携带者位 = 第 4/8/12 个
+- 关卡地图设计约束（追加 v1 §7）：双层砖护圈（AC-22）；三关布局可辨识不同；钢墙比例随关数上升
+
+## 12. 道具模型
+
+```ts
+enum PowerupType { SHIELD, DOUBLE_FIRE, BOMB }
+interface Powerup { type: PowerupType; pos: Vec; }        // 场上待拾取
+// World 增量：powerups: Powerup[]; powerupDropCursor（护盾→火力→炸弹循环）
+// PlayerTank 增量：shieldUntil(ms, 复用 invincibleUntil 语义但独立字段); doubleFire: boolean
+// EnemyTank 增量：carrier: boolean（闪烁标识 + 死亡掉落）
+```
+
+- **C13（碰撞矩阵增量）**：玩家 × 道具——box 重叠即拾取，效果即时生效；敌人/子弹与道具不交互
+- 效果规则：护盾 10s 刷新制；火力 2 发上限（死亡回 1 / 过关保留）；炸弹全屏场上敌即死**不计分**、未出生不受影响（AC-19）
+- 无敌判定合并：`isInvincible = clock < max(invincibleUntil, shieldUntil)`（C6 走同一分支）
+
+## 13. AI 威胁分层（enemy 增量）
+
+- 转向决策时（受阻或 turn 计时到）：BASIC 纯随机；FAST 50% 选朝**基地**方向分量；ARMORED 50% 选朝**玩家**方向分量；其余情况回落随机
+- `ENEMY_FIRE_INTERVAL_MS` 1200 → 1800〔默认，手感调〕；出生间隔改为 per-level（§11）
+
+## 14. 存档模型
+
+```ts
+const KEY_BEST_TOTAL = 'tank-world.best-total';   // 仅 GAME_COMPLETE 时比较写入
+const KEY_BEST_LEVEL = 'tank-world.best-level';   // 任意单关结算（LEVEL_CLEAR/全通时本关分）比较写入
+```
+
+- 读失败/无值按 0；写失败（隐私模式）静默降级不影响游戏（风险标注）
+- 展示位：READY / LEVEL_CLEAR / GAME_COMPLETE / DEFEAT 画面 + HUD 常驻〔默认〕
+
+## 15. R2 风险标注
+
+| 风险 | 缓解 |
+|------|------|
+| DEFEAT-R 重试语义与 v1「全重置」并存混淆 | restartToReady 仅保留给 GAME_COMPLETE；DEFEAT 走新 retryLevel()，单测锁两条路径 |
+| 炸弹与同帧子弹击杀竞争（计分歧义） | 拾取处理在 combat 之前执行：炸弹即死的敌人不再参与本帧碰撞 |
+| 火力 2 发与相消/死亡叠加 | 发射权按「场上玩家子弹数 < 上限」动态判定，沿用 4 消亡路径释放语义 |
+| localStorage 异常（隐私模式/配额） | try/catch 包裹，降级为会话内最高分 |
+
+## 16. R2 实现切片
+
+```
+Q1 状态机扩展 + 关卡推进/重试 + 计分分层（LEVEL_CLEAR/GAME_COMPLETE/retry）
+Q2 三关地图 + 构成生成 + per-level 出生间隔 + 双层护圈
+Q3 AI 威胁分层 + 射击间隔重调
+Q4 道具全链路（携带者→掉落→拾取→三效果）
+Q5 存档 + 画面/HUD 展示
+Q6 平衡试调（指标：首局存活≥60s）+ 打包验收
+```
