@@ -22,7 +22,7 @@ standard_path: /Users/chat/backend-ai-workflow/agent-dev-standard
 | **名称** | `tank-world` |
 | **类型** | `business` |
 | **流派** | `github` |
-| **技术栈** | Web 游戏（JS/TS，浏览器端）`[TBD: 具体框架/构建工具待定型后补]` |
+| **技术栈** | TypeScript + Canvas 2D（无引擎）+ Vite(singlefile) + Vitest（ADR-001，G2 拍板） |
 | **代码仓库（本地目录名）** | `tank-world`（单仓：代码 + docs 同仓） |
 | **共享文档仓库** | 本仓 `docs/`（无独立 hub 仓） |
 | **env.yaml 路径** | `docs/env.yaml` |
@@ -59,7 +59,7 @@ standard_path: /Users/chat/backend-ai-workflow/agent-dev-standard
 | `doc_repo` | `./docs`（本仓内） |
 | `adr_path` | `docs/adr` |
 | `code_path` | `src` |
-| `compile_cmd` | `[TBD: package.json 建立后填，预期 npm run build]` |
+| `compile_cmd` | `npm run build`（类型检查 `npx tsc --noEmit`；测试 `npx vitest run`） |
 | `role` | `be` |
 
 > 本项目 Issue / Bug 处理遵循 `rules/core/issue-handling.md`（5 场景纪律，Iron Law: NO HANDOFF WITHOUT EXPLICIT SCENARIO + COMMENT FIRST）+ `.claude/protocols/issue-process.md` + `issue-classification.md`（Step 0.5 四分类）。
@@ -117,8 +117,8 @@ standard_path: /Users/chat/backend-ai-workflow/agent-dev-standard
 ## 待办（install 收尾项）
 
 - [x] 建 GitHub remote → 回填 `issue_repo` → 同步 24 labels（2026-06-04 完成，origin = git@github.com:Corray/tank-world.git）
-- [ ] package.json / 构建工具定型 → 回填 `compile_cmd` + 技术栈字段
-- [ ] 第一个需求启动时走 spec-to-code-flow：共识文档 → 模块清单 →（后续节点）
+- [x] package.json / 构建工具定型 → 回填 `compile_cmd` + 技术栈字段（2026-06-04 G2 拍板，ADR-001；npm 工程在实现阶段初始化）
+- [x] 第一个需求启动走 spec-to-code-flow（2026-06-04：共识 v1.2 + 模块清单 + 架构均评审通过，G1/G2 已过）
 - [ ] 跑过 1-2 个需求后 `/install audit` 补装审查 skill + audit-rotation-plan
 
 ---
