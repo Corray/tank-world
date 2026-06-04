@@ -39,8 +39,8 @@
 
 | 编号 | 来源 | 日期 | 模块 | 标题 | 类型 | 层级 | 状态 | 关联 |
 |------|------|------|------|------|------|------|------|------|
-| P-20260604-8acf | 开发 | 2026-06-04 | standard-install | 【勘误 06-04】`business-gitignore.template` 冲突标记仅存在于**本地未推送** merge commit d38b215，远端 origin/main 干净——降级为本地环境问题 | 缺陷 | 项目级（本地） | confirmed | 本地 d38b215（ahead 2, behind 67） |
-| P-20260604-7852 | 开发 | 2026-06-04 | standard-install | 【勘误 06-04】`06-templates.sh` 冲突标记同上，仅本地 merge commit，远端干净；本地 install.sh 不可用直到本地 main 修复 | 缺陷 | 项目级（本地） | confirmed | 本地 d38b215（ahead 2, behind 67） |
+| P-20260604-8acf | 开发 | 2026-06-04 | standard-install | 【最终定性】`business-gitignore.template` 冲突标记 = standard 本地**挂起 2 周的未完成 merge**（MERGE_HEAD=78db933）的工作区中间态；从未进任何 commit。已解决：merge d008ce0 完成并推送 | 缺陷 | 项目级（本地） | resolved | d008ce0 / FB 候选 conflict-marker-guard-gap |
+| P-20260604-7852 | 开发 | 2026-06-04 | standard-install | 【最终定性】`06-templates.sh` 同上——未完成 merge 工作区中间态，非提交内容。已解决：取 theirs + bash -n 冒烟全过 + merge d008ce0 推送 | 缺陷 | 项目级（本地） | resolved | d008ce0 / FB 候选 conflict-marker-guard-gap |
 
 <!-- 新发现追加上方 -->
 
@@ -52,3 +52,4 @@
 |------|------|
 | 2026-06-04 | 初建 |
 | 2026-06-04 | P-7852 / P-8acf 勘误：核实远端 origin/main 干净，冲突标记仅本地未推送 merge commit；规则级→项目级（本地），proposed→confirmed |
+| 2026-06-04 | P-7852 / P-8acf 最终定性 + resolved：标记实为挂起 2 周未完成 merge 的工作区中间态（无任何 commit 含标记，第二版勘误"在 d38b215 内"亦不准确）；merge 已完成（d008ce0）推送，install.sh 恢复可用 |
