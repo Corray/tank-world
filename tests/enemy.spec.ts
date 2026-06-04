@@ -19,7 +19,7 @@ import {
   STEP_MS,
   CELL,
 } from '../src/core/constants';
-import { makeWorld, cellCenter } from './helpers';
+import { makeWorld, cellCenter, addEnemy } from './helpers';
 import type { World } from '../src/core/world';
 
 /** Run only the spawner for `ms`. */
@@ -32,10 +32,20 @@ function killAll(world: World): void {
 }
 
 describe('T-ENM-1 spawn caps: concurrent ≤ 4, total ≤ 10', () => {
-  it('field saturates at 4 concurrent enemies', () => {
+  // 骨架修正 2026-06-04：原断言「静止敌人下饱和到 4」不可满足——3 个出生点被
+  // 静止敌人占满后第 4 辆按 defer 语义永远无法出生（与 T-ENM-2 联立无解）。
+  // 改为两个可判定断言：①出生点占满时停在 3 且不叠出生；②场上 4 辆时即使出生点空闲也不再出生。
+  it('stalls at 3 when stationary enemies occupy all spawn points (no stacking)', () => {
     const world = makeWorld();
     runSpawner(world, SPAWN_INTERVAL_MS * 8);
-    expect(world.enemies.filter((e) => e.alive)).toHaveLength(ENEMY_CONCURRENT);
+    expect(world.enemies.filter((e) => e.alive)).toHaveLength(SPAWN_CELLS.length);
+  });
+
+  it('no spawn while 4 enemies are alive even with free spawn points', () => {
+    const world = makeWorld();
+    for (const col of [2, 4, 8, 10]) addEnemy(world, EnemyType.BASIC, 6, col);
+    runSpawner(world, SPAWN_INTERVAL_MS * 4);
+    expect(world.enemies).toHaveLength(ENEMY_CONCURRENT);
   });
 
   it('total spawn count never exceeds 10', () => {

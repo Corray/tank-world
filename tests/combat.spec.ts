@@ -2,7 +2,7 @@
 
 import { describe, it, expect } from 'vitest';
 import { GameState, Terrain, Direction, BulletOwner, EnemyType } from '../src/core/types';
-import { SUB_TL, SUB_TR, SUB_BL, SUB_BR } from '../src/map/map';
+import { SUB_TL, SUB_TR, SUB_BR } from '../src/map/map';
 import { moveTank } from '../src/combat/combat';
 import { judge } from '../src/core/update';
 import { ENEMY_SCORE, CELL, TANK_SIZE, STEP_MS, INVINCIBLE_MS } from '../src/core/constants';
