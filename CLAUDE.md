@@ -55,7 +55,7 @@ standard_path: /Users/chat/backend-ai-workflow/agent-dev-standard
 | 项 | 值 |
 |---|---|
 | `issue_platform` | `github` |
-| `issue_repo` | `[TBD: 仓库尚未建 GitHub remote，建 remote 后回填 owner/repo 并同步 24 labels]` |
+| `issue_repo` | `Corray/tank-world`（private，2026-06-04 建，24 labels 已同步） |
 | `doc_repo` | `./docs`（本仓内） |
 | `adr_path` | `docs/adr` |
 | `code_path` | `src` |
@@ -116,7 +116,7 @@ standard_path: /Users/chat/backend-ai-workflow/agent-dev-standard
 
 ## 待办（install 收尾项）
 
-- [ ] 建 GitHub remote → 回填 `issue_repo` → 用 standard `templates/labels.yml.template` 同步 24 labels（`gh` CLI）
+- [x] 建 GitHub remote → 回填 `issue_repo` → 同步 24 labels（2026-06-04 完成，origin = git@github.com:Corray/tank-world.git）
 - [ ] package.json / 构建工具定型 → 回填 `compile_cmd` + 技术栈字段
 - [ ] 第一个需求启动时走 spec-to-code-flow：共识文档 → 模块清单 →（后续节点）
 - [ ] 跑过 1-2 个需求后 `/install audit` 补装审查 skill + audit-rotation-plan
@@ -128,3 +128,4 @@ standard_path: /Users/chat/backend-ai-workflow/agent-dev-standard
 | 日期 | 变更 |
 |------|------|
 | 2026-06-04 | 初建（standard@d38b215 手动 install：issue + spool skill / 7 protocols / 3 registry / handoff 骨架） |
+| 2026-06-04 | 回填 issue_repo = Corray/tank-world（private）；24 labels 同步完成 |
