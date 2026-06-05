@@ -4,6 +4,8 @@
 
 **▶ 在线游玩：** https://corray.github.io/tank-world/ （或下载 `dist/index.html` 双击即玩）
 
+![双人合作模式](docs/assets/screenshot.png)
+
 ## 玩法
 
 - **3 关战役** + 全通后**无尽模式**（难度无限递增）
