@@ -194,7 +194,8 @@ function advanceBullet(world: World, b: Bullet, dtMs: number): boolean {
       world.map.hitBrick(row, col, b.dir); // C1 — impact-side sub-blocks
       spawnSpark(world, b.pos);
       playSound(SoundEvent.HIT_BRICK);
-      onBrickDestroyed(world); // R4: DEMOLITION when bricks run dry (§26)
+      // fix #14（PM 决策 a）：DEMOLITION 仅玩家拆除计入（与炸弹不计分不计杀对齐）。
+      if (b.owner === BulletOwner.PLAYER) onBrickDestroyed(world);
       return false;
     }
 
