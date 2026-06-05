@@ -45,7 +45,9 @@ describe('issue #6 — COOP level settlement must not touch solo buckets (AC-43)
   });
 });
 
-describe('issue #7 — COOP GAME_COMPLETE screen must not advertise endless (AC-44)', () => {
+// 基线修订 2026-06-05（共识 v6 §3.19）：AC-44 后半句被改判撤销，本回归测试断言合法反转。
+// 注：此处为 R7 预判（2 处）的漏网第 3 处——断言强度扫描未覆盖 regression-* 测试族（方法盲区，入 dogfood）。
+describe('issue #7 — COOP GAME_COMPLETE endless hint (v6 reversal of AC-44)', () => {
   function complete(world: ReturnType<typeof createWorld>): void {
     world.level = 3;
     world.state = GameState.PLAYING;
@@ -54,12 +56,12 @@ describe('issue #7 — COOP GAME_COMPLETE screen must not advertise endless (AC-
     expect(world.state).toBe(GameState.GAME_COMPLETE);
   }
 
-  it('COOP completion lines contain no ENDLESS hint', () => {
+  it('COOP completion lines now CONTAIN the ENDLESS hint (v6)', () => {
     const world = createWorld();
     startCoop(world);
     complete(world);
     const lines = overlayLines(world)!.join(' | ');
-    expect(lines).not.toContain('ENDLESS');
+    expect(lines).toContain('ENDLESS');
   });
 
   it('SOLO completion keeps the ENDLESS hint (no regression)', () => {

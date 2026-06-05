@@ -2,7 +2,7 @@
 // (AC-8, AC-20, AC-26, AC-28).
 
 import type { World } from '../core/world';
-import { getBestTotal, getBestLevel, getBestEndless, getBestCoop } from '../storage/storage';
+import { getBestTotal, getBestLevel, getBestEndless, getBestCoop, getBestCoopEndless } from '../storage/storage';
 import { isMuted } from '../audio/audio';
 import { LEVEL_COUNT } from '../core/constants';
 import { GameMode } from '../core/types';
@@ -38,7 +38,7 @@ export function renderHud(el: HTMLElement, world: World): void {
     playerRows,
     `<div>ENEMY&nbsp;&nbsp;${enemiesRemaining(world)}</div>`,
     `<hr/>`,
-    `<div style="font-size:11px;color:#aaa">BEST TOTAL&nbsp;&nbsp;${getBestTotal()}<br/>BEST LEVEL&nbsp;&nbsp;${getBestLevel()}<br/>BEST ENDLESS&nbsp;&nbsp;${getBestEndless()}<br/>BEST CO-OP&nbsp;&nbsp;${getBestCoop()}</div>`,
+    `<div style="font-size:11px;color:#aaa">BEST TOTAL&nbsp;&nbsp;${getBestTotal()}<br/>BEST LEVEL&nbsp;&nbsp;${getBestLevel()}<br/>BEST ENDLESS&nbsp;&nbsp;${getBestEndless()}<br/>BEST CO-OP&nbsp;&nbsp;${getBestCoop()}<br/>BEST CO-OP&infin;&nbsp;&nbsp;${getBestCoopEndless()}</div>`,
     `<hr/>`,
     `<div style="font-size:11px;color:#aaa">ACH&nbsp;&nbsp;${unlockedCount()}/${ACHIEVEMENT_COUNT}</div>`,
     `<div style="font-size:10px;line-height:1.5">${achievementRows()}</div>`,
