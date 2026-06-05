@@ -21,12 +21,13 @@
 | `SUB` | 16px | 砖墙子块边长（每格 2×2 子块，共识 1/4 粒度） |
 | `TANK_SIZE` | 28px | 坦克碰撞盒（略小于格，转向容错） |
 | `PLAYER_SPEED` | 96 px/s | 基准速度 |
+| `ENEMY_SPEED` | 96 px/s | 敌方基准速度（与玩家同值，独立常量便于分调）（F-DM-6bc0 反向项补录） |
 | `ENEMY_FAST_FACTOR` | 1.5 | 快速型倍率（共识 §3.3） |
 | `BULLET_SPEED` | 192 px/s | 所有子弹同速〔默认〕 |
 | `PLAYER_LIVES` | 3 | 共识 §3.2 |
 | `INVINCIBLE_MS` | 2000 | 重生无敌（共识 §3.2） |
 | `ENEMY_TOTAL` / `ENEMY_CONCURRENT` | 10 / 4 | 共识 §3.3 |
-| `SPAWN_INTERVAL_MS` | 2000 | 出生间隔〔默认〕 |
+| `SPAWN_INTERVAL_MS` | 2000 | 出生间隔〔默认〕<!-- 已被 §11 取代：per-level 3000/2500/2000（F-DM-6bc0① 标注） --> |
 | `LOGIC_HZ` | 60 | 固定时间步频率 |
 
 坐标：像素连续坐标（G1 推断 1 已确认），实体位置 = 碰撞盒中心点。
@@ -34,7 +35,7 @@
 ## 2. 枚举（N4 强制 enum）
 
 ```ts
-enum GameState { READY, PLAYING, PAUSED, VICTORY, DEFEAT }
+enum GameState { READY, PLAYING, PAUSED, VICTORY, DEFEAT } // 已被 §10/§20 取代：VICTORY→LEVEL_CLEAR/GAME_COMPLETE，增 ENDLESS_OVER（F-DM-6bc0② 标注）
 enum Terrain   { EMPTY, BRICK, STEEL, BASE }
 enum EnemyType { BASIC, FAST, ARMORED }
 enum Direction { UP, DOWN, LEFT, RIGHT }
@@ -52,7 +53,7 @@ enum BulletOwner { PLAYER, ENEMY }
 | `GameMap` | `grid: Terrain[13][13]` / `brickSub: Map<cellIdx, 4bit>` | 子块位掩码：bit0~3 = 左上/右上/左下/右下存活 |
 | `World` | `state` / `player` / `enemies[]` / `bullets[]` / `map` / `score` / `spawnedCount` / `spawnTimer` / `spawnPointCursor` | core 唯一持有（architecture §3.3） |
 
-## 4. 游戏状态机
+## 4. 游戏状态机 <!-- 已被 §10（R2）与 §20（R3）取代，本节为 v1 史迹（F-DM-6bc0③ 标注） -->
 
 ```
 READY ──(任意操作键)──→ PLAYING ──(P)──→ PAUSED
@@ -86,13 +87,13 @@ VICTORY / DEFEAT ──(重新开始)──→ READY（World 全重置，分数�
 
 - 出生点：顶行格 (0,0) / (0,6) / (0,12)，cursor 轮转〔默认〕
 - 出生条件：`场上敌数 < 4` 且 `spawnedCount < 10` 且 `目标出生点无坦克占用`（占用则顺延至下一 tick 重试——G1 推断 3）且 `距上次出生 ≥ 2s`
-- 出生序列〔默认〕：`BASIC, BASIC, FAST, BASIC, ARMORED, FAST, BASIC, ARMORED, FAST, ARMORED`（4 普通 / 3 快速 / 3 装甲，难度渐进）
+- 出生序列〔默认〕：`BASIC, BASIC, FAST, BASIC, ARMORED, FAST, BASIC, ARMORED, FAST, ARMORED`（4 普通 / 3 快速 / 3 装甲，难度渐进）<!-- 已被 §11 取代：按构成轮转生成（F-DM-6bc0④ 标注） -->
 
 ## 7. 地图布局约束
 
 具体布局数据实现期定稿（13×13 字面量数组），**设计约束**：
 - 基地位于底边中央 (12,6)，三面砖墙护圈（共识 §3.1）
-- 玩家出生点 (12,4)〔默认，基地左侧〕；3 个敌人出生点周边 1 格净空
+- 玩家出生点 (12,4)〔默认，基地左侧〕<!-- 已被 §11/§31 取代：P1=(12,2)、P2=(12,10)（F-DM-6bc0⑤ 标注） -->；3 个敌人出生点周边 1 格净空
 - 砖墙为主、钢墙少量点缀，保证任一出生点到基地存在可破坏路径
 
 ## 8. 风险标注（G3 要求）

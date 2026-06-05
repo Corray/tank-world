@@ -53,9 +53,10 @@
 ## 模块间依赖图
 
 ```
-input → core → {player, enemy, combat} → map
+input(双通道) → core(管线) → {players[], enemy, powerup, combat, level} → map
+                       ↓                                    ↘ achievements / storage / audio（事件钩子）
+              effects（纯视觉，无回边）
                        ↓
-              render（只读各实体状态）
-                       ↓
-              hud（订阅 core 状态机 + 计分事件）
+              render / hud（只读全量状态）
 ```
+<!-- v1 依赖图已被上图取代（F-ARCH-4c50）；v2~v5 模块以增量表记录，图于 R6 重绘 -->

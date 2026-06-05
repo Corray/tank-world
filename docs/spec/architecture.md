@@ -2,6 +2,7 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
+| v2 | 2026-06-05 | F-ARCH-4c50 修复：目录结构更新至 14 模块、管线补 powerups/effects 与 players[] 复数化、CI 管道补录（R2~R5 增量一次性回填） |
 | v1 | 2026-06-04 | 初版（G2 评审通过：组合 A——TS + 裸 Canvas + Vite singlefile + Vitest） |
 
 > 关联：共识文档 v1.2 / 模块清单 v1.1 / ADR-001-tech-stack
@@ -24,18 +25,22 @@
 ```
 src/
 ├── main.ts              # 入口：组装依赖 + 启动主循环
-├── core/
-│   ├── game.ts          # 主循环（固定时间步）+ 游戏状态机
-│   ├── constants.ts     # 全局常量集中地（N4：禁魔法值）
-│   └── types.ts         # 跨模块共享类型与 enum
-├── map/                 # 地图数据 + 子块破坏接口
-├── player/              # 玩家坦克实体
-├── enemy/               # 出生调度器 + 3 类 AI
-├── combat/              # 子弹生命周期 + 碰撞矩阵
-├── hud/                 # 计分 + HUD + 胜负画面
-├── input/               # 键盘 → 语义指令
-└── render/              # Canvas 程序化绘制
-tests/                   # Vitest 单测（按模块分文件）
+├── core/                # 主循环、状态机（7 态）、管线、唯一 World（players[] 复数化）
+├── map/                 # 地形 7 类 + 1/4 子块 + 变体承载
+├── player/              # 玩家实体（R5 起复数，兼容外缘见数据模型 §29）
+├── enemy/               # 出生调度 + 三类 AI（威胁分层）
+├── combat/              # 碰撞矩阵 C1~C17 SSoT + 冰面惯性运动模型
+├── level/               # 三关配置 + 无尽公式 + 推进/重试（R2/R3）
+├── powerup/             # 道具掉落/拾取/三效果（R2）
+├── storage/             # localStorage 五档 + 静音偏好（R2/R3/R5）
+├── effects/             # 纯视觉特效实体（R3）
+├── audio/               # 程序化音效 dispatch/synth 两层（R3）
+├── achievements/        # 8 成就触发/幂等/持久化（R4）
+├── hud/                 # DOM 侧栏（双人行/成就明细）
+├── input/               # 键盘双通道映射（SOLO/COOP）
+└── render/              # Canvas 程序化绘制（草上层/特效/覆盖层）
+tests/                   # Vitest（18 文件 / 175 断言块）
+.github/workflows/       # CI：PR 门禁 + master 自动部署 Pages（R5）
 index.html
 ```
 
@@ -49,10 +54,12 @@ index.html
 ### 3.2 每帧管线
 
 ```
-input(采集指令) → player.update → enemy.update(含出生调度)
-→ combat.update(子弹推进 + 碰撞矩阵 + 伤害结算)
-→ core.judge(胜负判定) → render(全量重绘) → hud
+input(双通道采集) → updatePlayers(逐玩家) → updatePowerups(拾取，先于 combat——风险 §15)
+→ trySpawn/updateEnemies(出生调度 + AI) → combat.update(子弹推进 + 碰撞矩阵 C1~C17)
+→ updateEffects(纯视觉过期) → core.judge(按 mode/level 路由四种终态)
+→ render(全量重绘 + 草上层 + 特效 + 覆盖层) → hud
 ```
+<!-- v1 管线已被上式取代（F-ARCH-4c50）；v1 原文省略 powerup/effects/复数化 -->
 
 - 13×13 体量下全量重绘 << 1ms，不做脏矩形优化（YAGNI）
 

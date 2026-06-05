@@ -112,11 +112,12 @@ standard_path: /Users/chat/backend-ai-workflow/agent-dev-standard
 ## 项目特定 context（PM 维护）
 
 ### 业务定位
-- Web 浏览器端坦克游戏 `[TBD: 玩法/单多人/目标平台待共识文档明确]`
+- 经典坦克大战（Battle City 风格）：3 关 + 无尽模式、本地双人合作、6 地形、3 道具、8 成就；在线可玩 https://corray.github.io/tank-world/
+- **同时为 agent-dev-standard 流程实验场**（共识 v5 §1 定位裁定）：人工体验验证不在验收范围
 
 ### 当前 active 阶段
-- 项目初建（2026-06-04 接入 standard 工作流，代码未起步）
-- 下一节点：共识文档 →业务模块清单（spec-to-code-flow 入口）
+- 六轮迭代完成（MVP/R2~R5 功能轮 + QA 修复轮 + R6 审计轮），PR #1~#10 全合入
+- 代码地图见 `docs/spec/code-map.md`；R7 候选池：2P 无尽与成就（绑定写入点级粒度条件）、扩展玩法
 
 ### 项目特殊约束（如有）
 - TBD

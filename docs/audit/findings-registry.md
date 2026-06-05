@@ -8,14 +8,14 @@
 
 | 编号 | 严重度 | 分类 | 摘要 | 报告 | 状态 |
 |------|--------|------|------|------|------|
-| F-SPEC-20260605-5c55 | MEDIUM | 偏差 | consensus §3.2「同屏 1 发」与 v2 双发矛盾，无取代标注 | 2026-06-05-spec.md | proposed |
-| F-SPEC-20260605-0643 | LOW | 偏差 | consensus §3.2 出生点「基地左侧」过时 | 2026-06-05-spec.md | proposed |
-| F-SPEC-20260605-98ef | LOW | 缺失 | AC-21 未标注定位裁定豁免 | 2026-06-05-spec.md | proposed |
-| F-ARCH-20260605-4c50 | MEDIUM | 偏差 | architecture/modules 停更 v1（8 vs 14 模块、管线缺步骤、复数化未反映） | 2026-06-05-architecture.md | proposed |
-| F-DM-20260605-6bc0 | MEDIUM | 偏差（家族×5） | data-model v1 五处被取代无标注 + ENEMY_SPEED 未入表 | 2026-06-05-data-model.md | proposed |
-| F-PROC-20260605-6fd2 | MEDIUM | 偏差 | CLAUDE.md 项目 context 六轮未更新（「代码未起步」） | 2026-06-05-behavior.md | proposed |
-| F-PROC-20260605-50a9 | MEDIUM | 风险 | 文档直推 master 与分支保护冲突（bypass 实证），需决策 | 2026-06-05-behavior.md | proposed |
-| F-PROC-20260605-e0e8 | LOW | 缺失 | Code Map 伴生产物六轮未建 | 2026-06-05-behavior.md | proposed |
+| F-SPEC-20260605-5c55 | MEDIUM | 偏差 | consensus §3.2「同屏 1 发」与 v2 双发矛盾，无取代标注 | 2026-06-05-spec.md | resolved（R6-C 直修，commit 见 git log） |
+| F-SPEC-20260605-0643 | LOW | 偏差 | consensus §3.2 出生点「基地左侧」过时 | 2026-06-05-spec.md | resolved（R6-C 直修，commit 见 git log） |
+| F-SPEC-20260605-98ef | LOW | 缺失 | AC-21 未标注定位裁定豁免 | 2026-06-05-spec.md | resolved（R6-C 直修，commit 见 git log） |
+| F-ARCH-20260605-4c50 | MEDIUM | 偏差 | architecture/modules 停更 v1（8 vs 14 模块、管线缺步骤、复数化未反映） | 2026-06-05-architecture.md | resolved（R6-C 直修，commit 见 git log） |
+| F-DM-20260605-6bc0 | MEDIUM | 偏差（家族×5） | data-model v1 五处被取代无标注 + ENEMY_SPEED 未入表 | 2026-06-05-data-model.md | resolved（R6-C 直修，commit 见 git log） |
+| F-PROC-20260605-6fd2 | MEDIUM | 偏差 | CLAUDE.md 项目 context 六轮未更新（「代码未起步」） | 2026-06-05-behavior.md | resolved（R6-C 直修，commit 见 git log） |
+| F-PROC-20260605-50a9 | MEDIUM | 风险 | 文档直推 master 与分支保护冲突（bypass 实证），需决策 | 2026-06-05-behavior.md | confirmed（待用户决策：docs 走 PR vs 声明 bypass 例外） |
+| F-PROC-20260605-e0e8 | LOW | 缺失 | Code Map 伴生产物六轮未建 | 2026-06-05-behavior.md | resolved（R6-C 直修，commit 见 git log） |
 
 > **编号格式 Migration(ADR-008 / 2026-05-25 起 / 多 dev 并发防撞号):**
 > - 既有 `F-XXX-NNN`(如 `F-SPEC-042`)保留 / 不迁移
