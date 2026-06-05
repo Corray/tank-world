@@ -3,6 +3,13 @@
 
 import type { World } from '../core/world';
 import type { PowerupType } from '../core/types';
+import { KEY_ACHIEVEMENTS, KEY_KILLS, LEVEL_COUNT } from '../core/constants';
+import { spawnToast } from '../effects/effects';
+
+/** Trigger thresholds (consensus §3.16). */
+const CENTURION_KILLS = 100;
+const COLLECTOR_TYPES = 3;
+const ENDLESS_8_LEVEL = 8;
 
 export enum AchievementId {
   FIRST_BLOOD = 'FIRST_BLOOD',
@@ -29,49 +36,94 @@ export const ACHIEVEMENT_LABEL: Record<AchievementId, string> = {
   [AchievementId.CENTURION]: 'Centurion',
 };
 
+// Persistence is storage-backed with NO module cache: test isolation comes
+// from fresh localStorage mocks; absence of storage degrades silently.
+
+function readSet(): Set<string> {
+  try {
+    const raw = globalThis.localStorage?.getItem(KEY_ACHIEVEMENTS);
+    return new Set(raw ? (JSON.parse(raw) as string[]) : []);
+  } catch {
+    return new Set();
+  }
+}
+
+function writeSet(set: Set<string>): void {
+  try {
+    globalThis.localStorage?.setItem(KEY_ACHIEVEMENTS, JSON.stringify([...set]));
+  } catch {
+    // degrade silently
+  }
+}
+
+function readKills(): number {
+  try {
+    const n = Number(globalThis.localStorage?.getItem(KEY_KILLS) ?? 0);
+    return Number.isFinite(n) && n > 0 ? n : 0;
+  } catch {
+    return 0;
+  }
+}
+
+function writeKills(n: number): void {
+  try {
+    globalThis.localStorage?.setItem(KEY_KILLS, String(n));
+  } catch {
+    // degrade silently
+  }
+}
+
 /** Idempotent unlock: persists + emits a toast only on first unlock. */
 export function unlock(world: World, id: AchievementId): boolean {
-  void world;
-  void id;
-  return false; // TODO(slice-W4)
+  const set = readSet();
+  if (set.has(id)) return false;
+  set.add(id);
+  writeSet(set);
+  spawnToast(world, `Achievement: ${ACHIEVEMENT_LABEL[id]}`);
+  return true;
 }
 
 export function isUnlocked(id: AchievementId): boolean {
-  void id;
-  return false; // TODO(slice-W4)
+  return readSet().has(id);
 }
 
 export function unlockedCount(): number {
-  return 0; // TODO(slice-W4)
+  return readSet().size;
 }
 
-/** Hook: an enemy was destroyed (FIRST_BLOOD / CENTURION / DEMOLITION via map). */
+/** Hook: an enemy was destroyed (FIRST_BLOOD / CENTURION). */
 export function onEnemyKilled(world: World): void {
-  void world;
-  // TODO(slice-W4)
+  unlock(world, AchievementId.FIRST_BLOOD);
+  const kills = readKills() + 1;
+  writeKills(kills);
+  if (kills >= CENTURION_KILLS) unlock(world, AchievementId.CENTURION);
 }
 
-/** Hook: a brick sub-block was destroyed — DEMOLITION when the level runs dry. */
+/** Hook: a brick was hit — DEMOLITION when the level's bricks run dry. */
 export function onBrickDestroyed(world: World): void {
-  void world;
-  // TODO(slice-W4)
+  if (world.map.brickCellsRemaining() === 0) unlock(world, AchievementId.DEMOLITION);
 }
 
-/** Hook: a powerup was picked up (COLLECTOR; PURIST tracking). */
+/** Hook: a powerup was picked up (COLLECTOR; PURIST forfeits via tracking). */
 export function onPickup(world: World, type: PowerupType): void {
-  void world;
-  void type;
-  // TODO(slice-W4)
+  if (!world.runPickupTypes.includes(type)) world.runPickupTypes.push(type);
+  if (world.runPickupTypes.length >= COLLECTOR_TYPES) {
+    unlock(world, AchievementId.COLLECTOR);
+  }
 }
 
 /** Hook: a level settled as cleared (NO_DEATH_LEVEL / FULL_CLEAR / PURIST). */
 export function onLevelCleared(world: World): void {
-  void world;
-  // TODO(slice-W4)
+  if (world.player.lives === world.levelStartLives) {
+    unlock(world, AchievementId.NO_DEATH_LEVEL);
+  }
+  if (world.level === LEVEL_COUNT) {
+    unlock(world, AchievementId.FULL_CLEAR);
+    if (world.runPickupTypes.length === 0) unlock(world, AchievementId.PURIST);
+  }
 }
 
 /** Hook: a level was loaded (ENDLESS_8). */
 export function onLevelLoaded(world: World): void {
-  void world;
-  // TODO(slice-W4)
+  if (world.level >= ENDLESS_8_LEVEL) unlock(world, AchievementId.ENDLESS_8);
 }

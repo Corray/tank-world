@@ -9,10 +9,13 @@ import {
   BULLET_SPEED,
   PLAYER_BULLETS_BASE,
   PLAYER_BULLETS_DOUBLE,
+  ICE_DECAY,
+  ICE_STOP_THRESHOLD,
 } from '../core/constants';
 import { dropFromCarrier } from '../powerup/powerup';
 import { spawnExplosion, spawnBaseExplosion, spawnSpark, spawnScoreFloat } from '../effects/effects';
 import { playSound, SoundEvent } from '../audio/audio';
+import { onEnemyKilled, onBrickDestroyed } from '../achievements/achievements';
 
 /** Explosion primary colors (enemy vs player — consensus §3.11). */
 const EXPLOSION_COLOR_ENEMY = '#ff7043';
@@ -56,14 +59,10 @@ export function tankAreaFree(world: World, x: number, y: number, self?: Tank): b
   return true;
 }
 
-/**
- * Try to move a tank in `dir`. Turns first, then advances in 1px sub-steps
- * until blocked by terrain / bounds / another tank. Returns true if it moved.
- */
-export function moveTank(world: World, tank: Tank, dir: Direction, dtMs: number): boolean {
-  tank.dir = dir;
+/** Advance a tank along `dir` at `speed` in 1px sub-steps; no facing change. */
+function translate(world: World, tank: Tank, dir: Direction, speed: number, dtMs: number): boolean {
   const vec = DIR_VEC[dir];
-  let remaining = (tank.speed * dtMs) / 1000;
+  let remaining = (speed * dtMs) / 1000;
   let moved = false;
   while (remaining > 0) {
     const d = Math.min(TANK_SUBSTEP_PX, remaining);
@@ -76,6 +75,44 @@ export function moveTank(world: World, tank: Tank, dir: Direction, dtMs: number)
     remaining -= d;
   }
   return moved;
+}
+
+/** R4 C16: standing on ice after an active move keeps momentum; else clears it. */
+function refreshSlide(world: World, tank: Tank): void {
+  tank.slide = world.map.iceAt(tank.pos.x, tank.pos.y)
+    ? { dir: tank.dir, speed: tank.speed }
+    : null;
+}
+
+/**
+ * Try to move a tank in `dir`. Turns first, then advances until blocked by
+ * terrain / bounds / another tank. Refreshes ice momentum (C16).
+ */
+export function moveTank(world: World, tank: Tank, dir: Direction, dtMs: number): boolean {
+  tank.dir = dir;
+  const moved = translate(world, tank, dir, tank.speed, dtMs);
+  refreshSlide(world, tank);
+  return moved;
+}
+
+/**
+ * R4 C16: coast a sliding tank one fixed step (called when there is no active
+ * move). Momentum decays per step; clears on stop / block / leaving the ice.
+ */
+export function applySlide(world: World, tank: Tank, dtMs: number): void {
+  const slide = tank.slide;
+  if (!slide) return;
+  if (!world.map.iceAt(tank.pos.x, tank.pos.y)) {
+    tank.slide = null; // left the ice → stop immediately (data-model §24)
+    return;
+  }
+  slide.speed *= ICE_DECAY;
+  if (slide.speed < ICE_STOP_THRESHOLD) {
+    tank.slide = null;
+    return;
+  }
+  const moved = translate(world, tank, slide.dir, slide.speed, dtMs);
+  if (!moved) tank.slide = null; // blocked mid-slide → momentum dies at the wall
 }
 
 // ---------------------------------------------------------------------------
@@ -154,6 +191,7 @@ function advanceBullet(world: World, b: Bullet, dtMs: number): boolean {
       world.map.hitBrick(row, col, b.dir); // C1 — impact-side sub-blocks
       spawnSpark(world, b.pos);
       playSound(SoundEvent.HIT_BRICK);
+      onBrickDestroyed(world); // R4: DEMOLITION when bricks run dry (§26)
       return false;
     }
 
@@ -171,6 +209,7 @@ function advanceBullet(world: World, b: Bullet, dtMs: number): boolean {
           spawnExplosion(world, hit.pos, EXPLOSION_COLOR_ENEMY);
           spawnScoreFloat(world, hit.pos, hit.score);
           playSound(SoundEvent.ENEMY_DOWN);
+          onEnemyKilled(world); // R4: FIRST_BLOOD / CENTURION (§26)
         }
         return false;
       }

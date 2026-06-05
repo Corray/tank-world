@@ -11,6 +11,7 @@ import { updatePowerups } from '../powerup/powerup';
 import { updateEffects } from '../effects/effects';
 import { playSound, SoundEvent } from '../audio/audio';
 import { submitLevelScore, submitTotal, submitEndless } from '../storage/storage';
+import { onLevelCleared } from '../achievements/achievements';
 import { LEVEL_COUNT } from './constants';
 
 export function updateWorld(world: World, dtMs: number, input: InputState): void {
@@ -48,6 +49,7 @@ export function judge(world: World): void {
   const allSpawned = world.spawnedCount >= world.enemyTotal;
   const fieldClear = world.enemies.every((e) => !e.alive);
   if (allSpawned && fieldClear) {
+    onLevelCleared(world); // R4: NO_DEATH_LEVEL / FULL_CLEAR / PURIST (§26)
     world.lastLevelScore = world.score;
     world.bankedScore += world.score;
     world.score = 0;

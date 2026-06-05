@@ -16,6 +16,7 @@ import {
   ENDLESS_CONFIRM_DELAY_MS,
 } from '../core/constants';
 import { GameMap } from '../map/map';
+import { onLevelLoaded } from '../achievements/achievements';
 import type { World } from '../core/world';
 
 export interface LevelConfig {
@@ -141,6 +142,10 @@ export function loadLevel(world: World, level: number): void {
   p.alive = true;
   p.invincibleUntil = world.clock + INVINCIBLE_MS;
   p.shieldUntil = 0;
+  p.slide = null; // R4: level transitions never carry momentum (T-TER-6)
+
+  world.levelStartLives = p.lives; // R4: NO_DEATH_LEVEL snapshot (§26)
+  onLevelLoaded(world); // R4: ENDLESS_8 hook
 }
 
 /** LEVEL_CLEAR → next level: banking already happened at judgement time. */

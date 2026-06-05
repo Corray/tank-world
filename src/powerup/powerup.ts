@@ -6,6 +6,7 @@ import type { Vec } from '../core/types';
 import type { World } from '../core/world';
 import { TANK_SIZE, SHIELD_MS } from '../core/constants';
 import { playSound, SoundEvent } from '../audio/audio';
+import { onPickup } from '../achievements/achievements';
 
 /** Pickup box edge for a dropped powerup, px (module-local by usage scope). */
 export const POWERUP_SIZE = 24;
@@ -38,6 +39,7 @@ export function updatePowerups(world: World): void {
     if (!overlap) return true;
     applyEffect(world, pu.type);
     playSound(SoundEvent.PICKUP); // R3 (AC-26)
+    onPickup(world, pu.type); // R4: COLLECTOR / PURIST tracking (§26)
     return false;
   });
 }
