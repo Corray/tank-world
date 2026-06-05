@@ -2,6 +2,7 @@
 
 import {
   KEY_BEST_TOTAL,
+  KEY_BEST_COOP_ENDLESS,
   KEY_BEST_LEVEL,
   KEY_BEST_ENDLESS,
   KEY_BEST_COOP,
@@ -62,6 +63,15 @@ export function getBestCoop(): number {
 
 export function submitCoop(total: number): void {
   writeIfHigher(KEY_BEST_COOP, total);
+}
+
+// R7: sixth bucket (data-model §36).
+export function getBestCoopEndless(): number {
+  return read(KEY_BEST_COOP_ENDLESS);
+}
+
+export function submitCoopEndless(score: number): void {
+  writeIfHigher(KEY_BEST_COOP_ENDLESS, score);
 }
 
 export function getMutedPref(): boolean {

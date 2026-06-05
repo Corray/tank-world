@@ -281,24 +281,23 @@ describe('T-2P-14/15 best-coop bucket isolation', () => {
   });
 });
 
-describe('T-2P-16 achievements are gated off in co-op', () => {
-  it('kill / clear / pickup unlock nothing in COOP', () => {
+// 基线修订 2026-06-05（共识 v6 §3.20）：v5「2P 禁成就」改判撤销——
+// 原断言反转为团队语义开放（详细矩阵见 tests/coop-endless.spec.ts T-ACH2-*）。
+describe('T-2P-16 achievements OPEN in co-op (v6 reversal)', () => {
+  it('COOP kill unlocks FIRST_BLOOD (team semantics)', () => {
     const world = makeCoop();
     addEnemy(world, EnemyType.BASIC, 6, 8);
     world.players[0].pos = cellCenter(6, 2);
     world.players[0].dir = Direction.RIGHT;
     firePlayerBullet(world, world.players[0]);
     runCombat(world, 2000);
-    expect(isUnlocked(AchievementId.FIRST_BLOOD)).toBe(false);
-    world.spawnedCount = world.enemyTotal;
-    world.enemies.forEach((e) => (e.alive = false));
-    judge(world);
-    expect(isUnlocked(AchievementId.NO_DEATH_LEVEL)).toBe(false);
+    expect(isUnlocked(AchievementId.FIRST_BLOOD)).toBe(true);
   });
 });
 
-describe('T-2P-17 no endless entry for co-op', () => {
-  it('enterEndless refuses COOP GAME_COMPLETE', () => {
+// 基线修订 2026-06-05（共识 v6 §3.19）：v5「COOP 无无尽入口」改判撤销——断言反转。
+describe('T-2P-17 endless entry OPEN for co-op (v6 reversal)', () => {
+  it('enterEndless accepts COOP GAME_COMPLETE after the window', () => {
     const world = makeCoop();
     loadLevel(world, 3);
     world.state = GameState.PLAYING;
@@ -306,7 +305,9 @@ describe('T-2P-17 no endless entry for co-op', () => {
     judge(world);
     expect(world.state).toBe(GameState.GAME_COMPLETE);
     enterEndless(world, world.gameCompleteWallMs + ENDLESS_CONFIRM_DELAY_MS + 100);
-    expect(world.state).toBe(GameState.GAME_COMPLETE); // refused
+    expect(world.state).toBe(GameState.PLAYING);
+    expect(world.level).toBe(4);
+    expect(world.players).toHaveLength(2);
   });
 });
 

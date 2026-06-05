@@ -106,6 +106,8 @@ export interface PlayerTank extends Tank {
   doubleFire: boolean;
   /** R5: personal cumulative score (display only; totals stay on World). */
   score: number;
+  /** R7: lives snapshot at level load — NO_DEATH team judging (§36). */
+  levelStartLives: number;
 }
 
 export interface EnemyTank extends Tank {
