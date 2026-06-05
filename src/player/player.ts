@@ -14,12 +14,12 @@ import { playSound, SoundEvent } from '../audio/audio';
 /** Player explosion color (distinct from enemies — consensus §3.11). */
 const EXPLOSION_COLOR_PLAYER = '#aeea00';
 
-/** Per-step update for ONE player (default: P1 — v1~v4 compat). */
+/** Per-step update for ONE player (R6-D: explicit player arg, no defaults). */
 export function updatePlayer(
   world: World,
   dtMs: number,
   input: InputState,
-  player: PlayerTank = world.players[0],
+  player: PlayerTank,
 ): void {
   if (!player.alive) return;
   if (input.move) moveTank(world, player, input.move, dtMs);
@@ -39,7 +39,7 @@ export function updatePlayers(world: World, dtMs: number, inputs: InputState[]):
  * life and respawn at own spawn point, or stay dead on the last life.
  * judge() handles defeat once ALL players are dead (consensus §3.17).
  */
-export function damagePlayer(world: World, player: PlayerTank = world.players[0]): void {
+export function damagePlayer(world: World, player: PlayerTank): void {
   // R3: hit feedback at the death spot, before any respawn move (AC-23/25).
   spawnExplosion(world, player.pos, EXPLOSION_COLOR_PLAYER);
   flashPlayer(world);
