@@ -67,10 +67,21 @@ export class GameMap {
     const col = Math.floor(x / CELL);
     const t = this.terrainAt(row, col);
     if (t === Terrain.STEEL || t === Terrain.BASE) return true;
+    if (t === Terrain.WATER) return true; // C14 — blocks tanks, not bullets (R4)
     if (t === Terrain.BRICK) {
       return (this.subMask(row, col) & this.subBitAt(row, col, x, y)) !== 0;
     }
-    return false;
+    return false; // EMPTY / BUSH / ICE are passable
+  }
+
+  /** Brick cells with any surviving sub-block (DEMOLITION judging, R4 §26). */
+  brickCellsRemaining(): number {
+    return this.brickSub.size;
+  }
+
+  /** Whether the tank center at (x, y) stands on ice (C16). */
+  iceAt(x: number, y: number): boolean {
+    return this.terrainAt(Math.floor(y / CELL), Math.floor(x / CELL)) === Terrain.ICE;
   }
 
   /** Whether an alive brick sub-block covers pixel (x, y). Used by bullets (C1). */

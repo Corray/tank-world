@@ -68,12 +68,24 @@ describe('T-EN-1 endless config formula sampling', () => {
   });
 });
 
-describe('T-EN-2 endless map rotation L1→L2→L3', () => {
-  it('L4/L5/L6/L7 use layouts 1/2/3/1', () => {
-    expect(endlessConfig(4).layout).toBe(LEVELS[0].layout);
-    expect(endlessConfig(5).layout).toBe(LEVELS[1].layout);
-    expect(endlessConfig(6).layout).toBe(LEVELS[2].layout);
-    expect(endlessConfig(7).layout).toBe(LEVELS[0].layout);
+// 基线修订 2026-06-05（共识 v4 §3.15）：无尽图由「骨架引用」改为「骨架的确定性
+// 地形变体克隆」，引用相等断言失效。改为骨架签名格断言（签名格不在变体槽位内）。
+describe('T-EN-2 endless map rotation L1→L2→L3 (skeleton signatures)', () => {
+  // Signature cells unique per skeleton and outside VARIANT_SLOTS:
+  // L1: steel at (3,6); L2: steel at (1,1); L3: steel at (11,2).
+  function skeletonOf(layout: number[][]): number {
+    if (layout[3][6] === 2 && layout[1][1] !== 2) return 1;
+    if (layout[1][1] === 2) return 2;
+    if (layout[11][2] === 2) return 3;
+    return 0;
+  }
+
+  it('L4/L5/L6/L7 rotate through skeletons 1/2/3/1', () => {
+    expect(skeletonOf(endlessConfig(4).layout)).toBe(1);
+    expect(skeletonOf(endlessConfig(5).layout)).toBe(2);
+    expect(skeletonOf(endlessConfig(6).layout)).toBe(3);
+    expect(skeletonOf(endlessConfig(7).layout)).toBe(1);
+    void LEVELS;
   });
 });
 

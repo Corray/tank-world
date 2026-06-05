@@ -5,18 +5,19 @@ import { Direction } from '../core/types';
 import { INVINCIBLE_MS } from '../core/constants';
 import type { World } from '../core/world';
 import type { InputState } from '../input/input';
-import { moveTank, firePlayerBullet } from '../combat/combat';
+import { moveTank, applySlide, firePlayerBullet } from '../combat/combat';
 import { spawnExplosion, flashPlayer } from '../effects/effects';
 import { playSound, SoundEvent } from '../audio/audio';
 
 /** Player explosion color (distinct from enemies — consensus §3.11). */
 const EXPLOSION_COLOR_PLAYER = '#aeea00';
 
-/** Per-step player update: apply input to movement and firing. */
+/** Per-step player update: apply input to movement/firing; coast on ice (C16). */
 export function updatePlayer(world: World, dtMs: number, input: InputState): void {
   const p = world.player;
   if (!p.alive) return;
   if (input.move) moveTank(world, p, input.move, dtMs);
+  else applySlide(world, p, dtMs);
   if (input.fire) firePlayerBullet(world);
 }
 
@@ -34,6 +35,7 @@ export function damagePlayer(world: World): void {
   p.lives -= 1;
   p.doubleFire = false; // R2: double fire is lost on death (AC-18)
   p.shieldUntil = 0;
+  p.slide = null; // R4: respawn never carries momentum (T-TER-6)
   if (p.lives > 0) {
     p.pos = { ...p.spawnPos };
     p.dir = Direction.UP;

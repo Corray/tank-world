@@ -11,7 +11,13 @@ import {
   SPARK_MS,
   SCORE_FLOAT_MS,
   FLASH_MS,
+  TOAST_MS,
+  FIELD,
 } from '../core/constants';
+
+/** Toast banner anchor (top-center). */
+const TOAST_X = FIELD / 2;
+const TOAST_Y = 20;
 
 function spawn(world: World, effect: Omit<World['effects'][number], 'bornAt'>): void {
   world.effects.push({ ...effect, bornAt: world.clock });
@@ -45,6 +51,16 @@ export function spawnScoreFloat(world: World, pos: Vec, score: number): void {
 /** Trigger the player-hit full-screen flash (AC-25). */
 export function flashPlayer(world: World): void {
   world.flashUntil = world.clock + FLASH_MS;
+}
+
+/** R4: top-center achievement banner (consensus §3.16). */
+export function spawnToast(world: World, text: string): void {
+  spawn(world, {
+    kind: EffectKind.TOAST,
+    pos: { x: TOAST_X, y: TOAST_Y },
+    durationMs: TOAST_MS,
+    text,
+  });
 }
 
 /** Expire effects whose lifetime has passed (clock-based — pause-safe). */
