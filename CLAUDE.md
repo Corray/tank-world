@@ -66,6 +66,21 @@ standard_path: /Users/chat/backend-ai-workflow/agent-dev-standard
 
 ---
 
+## Audit 输入映射
+
+| Phase | Spec 侧输入 | 实现侧输入 | 状态 |
+|-------|------------|-----------|------|
+| spec | `docs/prd/*.md` + `docs/spec/consensus.md` + `docs/spec/modules.md` | —（自身质量审查） | 启用 |
+| architecture | `docs/spec/consensus.md` + `docs/spec/modules.md` + `docs/spec/architecture.md` + `docs/adr/` | `src/` 目录结构与管线 | 启用 |
+| data-model | `docs/spec/data-model.md`（碰撞矩阵/常量表/状态机/分叉清单） | `src/core/constants.ts` + `src/core/types.ts` + 各模块实现 | 启用（替代 api phase：纯前端无 HTTP API，契约层 = 数据模型与模块间接口） |
+| behavior | `docs/spec/consensus.md` §5 AC + `docs/spec/test-plan/` | `tests/` + CI | 启用 |
+| api | — | — | **裁剪**：无 HTTP API（见 data-model phase） |
+| integration | — | — | **裁剪**：无第三方服务/SDK（Web Audio/localStorage 为平台 API，归 data-model phase 对照） |
+| issue-process | GitHub Issues + labels | — | 启用（按需） |
+
+- `audit_dir`: `docs/audit/`
+- 安全基线裁剪声明：S1 裸接口（无后端 Controller，N/A）/ S3 OAuth（无认证，N/A）/ S2 凭证扫描照常执行
+
 ## Flow 工作模式（GitHub 流派）
 
 - **agent 启动加载顺序：** `~/.claude/CLAUDE.md`（全局）→ 本文件 → `docs/env.yaml`（按需）
