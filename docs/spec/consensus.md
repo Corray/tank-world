@@ -212,7 +212,7 @@
 | A3 | FULL_CLEAR | 三关全通 |
 | A4 | ENDLESS_8 | 无尽达到 L8 |
 | A5 | COLLECTOR | 单局（一条 run）集齐三种道具 |
-| A6 | DEMOLITION | 一关内拆光全部砖墙 |
+| A6 | DEMOLITION | 一关内拆光全部砖墙（**最后一击须为玩家子弹**——#14 PM 决策 2026-06-05 澄清主体） |
 | A7 | PURIST | 全程不拾取任何道具完成全通 |
 | A8 | CENTURION | 累计击毁 100 名敌人（跨局累计） |
 
