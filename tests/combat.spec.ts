@@ -95,34 +95,34 @@ describe('T-CMB-5 (C5) player bullet × armored enemy: 3 hits, score on kill onl
 describe('T-CMB-6 (C6) enemy bullet × player', () => {
   it('non-invincible: one life lost, respawn at spawn point with invincibility', () => {
     const world = makeWorld();
-    world.player.pos = cellCenter(6, 8);
-    world.player.invincibleUntil = 0;
+    world.players[0].pos = cellCenter(6, 8);
+    world.players[0].invincibleUntil = 0;
     world.clock = 10_000;
     world.bullets.push(makeBullet(BulletOwner.ENEMY, cellCenter(6, 4), Direction.RIGHT));
     runCombat(world, 1500);
-    expect(world.player.lives).toBe(2);
-    expect(world.player.pos).toEqual(world.player.spawnPos);
-    expect(world.player.invincibleUntil).toBeGreaterThanOrEqual(world.clock);
-    expect(world.player.invincibleUntil).toBeLessThanOrEqual(world.clock + INVINCIBLE_MS);
+    expect(world.players[0].lives).toBe(2);
+    expect(world.players[0].pos).toEqual(world.players[0].spawnPos);
+    expect(world.players[0].invincibleUntil).toBeGreaterThanOrEqual(world.clock);
+    expect(world.players[0].invincibleUntil).toBeLessThanOrEqual(world.clock + INVINCIBLE_MS);
   });
 
   it('invincible: bullet consumed, player unharmed in place', () => {
     const world = makeWorld();
-    world.player.pos = cellCenter(6, 8);
+    world.players[0].pos = cellCenter(6, 8);
     world.clock = 10_000;
-    world.player.invincibleUntil = world.clock + 60_000;
+    world.players[0].invincibleUntil = world.clock + 60_000;
     world.bullets.push(makeBullet(BulletOwner.ENEMY, cellCenter(6, 4), Direction.RIGHT));
     runCombat(world, 1500);
     expect(world.bullets).toHaveLength(0);
-    expect(world.player.lives).toBe(3);
-    expect(world.player.pos).toEqual(cellCenter(6, 8));
+    expect(world.players[0].lives).toBe(3);
+    expect(world.players[0].pos).toEqual(cellCenter(6, 8));
   });
 });
 
 describe('T-CMB-7 (C7) player bullet × enemy bullet: mutual annihilation', () => {
   it('head-on bullets both disappear', () => {
     const world = makeWorld();
-    world.player.pos = cellCenter(12, 0); // park player away from the bullet lane
+    world.players[0].pos = cellCenter(12, 0); // park player away from the bullet lane
     world.bullets.push(makeBullet(BulletOwner.PLAYER, cellCenter(6, 2), Direction.RIGHT));
     world.bullets.push(makeBullet(BulletOwner.ENEMY, cellCenter(6, 10), Direction.LEFT));
     runCombat(world, 2000);
@@ -133,7 +133,7 @@ describe('T-CMB-7 (C7) player bullet × enemy bullet: mutual annihilation', () =
 describe('T-CMB-8 (C8) enemy bullets pass through each other', () => {
   it('crossing enemy bullets both survive the crossing', () => {
     const world = makeWorld();
-    world.player.pos = cellCenter(12, 0);
+    world.players[0].pos = cellCenter(12, 0);
     world.bullets.push(makeBullet(BulletOwner.ENEMY, cellCenter(6, 4), Direction.RIGHT));
     world.bullets.push(makeBullet(BulletOwner.ENEMY, cellCenter(6, 8), Direction.LEFT));
     runCombat(world, STEP_MS * 25); // enough to cross, not enough to leave field
@@ -144,7 +144,7 @@ describe('T-CMB-8 (C8) enemy bullets pass through each other', () => {
 describe('T-CMB-9 (C9) enemy bullet passes through enemy tanks', () => {
   it('enemy tank takes no damage from friendly fire', () => {
     const world = makeWorld();
-    world.player.pos = cellCenter(12, 0);
+    world.players[0].pos = cellCenter(12, 0);
     const enemy = addEnemy(world, EnemyType.BASIC, 6, 8);
     world.bullets.push(makeBullet(BulletOwner.ENEMY, cellCenter(6, 4), Direction.RIGHT));
     runCombat(world, STEP_MS * 50);
@@ -159,33 +159,33 @@ describe('T-CMB-10/12 (C10, C12) tank blocked by terrain and bounds', () => {
       const layout = emptyLayout();
       layout[6][7] = terrain;
       const world = makeWorld(layout);
-      world.player.pos = cellCenter(6, 6);
-      for (let i = 0; i < 120; i++) moveTank(world, world.player, Direction.RIGHT, STEP_MS);
+      world.players[0].pos = cellCenter(6, 6);
+      for (let i = 0; i < 120; i++) moveTank(world, world.players[0], Direction.RIGHT, STEP_MS);
       // Right edge of tank must not cross into the blocked cell.
-      expect(world.player.pos.x + TANK_SIZE / 2).toBeLessThanOrEqual(7 * CELL);
-      const blocked = moveTank(world, world.player, Direction.RIGHT, STEP_MS);
+      expect(world.players[0].pos.x + TANK_SIZE / 2).toBeLessThanOrEqual(7 * CELL);
+      const blocked = moveTank(world, world.players[0], Direction.RIGHT, STEP_MS);
       expect(blocked).toBe(false);
     });
   }
 
   it('tank blocked at field boundary (C12)', () => {
     const world = makeWorld();
-    world.player.pos = cellCenter(6, 12);
-    for (let i = 0; i < 120; i++) moveTank(world, world.player, Direction.RIGHT, STEP_MS);
-    expect(world.player.pos.x + TANK_SIZE / 2).toBeLessThanOrEqual(13 * CELL);
-    expect(moveTank(world, world.player, Direction.RIGHT, STEP_MS)).toBe(false);
+    world.players[0].pos = cellCenter(6, 12);
+    for (let i = 0; i < 120; i++) moveTank(world, world.players[0], Direction.RIGHT, STEP_MS);
+    expect(world.players[0].pos.x + TANK_SIZE / 2).toBeLessThanOrEqual(13 * CELL);
+    expect(moveTank(world, world.players[0], Direction.RIGHT, STEP_MS)).toBe(false);
   });
 });
 
 describe('T-CMB-11 (C11) tanks block each other without damage', () => {
   it('player pushing into an enemy is blocked, both unharmed', () => {
     const world = makeWorld();
-    world.player.pos = cellCenter(6, 6);
+    world.players[0].pos = cellCenter(6, 6);
     const enemy = addEnemy(world, EnemyType.BASIC, 6, 7);
-    for (let i = 0; i < 120; i++) moveTank(world, world.player, Direction.RIGHT, STEP_MS);
+    for (let i = 0; i < 120; i++) moveTank(world, world.players[0], Direction.RIGHT, STEP_MS);
     // Boxes must not overlap.
-    expect(enemy.pos.x - world.player.pos.x).toBeGreaterThanOrEqual(TANK_SIZE);
-    expect(world.player.lives).toBe(3);
+    expect(enemy.pos.x - world.players[0].pos.x).toBeGreaterThanOrEqual(TANK_SIZE);
+    expect(world.players[0].lives).toBe(3);
     expect(enemy.hp).toBe(1);
   });
 });
