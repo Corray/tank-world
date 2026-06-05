@@ -2,9 +2,10 @@
 // (AC-8, AC-20, AC-26, AC-28).
 
 import type { World } from '../core/world';
-import { getBestTotal, getBestLevel, getBestEndless } from '../storage/storage';
+import { getBestTotal, getBestLevel, getBestEndless, getBestCoop } from '../storage/storage';
 import { isMuted } from '../audio/audio';
 import { LEVEL_COUNT } from '../core/constants';
+import { GameMode } from '../core/types';
 import {
   AchievementId,
   ACHIEVEMENT_LABEL,
@@ -22,13 +23,22 @@ export function enemiesRemaining(world: World): number {
 export function renderHud(el: HTMLElement, world: World): void {
   const levelLabel =
     world.level > LEVEL_COUNT ? `${world.level}/&infin;` : `${world.level}/${LEVEL_COUNT}`;
+  const coop = world.mode === GameMode.COOP;
+  const playerRows = coop
+    ? world.players
+        .map(
+          (p) =>
+            `<div>P${p.id}&nbsp;&nbsp;♥${p.lives}&nbsp;&nbsp;${p.score}</div>`,
+        )
+        .join('')
+    : `<div>LIVES&nbsp;&nbsp;${world.players[0].lives}</div>`;
   el.innerHTML = [
-    `<div>LEVEL&nbsp;&nbsp;${levelLabel}</div>`,
+    `<div>LEVEL&nbsp;&nbsp;${levelLabel}${coop ? '&nbsp;CO-OP' : ''}</div>`,
     `<div>SCORE&nbsp;&nbsp;${world.bankedScore + world.score}</div>`,
-    `<div>LIVES&nbsp;&nbsp;${world.player.lives}</div>`,
+    playerRows,
     `<div>ENEMY&nbsp;&nbsp;${enemiesRemaining(world)}</div>`,
     `<hr/>`,
-    `<div style="font-size:11px;color:#aaa">BEST TOTAL&nbsp;&nbsp;${getBestTotal()}<br/>BEST LEVEL&nbsp;&nbsp;${getBestLevel()}<br/>BEST ENDLESS&nbsp;&nbsp;${getBestEndless()}</div>`,
+    `<div style="font-size:11px;color:#aaa">BEST TOTAL&nbsp;&nbsp;${getBestTotal()}<br/>BEST LEVEL&nbsp;&nbsp;${getBestLevel()}<br/>BEST ENDLESS&nbsp;&nbsp;${getBestEndless()}<br/>BEST CO-OP&nbsp;&nbsp;${getBestCoop()}</div>`,
     `<hr/>`,
     `<div style="font-size:11px;color:#aaa">ACH&nbsp;&nbsp;${unlockedCount()}/${ACHIEVEMENT_COUNT}</div>`,
     `<div style="font-size:10px;line-height:1.5">${achievementRows()}</div>`,

@@ -1,5 +1,6 @@
-// Input module: keyboard events → semantic commands (consensus §3.4).
-// Dual bindings: arrows + WASD for movement, Space/J for fire, P pause, R restart.
+// Input module: keyboard events → semantic commands (consensus §3.4, §3.17).
+// SOLO: P1 uses both bindings (arrows+WASD, Space+J — v1 behavior).
+// COOP: P1 = WASD + J; P2 = Arrows + Enter (AC-39).
 
 import { Direction } from '../core/types';
 
@@ -9,39 +10,56 @@ export interface InputState {
   fire: boolean;
 }
 
-const MOVE_KEYS: Record<string, Direction> = {
-  ArrowUp: Direction.UP,
-  ArrowDown: Direction.DOWN,
-  ArrowLeft: Direction.LEFT,
-  ArrowRight: Direction.RIGHT,
+interface KeyMapping {
+  moves: Record<string, Direction>;
+  fires: ReadonlySet<string>;
+}
+
+const WASD_MOVES: Record<string, Direction> = {
   KeyW: Direction.UP,
   KeyS: Direction.DOWN,
   KeyA: Direction.LEFT,
   KeyD: Direction.RIGHT,
 };
 
-const FIRE_KEYS = new Set(['Space', 'KeyJ']);
+const ARROW_MOVES: Record<string, Direction> = {
+  ArrowUp: Direction.UP,
+  ArrowDown: Direction.DOWN,
+  ArrowLeft: Direction.LEFT,
+  ArrowRight: Direction.RIGHT,
+};
+
+const SOLO_P1: KeyMapping = {
+  moves: { ...WASD_MOVES, ...ARROW_MOVES },
+  fires: new Set(['Space', 'KeyJ']),
+};
+const COOP_P1: KeyMapping = { moves: WASD_MOVES, fires: new Set(['KeyJ']) };
+const COOP_P2: KeyMapping = { moves: ARROW_MOVES, fires: new Set(['Enter']) };
+
+const ALL_GAME_KEYS = new Set([
+  ...Object.keys(SOLO_P1.moves),
+  'Space',
+  'KeyJ',
+  'Enter',
+]);
 
 export class Keyboard {
-  private held: Direction[] = [];
-  private fireHeld = false;
-  /** One-shot flags consumed by the game each frame. */
+  /** Codes currently held, in press order (last movement key wins). */
+  private pressOrder: string[] = [];
+  /** One-shot callbacks wired by main. */
   onPause: () => void = () => {};
   onRestart: () => void = () => {};
   onAnyAction: () => void = () => {};
   /** R3: M key mute toggle (consensus §3.12). */
   onMute: () => void = () => {};
+  /** R5: READY + "2" → co-op (consensus §3.17). */
+  onCoop: () => void = () => {};
 
   attach(target: Window): void {
     target.addEventListener('keydown', (e) => {
-      const dir = MOVE_KEYS[e.code];
-      if (dir) {
+      if (ALL_GAME_KEYS.has(e.code)) {
         e.preventDefault();
-        if (!this.held.includes(dir)) this.held.push(dir);
-        this.onAnyAction();
-      } else if (FIRE_KEYS.has(e.code)) {
-        e.preventDefault();
-        this.fireHeld = true;
+        if (!this.pressOrder.includes(e.code)) this.pressOrder.push(e.code);
         this.onAnyAction();
       } else if (e.code === 'KeyP') {
         this.onPause();
@@ -49,16 +67,28 @@ export class Keyboard {
         this.onRestart();
       } else if (e.code === 'KeyM') {
         this.onMute();
+      } else if (e.code === 'Digit2') {
+        this.onCoop();
       }
     });
     target.addEventListener('keyup', (e) => {
-      const dir = MOVE_KEYS[e.code];
-      if (dir) this.held = this.held.filter((d) => d !== dir);
-      if (FIRE_KEYS.has(e.code)) this.fireHeld = false;
+      this.pressOrder = this.pressOrder.filter((c) => c !== e.code);
     });
   }
 
+  /** Input lane for a player slot under the given mode (AC-39). */
+  stateFor(playerId: 1 | 2, coop: boolean): InputState {
+    const mapping = coop ? (playerId === 1 ? COOP_P1 : COOP_P2) : SOLO_P1;
+    let move: Direction | null = null;
+    for (const code of this.pressOrder) {
+      if (mapping.moves[code]) move = mapping.moves[code]; // last pressed wins
+    }
+    const fire = this.pressOrder.some((c) => mapping.fires.has(c));
+    return { move, fire };
+  }
+
+  /** v1~v4 compat: combined P1 state (solo mapping). */
   state(): InputState {
-    return { move: this.held[this.held.length - 1] ?? null, fire: this.fireHeld };
+    return this.stateFor(1, false);
   }
 }

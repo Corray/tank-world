@@ -1,6 +1,12 @@
 // Storage module (R2): localStorage best scores, fail-silent (data-model §14).
 
-import { KEY_BEST_TOTAL, KEY_BEST_LEVEL, KEY_BEST_ENDLESS, KEY_MUTED } from '../core/constants';
+import {
+  KEY_BEST_TOTAL,
+  KEY_BEST_LEVEL,
+  KEY_BEST_ENDLESS,
+  KEY_BEST_COOP,
+  KEY_MUTED,
+} from '../core/constants';
 
 function read(key: string): number {
   try {
@@ -47,6 +53,15 @@ export function getBestEndless(): number {
 /** Submit an endless-run score (ENDLESS_OVER settlement only). */
 export function submitEndless(score: number): void {
   writeIfHigher(KEY_BEST_ENDLESS, score);
+}
+
+// R5: co-op combined best (data-model §31).
+export function getBestCoop(): number {
+  return read(KEY_BEST_COOP);
+}
+
+export function submitCoop(total: number): void {
+  writeIfHigher(KEY_BEST_COOP, total);
 }
 
 export function getMutedPref(): boolean {

@@ -2,7 +2,7 @@
 // toast emission, progress query (consensus §3.16, data-model §26).
 
 import type { World } from '../core/world';
-import type { PowerupType } from '../core/types';
+import { GameMode, type PowerupType } from '../core/types';
 import { KEY_ACHIEVEMENTS, KEY_KILLS, LEVEL_COUNT } from '../core/constants';
 import { spawnToast } from '../effects/effects';
 
@@ -91,8 +91,14 @@ export function unlockedCount(): number {
   return readSet().size;
 }
 
+/** R5 AC-44: achievements never trigger in co-op runs. */
+function coopGated(world: World): boolean {
+  return world.mode === GameMode.COOP;
+}
+
 /** Hook: an enemy was destroyed (FIRST_BLOOD / CENTURION). */
 export function onEnemyKilled(world: World): void {
+  if (coopGated(world)) return;
   unlock(world, AchievementId.FIRST_BLOOD);
   const kills = readKills() + 1;
   writeKills(kills);
@@ -101,11 +107,13 @@ export function onEnemyKilled(world: World): void {
 
 /** Hook: a brick was hit — DEMOLITION when the level's bricks run dry. */
 export function onBrickDestroyed(world: World): void {
+  if (coopGated(world)) return;
   if (world.map.brickCellsRemaining() === 0) unlock(world, AchievementId.DEMOLITION);
 }
 
 /** Hook: a powerup was picked up (COLLECTOR; PURIST forfeits via tracking). */
 export function onPickup(world: World, type: PowerupType): void {
+  if (coopGated(world)) return;
   if (!world.runPickupTypes.includes(type)) world.runPickupTypes.push(type);
   if (world.runPickupTypes.length >= COLLECTOR_TYPES) {
     unlock(world, AchievementId.COLLECTOR);
@@ -114,7 +122,8 @@ export function onPickup(world: World, type: PowerupType): void {
 
 /** Hook: a level settled as cleared (NO_DEATH_LEVEL / FULL_CLEAR / PURIST). */
 export function onLevelCleared(world: World): void {
-  if (world.player.lives === world.levelStartLives) {
+  if (coopGated(world)) return;
+  if (world.players[0].lives === world.levelStartLives) {
     unlock(world, AchievementId.NO_DEATH_LEVEL);
   }
   if (world.level === LEVEL_COUNT) {
@@ -125,5 +134,6 @@ export function onLevelCleared(world: World): void {
 
 /** Hook: a level was loaded (ENDLESS_8). */
 export function onLevelLoaded(world: World): void {
+  if (coopGated(world)) return;
   if (world.level >= ENDLESS_8_LEVEL) unlock(world, AchievementId.ENDLESS_8);
 }

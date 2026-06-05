@@ -1,10 +1,10 @@
 // Entry point: wire modules together and start the loop (architecture §2).
 
-import { GameLoop, startGame, togglePause, restartToReady } from './core/game';
+import { GameLoop, startGame, startCoop, togglePause, restartToReady } from './core/game';
 import { advanceLevel, retryLevel, enterEndless } from './level/level';
 import { toggleMute } from './audio/audio';
 import { createWorld } from './core/world';
-import { GameState } from './core/types';
+import { GameState, GameMode } from './core/types';
 import { Keyboard } from './input/input';
 import { render } from './render/render';
 import { updateWorld } from './core/update';
@@ -21,7 +21,10 @@ keyboard.attach(window);
 
 const loop = new GameLoop(
   createWorld(),
-  (world, dt) => updateWorld(world, dt, keyboard.state()),
+  (world, dt) => {
+    const coop = world.mode === GameMode.COOP;
+    updateWorld(world, dt, [keyboard.stateFor(1, coop), keyboard.stateFor(2, coop)]);
+  },
   (world) => {
     render(ctx, world);
     renderHud(hudEl, world);
@@ -36,6 +39,7 @@ keyboard.onAnyAction = () => {
 };
 keyboard.onPause = () => togglePause(loop.world);
 keyboard.onMute = () => toggleMute();
+keyboard.onCoop = () => startCoop(loop.world); // READY + "2" (AC-38)
 keyboard.onRestart = () => {
   if (loop.world.state === GameState.DEFEAT) {
     retryLevel(loop.world); // R2: retry current level (AC-15)

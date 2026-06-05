@@ -72,6 +72,12 @@ export enum BulletOwner {
   ENEMY = 'ENEMY',
 }
 
+/** R5: solo vs local co-op (consensus §3.17). */
+export enum GameMode {
+  SOLO = 'SOLO',
+  COOP = 'COOP',
+}
+
 export interface Vec {
   x: number;
   y: number;
@@ -88,6 +94,8 @@ export interface Tank {
 }
 
 export interface PlayerTank extends Tank {
+  /** R5: player slot (key bindings / spawn / HUD attribution). */
+  id: 1 | 2;
   lives: number;
   /** Timestamp (game clock, ms) until which the player is invincible. */
   invincibleUntil: number;
@@ -96,6 +104,8 @@ export interface PlayerTank extends Tank {
   shieldUntil: number;
   /** R2: double-fire powerup active (2 bullets on screen). */
   doubleFire: boolean;
+  /** R5: personal cumulative score (display only; totals stay on World). */
+  score: number;
 }
 
 export interface EnemyTank extends Tank {
@@ -119,6 +129,8 @@ export interface Bullet {
   dir: Direction;
   speed: number;
   owner: BulletOwner;
+  /** R5: which player fired it (fire-cap + score attribution, §30). */
+  playerId?: 1 | 2;
 }
 
 export const DIR_VEC: Record<Direction, Vec> = {

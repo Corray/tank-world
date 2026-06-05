@@ -1,21 +1,29 @@
 // Per-frame pipeline (architecture §3.2):
 // input → player → enemies → combat → judge. Render/HUD happen outside.
 
-import { GameState } from './types';
+import { GameState, GameMode } from './types';
 import type { World } from './world';
 import type { InputState } from '../input/input';
-import { updatePlayer } from '../player/player';
+import { updatePlayers } from '../player/player';
 import { updateEnemies, trySpawnEnemy } from '../enemy/enemy';
 import { updateCombat } from '../combat/combat';
 import { updatePowerups } from '../powerup/powerup';
 import { updateEffects } from '../effects/effects';
 import { playSound, SoundEvent } from '../audio/audio';
-import { submitLevelScore, submitTotal, submitEndless } from '../storage/storage';
+import { submitLevelScore, submitTotal, submitEndless, submitCoop } from '../storage/storage';
 import { onLevelCleared } from '../achievements/achievements';
 import { LEVEL_COUNT } from './constants';
 
-export function updateWorld(world: World, dtMs: number, input: InputState): void {
-  updatePlayer(world, dtMs, input);
+/**
+ * Per-step pipeline. `inputs` accepts a single InputState (v1~v4 compat,
+ * applied to P1) or an array of per-player lanes (R5 §31).
+ */
+export function updateWorld(
+  world: World,
+  dtMs: number,
+  inputs: InputState | InputState[],
+): void {
+  updatePlayers(world, dtMs, Array.isArray(inputs) ? inputs : [inputs]);
   updatePowerups(world); // before combat: bomb kills exclude same-frame scoring (risk §15)
   trySpawnEnemy(world, dtMs);
   updateEnemies(world, dtMs);
@@ -36,7 +44,9 @@ function endlessSettlement(world: World): number {
  */
 export function judge(world: World): void {
   if (world.state !== GameState.PLAYING) return;
-  if (world.map.baseDestroyed || (!world.player.alive && world.player.lives <= 0)) {
+  // R5 §31: defeat when the base falls OR every player is out of lives.
+  const allPlayersDead = world.players.every((p) => !p.alive && p.lives <= 0);
+  if (world.map.baseDestroyed || allPlayersDead) {
     if (world.level > LEVEL_COUNT) {
       world.state = GameState.ENDLESS_OVER;
       submitEndless(endlessSettlement(world));
@@ -57,7 +67,9 @@ export function judge(world: World): void {
     if (world.level === LEVEL_COUNT) {
       world.state = GameState.GAME_COMPLETE;
       world.gameCompleteWallMs = Date.now(); // anti-misfire window anchor (risk §21)
-      submitTotal(world.bankedScore);
+      // R5 §31: co-op totals go to their own bucket; solo buckets untouched.
+      if (world.mode === GameMode.COOP) submitCoop(world.bankedScore);
+      else submitTotal(world.bankedScore);
     } else {
       world.state = GameState.LEVEL_CLEAR; // L1~2 and all endless levels
     }

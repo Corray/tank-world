@@ -3,6 +3,7 @@
 import { PLAYER_LIVES, PLAYER_SPEED, CELL } from './constants';
 import {
   GameState,
+  GameMode,
   Direction,
   type PlayerTank,
   type EnemyTank,
@@ -20,7 +21,18 @@ export interface World {
   /** Game clock in ms; advances only while PLAYING (drives AC-11 freeze). */
   clock: number;
   map: GameMap;
-  player: PlayerTank;
+  /** R5: solo vs co-op (mode fork list in data-model §31). */
+  mode: GameMode;
+  /**
+   * R5: THE player state — length 1 (SOLO) or 2 (COOP). Single source.
+   * 数据唯一在此；`player` 为 players[0] 只读别名（见下）。
+   */
+  players: PlayerTank[];
+  /**
+   * @deprecated v1~v4 基线兼容别名 = players[0]（getter，零状态复制）。
+   * 新代码一律使用 players[]；R6 候选清理项（data-model §33）。
+   */
+  readonly player: PlayerTank;
   enemies: EnemyTank[];
   bullets: Bullet[];
   /** Current-level score (banks into bankedScore on LEVEL_CLEAR, AC-15). */
@@ -56,20 +68,26 @@ export interface World {
   levelStartLives: number;
 }
 
-/** Player spawn cell (12,2) — data-model §11 (moved left for the double ring). */
-const PLAYER_SPAWN = { x: 2 * CELL + CELL / 2, y: 12 * CELL + CELL / 2 };
+/** Player spawn cells: P1 (12,2) / P2 (12,10) — data-model §11/§31. */
+const PLAYER_SPAWNS: Record<1 | 2, { x: number; y: number }> = {
+  1: { x: 2 * CELL + CELL / 2, y: 12 * CELL + CELL / 2 },
+  2: { x: 10 * CELL + CELL / 2, y: 12 * CELL + CELL / 2 },
+};
 
-export function createPlayer(): PlayerTank {
+export function createPlayer(id: 1 | 2 = 1): PlayerTank {
+  const spawn = PLAYER_SPAWNS[id];
   return {
-    pos: { ...PLAYER_SPAWN },
+    id,
+    pos: { ...spawn },
     dir: Direction.UP,
     speed: PLAYER_SPEED,
     alive: true,
     lives: PLAYER_LIVES,
     invincibleUntil: 0,
-    spawnPos: { ...PLAYER_SPAWN },
+    spawnPos: { ...spawn },
     shieldUntil: 0,
     doubleFire: false,
+    score: 0,
   };
 }
 
@@ -79,7 +97,12 @@ export function createWorld(): World {
     state: GameState.READY,
     clock: 0,
     map: new GameMap(l1.layout),
-    player: createPlayer(),
+    mode: GameMode.SOLO,
+    players: [createPlayer(1)],
+    /** Baseline-compat alias: always the live players[0] (no state copy). */
+    get player(): PlayerTank {
+      return this.players[0];
+    },
     enemies: [],
     bullets: [],
     score: 0,

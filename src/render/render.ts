@@ -2,7 +2,7 @@
 
 import { GRID, CELL, SUB, FIELD, TANK_SIZE, BULLET_SIZE } from '../core/constants';
 import { GameState, Terrain, Direction, BulletOwner, PowerupType, EffectKind, type EnemyType } from '../core/types';
-import type { Tank } from '../core/types';
+import type { Tank, PlayerTank } from '../core/types';
 import { SUB_TL, SUB_TR, SUB_BL } from '../map/map';
 import { POWERUP_SIZE } from '../powerup/powerup';
 import { unlockedCount, ACHIEVEMENT_COUNT } from '../achievements/achievements';
@@ -15,6 +15,7 @@ const COLOR = {
   steelCore: '#e8e8e8',
   base: '#ffd700',
   player: '#4caf50',
+  player2: '#7986cb',
   enemy: { BASIC: '#bdbdbd', FAST: '#42a5f5', ARMORED: '#ef5350' },
   bulletPlayer: '#ffffff',
   bulletEnemy: '#ff9800',
@@ -32,7 +33,7 @@ export function render(ctx: CanvasRenderingContext2D, world: World): void {
     const flicker = e.carrier && Math.floor(world.clock / 150) % 2 === 0;
     drawTank(ctx, e, flicker ? '#ffd700' : COLOR.enemy[e.type as EnemyType]);
   }
-  if (world.player.alive) drawPlayer(ctx, world);
+  for (const p of world.players) if (p.alive) drawPlayer(ctx, world, p);
   drawBullets(ctx, world);
   drawBushOverlay(ctx, world); // bushes above tanks, below effects (AC-32)
   drawEffects(ctx, world);
@@ -235,21 +236,23 @@ function drawTank(ctx: CanvasRenderingContext2D, tank: Tank, color: string): voi
   }
 }
 
-function drawPlayer(ctx: CanvasRenderingContext2D, world: World): void {
-  const invincible = world.clock < world.player.invincibleUntil;
-  const shielded = world.clock < world.player.shieldUntil;
+function drawPlayer(ctx: CanvasRenderingContext2D, world: World, p: PlayerTank): void {
+  const baseColor = p.id === 1 ? COLOR.player : COLOR.player2;
+  const flickColor = p.id === 1 ? '#a5d6a7' : '#b3e0f2';
+  const invincible = world.clock < p.invincibleUntil;
+  const shielded = world.clock < p.shieldUntil;
   // Invincibility flicker: alternate body shade every 100ms slot.
   if (invincible && Math.floor(world.clock / 100) % 2 === 0) {
-    drawTank(ctx, world.player, '#a5d6a7');
+    drawTank(ctx, p, flickColor);
   } else {
-    drawTank(ctx, world.player, COLOR.player);
+    drawTank(ctx, p, baseColor);
   }
   if (invincible || shielded) {
     // R2: shield powerup ring is cyan; respawn ring stays white (AC-17).
     ctx.strokeStyle = shielded ? '#00e5ff' : '#ffffff';
     ctx.strokeRect(
-      world.player.pos.x - TANK_SIZE / 2 - 2,
-      world.player.pos.y - TANK_SIZE / 2 - 2,
+      p.pos.x - TANK_SIZE / 2 - 2,
+      p.pos.y - TANK_SIZE / 2 - 2,
       TANK_SIZE + 4,
       TANK_SIZE + 4,
     );
@@ -271,6 +274,7 @@ function drawOverlay(ctx: CanvasRenderingContext2D, world: World): void {
     [GameState.READY]: [
       'TANK WORLD',
       'Press any move/fire key to start',
+      'Press 2 for local CO-OP',
       `Achievements: ${unlockedCount()}/${ACHIEVEMENT_COUNT}`,
     ],
     [GameState.PAUSED]: ['PAUSED', 'Press P to resume'],

@@ -21,7 +21,7 @@ import { onEnemyKilled, onBrickDestroyed } from '../achievements/achievements';
 const EXPLOSION_COLOR_ENEMY = '#ff7043';
 import { Terrain, BulletOwner, DIR_VEC } from '../core/types';
 import type { World } from '../core/world';
-import type { Bullet, EnemyTank, Tank, Direction, Vec } from '../core/types';
+import type { Bullet, EnemyTank, PlayerTank, Tank, Direction, Vec } from '../core/types';
 import { damagePlayer } from '../player/player';
 
 /** Max pixels a bullet moves per inner sub-step (anti-tunneling, risk §8.3). */
@@ -50,8 +50,8 @@ export function tankAreaFree(world: World, x: number, y: number, self?: Tank): b
     }
   }
 
-  // Other tanks: boxes must not overlap (flush contact allowed).
-  const others: Tank[] = [world.player, ...world.enemies];
+  // Other tanks: boxes must not overlap (flush contact allowed). R5 C11′: all players.
+  const others: Tank[] = [...world.players, ...world.enemies];
   for (const t of others) {
     if (t === self || !t.alive) continue;
     if (Math.abs(t.pos.x - x) < TANK_SIZE && Math.abs(t.pos.y - y) < TANK_SIZE) return false;
@@ -119,25 +119,28 @@ export function applySlide(world: World, tank: Tank, dtMs: number): void {
 // Firing
 // ---------------------------------------------------------------------------
 
-function spawnBullet(world: World, shooter: Tank, owner: BulletOwner): void {
+function spawnBullet(world: World, shooter: Tank, owner: BulletOwner, playerId?: 1 | 2): void {
   const vec = DIR_VEC[shooter.dir];
   const pos: Vec = {
     x: shooter.pos.x + vec.x * MUZZLE_OFFSET,
     y: shooter.pos.y + vec.y * MUZZLE_OFFSET,
   };
-  world.bullets.push({ pos, dir: shooter.dir, speed: BULLET_SPEED, owner });
+  world.bullets.push({ pos, dir: shooter.dir, speed: BULLET_SPEED, owner, playerId });
 }
 
 /**
- * Fire the player's bullet. Enforces the one-on-screen rule (consensus §3.2):
- * any death path of the previous bullet releases the slot (T-PLY-3).
+ * Fire a player's bullet. The on-screen cap is per-player (R5 §30); any death
+ * path of a previous bullet releases that player's slot (T-PLY-3).
+ * Default param keeps v1~v4 single-player call sites valid (data-model §29).
  */
-export function firePlayerBullet(world: World): boolean {
-  if (!world.player.alive) return false;
-  const cap = world.player.doubleFire ? PLAYER_BULLETS_DOUBLE : PLAYER_BULLETS_BASE;
-  const onScreen = world.bullets.filter((b) => b.owner === BulletOwner.PLAYER).length;
+export function firePlayerBullet(world: World, player: PlayerTank = world.players[0]): boolean {
+  if (!player.alive) return false;
+  const cap = player.doubleFire ? PLAYER_BULLETS_DOUBLE : PLAYER_BULLETS_BASE;
+  const onScreen = world.bullets.filter(
+    (b) => b.owner === BulletOwner.PLAYER && b.playerId === player.id,
+  ).length;
   if (onScreen >= cap) return false;
-  spawnBullet(world, world.player, BulletOwner.PLAYER);
+  spawnBullet(world, player, BulletOwner.PLAYER, player.id);
   playSound(SoundEvent.FIRE); // player shots only — enemy fire would spam (impl note)
   return true;
 }
@@ -203,6 +206,9 @@ function advanceBullet(world: World, b: Bullet, dtMs: number): boolean {
         if (hit.hp <= 0) {
           hit.alive = false;
           world.score += hit.score;
+          // R5: personal score attribution via bullet.playerId (§31).
+          const killer = world.players.find((p) => p.id === b.playerId);
+          if (killer) killer.score += hit.score;
           // R2: carriers drop the next cycle powerup at the death spot (§3.8).
           if (hit.carrier) dropFromCarrier(world, hit.pos);
           // R3: kill feedback (AC-23/24).
@@ -213,13 +219,14 @@ function advanceBullet(world: World, b: Bullet, dtMs: number): boolean {
         }
         return false;
       }
+      // R5 C17: player bullets pass through ALL player tanks (no friendly fire).
     } else {
-      // C6 — enemy bullet vs player (C9: enemy tanks are skipped entirely).
-      const p = world.player;
-      if (p.alive && bulletHitsTank(b, p)) {
+      // C6′ — enemy bullet vs any player (C9: enemy tanks are skipped entirely).
+      for (const p of world.players) {
+        if (!p.alive || !bulletHitsTank(b, p)) continue;
         // R2: shield powerup shares the invincibility branch (data-model §12).
         const invincible = world.clock < Math.max(p.invincibleUntil, p.shieldUntil);
-        if (!invincible) damagePlayer(world);
+        if (!invincible) damagePlayer(world, p);
         return false; // bullet consumed either way
       }
     }
