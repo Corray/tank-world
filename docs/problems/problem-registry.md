@@ -39,6 +39,7 @@
 
 | 编号 | 来源 | 日期 | 模块 | 标题 | 类型 | 层级 | 状态 | 关联 |
 |------|------|------|------|------|------|------|------|------|
+| P-20260605-88ee | 开发 | 2026-06-05 | 验证流程 | 验证债：M-R2-1/2 + 音色耳测 + 特效主观共 4 项人工终验连续 3 轮挂账；R4 拍板再次顺延（用户显式风险接受）。冰面手感调参的归因风险已在 PRD 红灯声明 | 风险 | 项目级 | deferred | R4 PRD / test-plan-r2 §5 / test-plan-r3 §5 |
 | P-20260604-8acf | 开发 | 2026-06-04 | standard-install | 【最终定性】`business-gitignore.template` 冲突标记 = standard 本地**挂起 2 周的未完成 merge**（MERGE_HEAD=78db933）的工作区中间态；从未进任何 commit。已解决：merge d008ce0 完成并推送 | 缺陷 | 项目级（本地） | resolved | d008ce0 / FB 候选 conflict-marker-guard-gap |
 | P-20260604-7852 | 开发 | 2026-06-04 | standard-install | 【最终定性】`06-templates.sh` 同上——未完成 merge 工作区中间态，非提交内容。已解决：取 theirs + bash -n 冒烟全过 + merge d008ce0 推送 | 缺陷 | 项目级（本地） | resolved | d008ce0 / FB 候选 conflict-marker-guard-gap |
 
