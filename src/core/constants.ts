@@ -88,3 +88,18 @@ export const ENDLESS_ARMOR_STEP = 0.05;
 export const ENDLESS_ARMOR_CAP = 0.5;
 /** Anti-misfire window after GAME_COMPLETE before endless entry, ms (risk §21). */
 export const ENDLESS_CONFIRM_DELAY_MS = 1000;
+
+// --- R4 additions (consensus §3.14~3.16) ---
+
+/** Ice inertia: per-step speed decay factor @60Hz (≈0.5s to stop), data-model §24. */
+export const ICE_DECAY = 0.92;
+/** Ice inertia: slide speeds below this (px/s) snap to zero. */
+export const ICE_STOP_THRESHOLD = 8;
+/** Achievement toast banner duration, ms. */
+export const TOAST_MS = 2500;
+/** localStorage keys (data-model §26). */
+export const KEY_ACHIEVEMENTS = 'tank-world.achievements';
+export const KEY_KILLS = 'tank-world.kills';
+/** Endless variant: slots used = VARIANT_BASE + (level % VARIANT_MOD), data-model §25. */
+export const VARIANT_BASE = 6;
+export const VARIANT_MOD = 5;

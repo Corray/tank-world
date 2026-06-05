@@ -10,6 +10,7 @@ import {
   type Powerup,
   type EnemyType,
   type Effect,
+  type PowerupType,
 } from './types';
 import { GameMap } from '../map/map';
 import { LEVELS, generateSpawnSequence } from '../level/level';
@@ -49,6 +50,10 @@ export interface World {
   endlessStartBanked: number;
   /** R3: wall-clock ms when GAME_COMPLETE was entered (anti-misfire window). */
   gameCompleteWallMs: number;
+  /** R4: distinct powerup types picked up this run (COLLECTOR / PURIST). */
+  runPickupTypes: PowerupType[];
+  /** R4: lives snapshot at level load (NO_DEATH_LEVEL). */
+  levelStartLives: number;
 }
 
 /** Player spawn cell (12,2) — data-model §11 (moved left for the double ring). */
@@ -93,5 +98,7 @@ export function createWorld(): World {
     flashUntil: 0,
     endlessStartBanked: -1,
     gameCompleteWallMs: 0,
+    runPickupTypes: [],
+    levelStartLives: PLAYER_LIVES,
   };
 }

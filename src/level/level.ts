@@ -1,10 +1,12 @@
 // Level module (R2): three-level configs, spawn sequence generation,
 // level progression / retry with layered scoring (consensus §3.7, data-model §11).
 
-import { EnemyType, Direction, GameState } from '../core/types';
+import { EnemyType, Direction, GameState, Terrain } from '../core/types';
 import {
   INVINCIBLE_MS,
   PLAYER_LIVES,
+  VARIANT_BASE,
+  VARIANT_MOD,
   ENDLESS_TOTAL_STEP,
   ENDLESS_INTERVAL_STEP_MS,
   ENDLESS_INTERVAL_MIN_MS,
@@ -22,10 +24,10 @@ export interface LevelConfig {
   spawnIntervalMs: number;
 }
 
-// Layout legend: 0 EMPTY / 1 BRICK / 2 STEEL / 3 BASE.
-// Shared design constraints (data-model §11): base (12,6) with DOUBLE brick
+// Layout legend: 0 EMPTY / 1 BRICK / 2 STEEL / 3 BASE / 4 BUSH / 5 WATER / 6 ICE.
+// Shared design constraints (data-model §11/§23): base (12,6) with DOUBLE brick
 // ring (rows 10-12 × cols 4-8, AC-22); player spawn (12,2); enemy spawn cells
-// (0,0)/(0,6)/(0,12) clear; steel ratio grows with level.
+// (0,0)/(0,6)/(0,12) clear; R4: each level contains ≥1 of bush/water/ice (AC-35).
 // prettier-ignore
 const L1_LAYOUT: number[][] = [
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -33,11 +35,11 @@ const L1_LAYOUT: number[][] = [
   [0, 1, 1, 0, 1, 1, 0, 1, 1, 0, 1, 1, 0],
   [0, 1, 1, 0, 1, 1, 2, 1, 1, 0, 1, 1, 0],
   [0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0],
-  [0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0],
+  [0, 4, 0, 0, 1, 1, 0, 1, 1, 0, 0, 4, 0],
   [1, 1, 0, 1, 1, 0, 2, 0, 1, 1, 0, 1, 1],
-  [0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0],
+  [6, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 6],
   [0, 2, 0, 0, 0, 1, 1, 1, 0, 0, 0, 2, 0],
-  [0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0],
+  [0, 1, 0, 1, 0, 5, 0, 5, 0, 1, 0, 1, 0],
   [0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0],
   [0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0],
   [0, 0, 0, 0, 1, 1, 3, 1, 1, 0, 0, 0, 0],
@@ -48,13 +50,13 @@ const L2_LAYOUT: number[][] = [
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 2, 0, 1, 1, 0, 1, 0, 1, 1, 0, 2, 0],
   [0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0],
-  [1, 1, 0, 0, 0, 0, 2, 0, 0, 0, 0, 1, 1],
+  [1, 1, 6, 0, 0, 0, 2, 0, 0, 0, 6, 1, 1],
   [1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1],
-  [0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+  [0, 0, 0, 1, 4, 0, 0, 0, 4, 1, 0, 0, 0],
   [0, 1, 1, 1, 0, 2, 0, 2, 0, 1, 1, 1, 0],
   [0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0],
   [1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2, 0],
+  [0, 0, 0, 0, 5, 0, 0, 0, 5, 0, 0, 2, 0],
   [0, 2, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0],
   [0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0],
   [0, 1, 0, 0, 1, 1, 3, 1, 1, 0, 0, 0, 0],
@@ -65,16 +67,25 @@ const L3_LAYOUT: number[][] = [
   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
   [0, 1, 0, 2, 0, 1, 1, 1, 0, 2, 0, 1, 0],
   [0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
-  [0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+  [0, 5, 0, 1, 0, 0, 0, 0, 0, 1, 0, 5, 0],
   [2, 0, 1, 1, 0, 1, 2, 1, 0, 1, 1, 0, 2],
-  [0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0],
-  [0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0],
+  [0, 0, 6, 0, 0, 1, 0, 1, 0, 0, 6, 0, 0],
+  [0, 1, 1, 0, 0, 4, 0, 4, 0, 0, 1, 1, 0],
   [0, 0, 0, 0, 1, 1, 0, 1, 1, 0, 0, 0, 0],
   [2, 0, 1, 0, 1, 0, 0, 0, 1, 0, 1, 0, 2],
   [0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 1, 0, 0],
   [0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0],
   [0, 1, 2, 0, 1, 1, 1, 1, 1, 0, 2, 1, 0],
   [0, 0, 0, 0, 1, 1, 3, 1, 1, 0, 0, 0, 0],
+];
+
+// R4: hand-curated safe EMPTY cells per layout for endless variants
+// (data-model §25 — never spawn cells / ring / player spawn / corridors).
+// prettier-ignore
+const VARIANT_SLOTS: ReadonlyArray<ReadonlyArray<readonly [number, number]>> = [
+  [[2, 0], [2, 12], [4, 4], [4, 6], [4, 8], [5, 3], [5, 9], [6, 7], [7, 6], [8, 0], [9, 2], [9, 10]],
+  [[2, 0], [2, 12], [3, 4], [3, 8], [5, 5], [5, 7], [6, 0], [6, 12], [7, 5], [7, 7], [9, 1], [9, 9]],
+  [[1, 4], [1, 8], [2, 4], [2, 8], [3, 6], [4, 4], [4, 8], [5, 6], [8, 5], [8, 7], [9, 4], [9, 8]],
 ];
 
 /** Per-level configs (consensus §3.7 table). */
@@ -155,10 +166,29 @@ export function retryLevel(world: World): void {
 
 // --- R3: endless mode (consensus §3.13, data-model §19) ---
 
+/**
+ * R4: deterministic terrain variant of the rotated base layout for an endless
+ * level (data-model §25). Same level → same variant; LCG, no Math.random.
+ */
+export function variantLayout(level: number): number[][] {
+  const baseIdx = (level - 4) % LEVELS.length;
+  const base = LEVELS[baseIdx].layout.map((row) => [...row]);
+  const slots = VARIANT_SLOTS[baseIdx];
+  const lcg = (1103515245 * level + 12345) % 2147483648;
+  const count = VARIANT_BASE + (level % VARIANT_MOD);
+  const start = lcg % slots.length;
+  const cycle = [Terrain.BUSH, Terrain.WATER, Terrain.ICE];
+  for (let i = 0; i < count; i++) {
+    const [r, c] = slots[(start + i) % slots.length];
+    base[r][c] = cycle[i % cycle.length];
+  }
+  return base;
+}
+
 /** Dynamic config for endless levels (level ≥ 4) — data-model §19 formula. */
 export function endlessConfig(level: number): LevelConfig {
   const k = level - 3;
-  const layout = LEVELS[(level - 4) % LEVELS.length].layout; // L1→L2→L3 rotation
+  const layout = variantLayout(level); // R4: rotation + deterministic variant
   const total = 18 + ENDLESS_TOTAL_STEP * k;
   const armoredRatio = Math.min(ENDLESS_ARMOR_CAP, ENDLESS_ARMOR_BASE + ENDLESS_ARMOR_STEP * k);
   const ARMORED = Math.round(total * armoredRatio);

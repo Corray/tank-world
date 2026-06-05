@@ -19,6 +19,8 @@ export enum EffectKind {
   BASE_EXPLOSION = 'BASE_EXPLOSION',
   SPARK = 'SPARK',
   SCORE_FLOAT = 'SCORE_FLOAT',
+  /** R4: achievement banner, top-center (consensus §3.16). */
+  TOAST = 'TOAST',
 }
 
 export interface Effect {
@@ -44,6 +46,12 @@ export enum Terrain {
   BRICK = 1,
   STEEL = 2,
   BASE = 3,
+  /** R4: passable, hides tanks visually, bullets fly through (consensus §3.14). */
+  BUSH = 4,
+  /** R4: blocks tanks, bullets fly over. */
+  WATER = 5,
+  /** R4: passable with sliding inertia. */
+  ICE = 6,
 }
 
 export enum EnemyType {
@@ -75,6 +83,8 @@ export interface Tank {
   dir: Direction;
   speed: number;
   alive: boolean;
+  /** R4: ice sliding momentum; null/undefined = not sliding (data-model §24). */
+  slide?: { dir: Direction; speed: number } | null;
 }
 
 export interface PlayerTank extends Tank {
