@@ -2,7 +2,8 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
-| v3 | 2026-06-04 | R3 增量：§17~21（特效/音效/无尽/状态机 ENDLESS_OVER/存档新档位）（待 R3-G3 确认） |
+| v4 | 2026-06-05 | R4 增量：§23~27（地形扩展 C14~C16/冰面惯性/变体生成/成就模型）（待 R4-G3 确认） |
+| v3 | 2026-06-04 | R3 增量：§17~21（特效/音效/无尽/状态机 ENDLESS_OVER/存档新档位）（R3-G3 已确认） |
 | v2 | 2026-06-04 | R2 增量：§10~14（关卡/道具/AI 分层/存档/状态机扩展），碰撞矩阵增 C13（R2-G3 已确认） |
 | v1 | 2026-06-04 | 初版（从共识 v1.2 推导，G3 已确认） |
 
@@ -288,4 +289,83 @@ S1 特效全链路（实体/生成点/过期/白闪/渲染）
 S2 音效两层（dispatch+synth+静音持久化+M 键）
 S3 无尽模式（endlessConfig/enterEndless/ENDLESS_OVER/best-endless）
 S4 打包 + 压测（AC-31）+ 浏览器验收
+```
+
+---
+
+# R4 增量（共识 v4 §3.14~3.16 推导）
+
+## 23. 地形扩展
+
+```ts
+enum Terrain { EMPTY=0, BRICK=1, STEEL=2, BASE=3, BUSH=4, WATER=5, ICE=6 }
+```
+
+**碰撞矩阵增量：**
+
+| # | 主体 × 对象 | 规则 | AC |
+|---|------------|------|----|
+| C14 | 坦克 × 河流 | 阻挡（`solidForTankAt` 返回 true） | AC-33 |
+| C15 | 子弹 × 草/河/冰 | 穿透——`advanceBullet` 仅拦 BRICK/STEEL/BASE，新地形**结构性免费成立** | AC-32,33 |
+| C16 | 坦克 × 冰面 | 通行 + 惯性滑行（§24） | AC-34 |
+| — | 草丛 | 纯渲染层规则（坦克上层绘制），无碰撞条目 | AC-32 |
+
+## 24. 冰面惯性运动模型（combat 扩展）
+
+```ts
+// Tank 增量字段（optional，向后兼容既有测试对象字面量）：
+interface Tank { ...; slide?: { dir: Direction; speed: number } | null }
+```
+
+- **进入条件**：坦克中心所在格为 ICE 时，每次主动移动刷新 `slide = {dir, speed: tank.speed}`
+- **滑行**：无主动移动的帧，若 `slide` 存在 → 按 slide 方向推进，速度乘衰减系数 `ICE_DECAY`〔默认每帧 0.92 @60Hz，≈0.5s 滑停〕，低于阈值（8px/s〔默认〕）清零
+- **约束**：滑行走 `moveTank` 同一受阻逻辑（不穿墙不出界，受阻即清 slide）；**离开冰面格即清 slide**（立即停）
+- **AI 对称**：敌人同规则（updateEnemies 的移动同样刷新/受滑行影响）
+- `loadLevel` / 重生清 slide（换关与死亡不带惯性）
+
+## 25. 无尽地形变体（确定性）
+
+- 每张布局配 `VARIANT_SLOTS`：人工标注的 12 个安全空地格（**排除出生点、护圈、护圈正面通路**——靠候选表而非通路分析保证可玩，risk 见 §27）
+- 变体生成：以关号为种子的确定性 LCG（自实现，不用 Math.random）选取 `6 + seed % 5` 个槽位，地形按 草→河→冰 循环填充
+- 同关号 → 同变体（可测可复现，AC-35）；仅 level ≥ 4 应用变体，L1~L3 用手工改版图
+
+## 26. 成就模型（achievements 模块）
+
+```ts
+enum AchievementId { FIRST_BLOOD, NO_DEATH_LEVEL, FULL_CLEAR, ENDLESS_8, COLLECTOR, DEMOLITION, PURIST, CENTURION }
+// 存储：tank-world.achievements = JSON id 数组；tank-world.kills = 累计击杀数
+// World 追踪字段（run 级，restart 清零）：
+//   runPickupTypes: PowerupType[]（COLLECTOR/PURIST）
+//   levelStartLives: number（NO_DEATH_LEVEL，loadLevel 时快照）
+```
+
+| 钩子位置 | 成就 |
+|---------|------|
+| combat 击毁敌 | FIRST_BLOOD / CENTURION（累计计数持久化）/ DEMOLITION 由 hitBrick 后砖计数归零触发 |
+| powerup 拾取 | COLLECTOR（types 集齐 3） |
+| judge LEVEL_CLEAR/GAME_COMPLETE | NO_DEATH_LEVEL（lives === levelStartLives）/ FULL_CLEAR / PURIST（FULL_CLEAR 且 runPickupTypes 空） |
+| loadLevel | ENDLESS_8（level ≥ 8） |
+
+- `unlock(id)` 幂等：已解锁直接返回；新解锁 → 持久化 + `EffectKind.TOAST`（2.5s 顶部横幅）
+- map 需提供 `brickCellsRemaining(): number`（DEMOLITION 判定）
+- toast 无音效〔默认〕
+
+## 27. R4 风险标注
+
+| 风险 | 缓解 |
+|------|------|
+| 变体河流堵死通路 | 不做通路分析，**候选槽位表人工标注**保安全；T-MAPV-2 锁出生点/护圈不被覆盖 |
+| 冰面惯性与既有测试对象兼容 | `slide` 为 optional 字段；预判基线零修订，T-PLY-4「无输入不漂移」在非冰地面天然成立 |
+| 惯性手感翻车 | ICE_DECAY 集中常量；降级路径（延迟停止）在共识 OPEN-R4-1 预留 |
+| DEMOLITION 在无砖关卡空触发 | 触发条件含「该关初始砖数 ≥ 1」 |
+| toast 与状态覆盖层重叠 | toast 渲染于 overlay 之下、HUD 区之上（顶部横幅位） |
+
+## 28. R4 实现切片
+
+```
+W1 地形三件套（enum/碰撞 C14~C16/渲染层）+ L1~L3 改版图
+W2 冰面惯性（slide 模型 + AI 对称 + 清理时机）
+W3 无尽变体（VARIANT_SLOTS + LCG + 接入 loadLevel）
+W4 成就全链路（8 触发 + 幂等 + toast + READY/HUD 展示）
+W5 打包 + 浏览器验收
 ```

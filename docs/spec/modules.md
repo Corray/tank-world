@@ -2,7 +2,8 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
-| v3 | 2026-06-04 | R3 增量：新增 effects / audio 两模块；level（无尽配置）/storage（best-endless+muted）/core/input/render/hud 职责扩展（待 R3-G1 确认） |
+| v4 | 2026-06-05 | R4 增量：新增 achievements 模块；map（三新地形+变体生成）/combat（C14~C16+冰面惯性）/level/render/hud 职责扩展（待 R4-G1 确认） |
+| v3 | 2026-06-04 | R3 增量：新增 effects / audio 两模块；level（无尽配置）/storage（best-endless+muted）/core/input/render/hud 职责扩展（R3-G1 已确认） |
 | v2 | 2026-06-04 | R2 增量：新增 level / powerup / storage 三模块；core/enemy/hud 职责扩展（R2-G1 已确认） |
 | v1.1 | 2026-06-04 | G1 通过；map 补 1/4 子块粒度职责，combat 补子弹相消（AC-12） |
 | v1 | 2026-06-04 | 初版（从共识文档 v1.1 拆解，待 G1 确认） |
@@ -35,6 +36,12 @@
 | **audio**（音效） | 8 类事件音的程序化合成；dispatch 层（事件→配方+静音判断）与 synth 层（WebAudio）分离以便单测；M 键静音持久化 | §3.12 / F12 / AC-26,27 | input, storage |
 
 **R3 既有模块职责扩展**：level（无尽关动态配置生成 + ENDLESS_OVER 结算）、storage（best-endless / muted 两个新 key）、core（状态机增 ENDLESS_OVER；GAME_COMPLETE 增「继续无尽」转换）、input（M 键）、render（特效绘制 + 白闪 + LEVEL n/∞）、hud（静音状态 + best-endless 展示）、combat/player（击毁/受击事件发射给 effects 与 audio）。
+
+| 模块（R4 新增） | 职责边界 | 对应共识文档 | 依赖 |
+|------|---------|-------------|------|
+| **achievements**（成就） | 8 成就的触发判定、幂等解锁、持久化、toast 发射、进度查询 | §3.16 / F16 / AC-36,37 | storage, effects（TOAST）；事件源 combat/powerup/level |
+
+**R4 既有模块职责扩展**：map（Terrain 增 BUSH/WATER/ICE + 变体确定性生成）、combat（C14 坦克×河阻挡、冰面惯性运动模型）、level（L1~L3 改版图 + 无尽变体接入 + 成就钩子）、render（草渲染在坦克上层、新地形贴图、TOAST 横幅）、hud（成就进度 n/8 + 明细）、effects（EffectKind 增 TOAST）。
 
 ## 覆盖性自检
 
