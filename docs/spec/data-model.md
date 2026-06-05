@@ -2,7 +2,8 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
-| v4 | 2026-06-05 | R4 增量：§23~27（地形扩展 C14~C16/冰面惯性/变体生成/成就模型）（待 R4-G3 确认） |
+| v5 | 2026-06-05 | R5 增量：§29~32（players[] 复数化策略/双人碰撞扩展 C17/模式分叉/CI 管道）（待 R5-G3 确认） |
+| v4 | 2026-06-05 | R4 增量：§23~27（地形扩展 C14~C16/冰面惯性/变体生成/成就模型）（R4-G3 已确认） |
 | v3 | 2026-06-04 | R3 增量：§17~21（特效/音效/无尽/状态机 ENDLESS_OVER/存档新档位）（R3-G3 已确认） |
 | v2 | 2026-06-04 | R2 增量：§10~14（关卡/道具/AI 分层/存档/状态机扩展），碰撞矩阵增 C13（R2-G3 已确认） |
 | v1 | 2026-06-04 | 初版（从共识 v1.2 推导，G3 已确认） |
@@ -368,4 +369,72 @@ W2 冰面惯性（slide 模型 + AI 对称 + 清理时机）
 W3 无尽变体（VARIANT_SLOTS + LCG + 接入 loadLevel）
 W4 成就全链路（8 触发 + 幂等 + toast + READY/HUD 展示）
 W5 打包 + 浏览器验收
+```
+
+---
+
+# R5 增量（共识 v5 §3.17~3.18 推导）
+
+## 29. players[] 复数化策略（核心结构决议的实施方案）
+
+```ts
+enum GameMode { SOLO = 'SOLO', COOP = 'COOP' }
+interface PlayerTank { ...; id: 1 | 2; score: number }   // 个人累计分（展示用，跨关不清）
+interface Bullet { ...; playerId?: 1 | 2 }               // 玩家子弹归属（发射权/计分）
+// World：players: PlayerTank[]（唯一状态）+ mode: GameMode
+```
+
+**兼容外缘（基线零修订的实现手段，G1 重点确认项）**：
+- `world.player` 保留为 **players[0] 的只读别名 getter**（零状态复制，非 player2 式平行字段——不违背「彻底复数化」决议：状态唯一在 players[]，别名仅为 v1~v4 基线 147 块提供稳定接口；新代码一律用 players[]）
+- `damagePlayer(world, player = world.players[0])` / `firePlayerBullet(world, player = ...)` / `updatePlayer(world, dt, input, player = ...)` —— 默认参保持单数调用兼容，管线层新增 `updatePlayers` 复数入口
+- 断言强度扫描结论（R4 教训方法落地）：基线对 `world.player` 全部为**属性访问与字段赋值**（无整体替换赋值、无引用相等断言）→ 别名 getter 下预判**基线零修订**
+
+## 30. 碰撞矩阵扩展
+
+| # | 主体 × 对象 | 规则 | AC |
+|---|------------|------|----|
+| C6′ | 敌弹 × 任一玩家 | 命中即该玩家结算（无敌/护盾个人判） | AC-40 |
+| C11′ | 玩家 × 玩家 | 互阻不互伤（tankAreaFree 含全体 players） | AC-41 |
+| C13′ | 玩家 × 道具 | 按拾取者结算，效果归个人；炸弹仍全场 | AC-42 |
+| **C17** | 玩家子弹 × 玩家坦克 | **互相穿透**（玩家子弹跳过全部玩家） | AC-41 |
+
+发射权：`bullets.filter(owner=PLAYER && playerId===p.id).length < cap(p)`，cap 按该玩家 doubleFire。
+
+## 31. 模式分叉点（全清单——分叉藏漏是本轮最大风险）
+
+| 分叉点 | SOLO | COOP |
+|--------|------|------|
+| 开局 | 操作键（既有） | READY 按 2 |
+| players | [P1] | [P1, P2]，P2 spawn (12,10)、键位 Arrows+Enter |
+| 判负 | P1 死 | **全员**死 或 基地毁 |
+| 计分入档 | 三档照旧 | 合计入 `best-coop`（新 key），三档不写 |
+| 成就钩子 | 照常 | **全部 gate 掉** |
+| 无尽入口 | GAME_COMPLETE 操作键 | **无入口**（enterEndless 拒绝 COOP） |
+| AI ARMORED 目标 | P1 | 最近存活玩家 |
+| 重试 | P1 复活满命 | 双复活满命 |
+| HUD | 现状 | 双行（P1/P2 各 lives+score）+ 合计 |
+
+## 32. CI 与发布管道
+
+- `.github/workflows/ci.yml`：PR → `npm ci && npx tsc --noEmit && npx vitest run`；master push → build + `actions/deploy-pages`（官方 Pages workflow，`dist/` 为 artifact）
+- 仓库转 public + Pages 开启（build_type=workflow）
+- 风险：Pages 首次部署需仓库设置生效，CI 红灯案例在 PR 实测（AC-45 的 [M] 验证）
+
+## 33. R5 风险标注
+
+| 风险 | 缓解 |
+|------|------|
+| 模式分叉点遗漏（最大风险） | §31 全清单 + 测试计划逐行映射；audit 候选检查项 |
+| 别名 getter 被新代码滥用 | 代码注释标 deprecated + 实现总结声明；R6 候选清理项 |
+| per-player 发射权与相消叠加 | 沿用 4 消亡路径语义，playerId 维度单测 |
+| 转 public 后历史可见 | 已评审确认（含勘误链公开） |
+
+## 34. R5 实现切片
+
+```
+V1 复数化内核 + 兼容外缘（players[]/mode/别名/默认参）→ 基线 147 全绿即里程碑
+V2 双人模式（开局选择/键位/出生/判负/重试/HUD）
+V3 双人战斗语义（C6′/C11′/C13′/C17/发射权/计分/best-coop/gate 成就与无尽）
+V4 CI workflow + 转 public + Pages + README
+V5 浏览器双人验收 + dogfood 重构样本数据记录
 ```

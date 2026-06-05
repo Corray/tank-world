@@ -2,7 +2,8 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
-| v4 | 2026-06-05 | R4 增量：新增 achievements 模块；map（三新地形+变体生成）/combat（C14~C16+冰面惯性）/level/render/hud 职责扩展（待 R4-G1 确认） |
+| v5 | 2026-06-05 | R5 增量：无新模块；core（players[] 复数化+GameMode）/input（双键位映射）/combat（C6′/C11′/C13′/C17+per-player 发射权）/player（复数入口+兼容默认参）/level/storage/hud/render 职责扩展；新增 .github/workflows CI 管道（待 R5-G1 确认） |
+| v4 | 2026-06-05 | R4 增量：新增 achievements 模块；map（三新地形+变体生成）/combat（C14~C16+冰面惯性）/level/render/hud 职责扩展（R4-G1 已确认） |
 | v3 | 2026-06-04 | R3 增量：新增 effects / audio 两模块；level（无尽配置）/storage（best-endless+muted）/core/input/render/hud 职责扩展（R3-G1 已确认） |
 | v2 | 2026-06-04 | R2 增量：新增 level / powerup / storage 三模块；core/enemy/hud 职责扩展（R2-G1 已确认） |
 | v1.1 | 2026-06-04 | G1 通过；map 补 1/4 子块粒度职责，combat 补子弹相消（AC-12） |
