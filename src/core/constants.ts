@@ -108,3 +108,8 @@ export const VARIANT_MOD = 5;
 
 /** Co-op combined best score (data-model §31). */
 export const KEY_BEST_COOP = 'tank-world.best-coop';
+
+// --- R7 additions (consensus §3.19~3.20) ---
+
+/** Co-op endless best — the sixth bucket (data-model §36). */
+export const KEY_BEST_COOP_ENDLESS = 'tank-world.best-coop-endless';

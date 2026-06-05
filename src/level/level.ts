@@ -1,7 +1,7 @@
 // Level module (R2): three-level configs, spawn sequence generation,
 // level progression / retry with layered scoring (consensus §3.7, data-model §11).
 
-import { EnemyType, Direction, GameState, GameMode, Terrain } from '../core/types';
+import { EnemyType, Direction, GameState, Terrain } from '../core/types';
 import {
   INVINCIBLE_MS,
   PLAYER_LIVES,
@@ -146,7 +146,8 @@ export function loadLevel(world: World, level: number): void {
     p.slide = null; // R4: level transitions never carry momentum (T-TER-6)
   }
 
-  world.levelStartLives = world.players[0].lives; // R4: NO_DEATH_LEVEL snapshot (§26)
+  world.levelStartLives = world.players[0].lives; // R4 兼容快照（既有测试引用）
+  for (const p of world.players) p.levelStartLives = p.lives; // R7: per-player 快照（§36）
   onLevelLoaded(world); // R4: ENDLESS_8 hook
 }
 
@@ -218,7 +219,7 @@ export function endlessConfig(level: number): LevelConfig {
  */
 export function enterEndless(world: World, wallNowMs: number): void {
   if (world.state !== GameState.GAME_COMPLETE) return;
-  if (world.mode !== GameMode.SOLO) return; // R5 AC-44: no co-op endless (R6 候选)
+  // R7 §3.19: co-op endless OPEN（v5 门控按清单 §35.1-7 移除）。
   if (wallNowMs - world.gameCompleteWallMs <= ENDLESS_CONFIRM_DELAY_MS) return;
   world.endlessStartBanked = world.bankedScore;
   loadLevel(world, 4);

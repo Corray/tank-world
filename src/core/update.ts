@@ -10,7 +10,7 @@ import { updateCombat } from '../combat/combat';
 import { updatePowerups } from '../powerup/powerup';
 import { updateEffects } from '../effects/effects';
 import { playSound, SoundEvent } from '../audio/audio';
-import { submitLevelScore, submitTotal, submitEndless, submitCoop } from '../storage/storage';
+import { submitLevelScore, submitTotal, submitEndless, submitCoop, submitCoopEndless } from '../storage/storage';
 import { onLevelCleared } from '../achievements/achievements';
 import { LEVEL_COUNT } from './constants';
 
@@ -49,7 +49,9 @@ export function judge(world: World): void {
   if (world.map.baseDestroyed || allPlayersDead) {
     if (world.level > LEVEL_COUNT) {
       world.state = GameState.ENDLESS_OVER;
-      submitEndless(endlessSettlement(world));
+      // R7 清单 §35.2-9：设计期捕获的写入点分叉——第六档隔离（AC-48）。
+      if (world.mode === GameMode.COOP) submitCoopEndless(endlessSettlement(world));
+      else submitEndless(endlessSettlement(world));
     } else {
       world.state = GameState.DEFEAT;
     }

@@ -83,6 +83,7 @@ export function createPlayer(id: 1 | 2 = 1): PlayerTank {
     shieldUntil: 0,
     doubleFire: false,
     score: 0,
+    levelStartLives: PLAYER_LIVES,
   };
 }
 

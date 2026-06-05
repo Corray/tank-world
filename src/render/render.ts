@@ -1,7 +1,7 @@
 // Render module: procedural Canvas drawing, read-only over world state (N5).
 
 import { GRID, CELL, SUB, FIELD, TANK_SIZE, BULLET_SIZE } from '../core/constants';
-import { GameState, GameMode, Terrain, Direction, BulletOwner, PowerupType, EffectKind, type EnemyType } from '../core/types';
+import { GameState, Terrain, Direction, BulletOwner, PowerupType, EffectKind, type EnemyType } from '../core/types';
 import type { Tank, PlayerTank } from '../core/types';
 import { SUB_TL, SUB_TR, SUB_BL } from '../map/map';
 import { POWERUP_SIZE } from '../powerup/powerup';
@@ -274,11 +274,13 @@ export function overlayLines(world: World): string[] | null {
   const total = world.bankedScore + world.score;
   const endlessScore =
     world.endlessStartBanked >= 0 ? total - world.endlessStartBanked : 0;
-  const gameCompleteLines = ['YOU WIN!', `Total score: ${total}`];
-  if (world.mode === GameMode.SOLO) {
-    gameCompleteLines.push('Press any move/fire key for ENDLESS mode');
-  }
-  gameCompleteLines.push('Press R for a new run');
+  // R7 §3.19: endless hint in BOTH modes（清单 §35.1-1 门控移除）。
+  const gameCompleteLines = [
+    'YOU WIN!',
+    `Total score: ${total}`,
+    'Press any move/fire key for ENDLESS mode',
+    'Press R for a new run',
+  ];
   const messages: Partial<Record<GameState, string[]>> = {
     [GameState.READY]: [
       'TANK WORLD',
