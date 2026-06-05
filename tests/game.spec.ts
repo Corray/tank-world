@@ -154,7 +154,7 @@ describe('T-SM-8 restart fully resets the world', () => {
     expect(fresh).not.toBe(world);
     expect(fresh.state).toBe(GameState.READY);
     expect(fresh.score).toBe(0);
-    expect(fresh.player.lives).toBe(PLAYER_LIVES);
+    expect(fresh.players[0].lives).toBe(PLAYER_LIVES); // R6-D 迁移（fresh.player 漏网点，CI 红灯拦截后补）
     expect(fresh.spawnedCount).toBe(0);
     expect(fresh.bullets).toHaveLength(0);
     expect(fresh.enemies).toHaveLength(0);
