@@ -439,3 +439,66 @@ V3 双人战斗语义（C6′/C11′/C13′/C17/发射权/计分/best-coop/gate 
 V4 CI workflow + 转 public + Pages + README
 V5 浏览器双人验收 + dogfood 重构样本数据记录
 ```
+
+---
+
+# R7 增量（共识 v6 §3.19~3.20 推导）
+
+## 35. 模式分叉清单 v2（写入点级，AC-51 判据：行数 = grep 命中数）
+
+**grep 基准（2026-06-05，src 全量）：** mode 分叉 8 + storage 写入 4 + 成就钩子 5 = **17 行**
+
+### 35.1 mode 分叉点（grep `GameMode.|mode ===|mode !==` 排除定义/导入，8 命中）
+
+| # | 调用点 | 现行为 | R7 处置 |
+|---|--------|--------|---------|
+| 1 | render.ts:278 overlayLines 无尽提示 SOLO 门控 | COOP 不显示 | **移除门控**（双模式均显示，AC-47） |
+| 2 | update.ts:67 submitLevelScore SOLO 门控 | COOP 不写 best-level | 不变（含 2P 无尽关） |
+| 3 | update.ts:72 submitCoop/Total 分叉 | 全通入账分流 | 不变 |
+| 4 | main.ts:25 输入双通道 | 键位映射分流 | 不变 |
+| 5 | achievements.ts:96 coopGated | COOP 全禁 | **整体移除**（§35.3 逐钩子团队语义替代） |
+| 6 | game.ts:18 startCoop | 模式设置 | 不变 |
+| 7 | level.ts:221 enterEndless SOLO 门控 | COOP 被拒 | **移除门控**（AC-47） |
+| 8 | hud.ts:26 双人行分叉 | P1/P2 行 | 扩展：+BEST CO-OP∞ 第六档行 |
+
+### 35.2 storage 写入点（grep `submit*(` 调用处，4 命中）
+
+| # | 调用点 | 现行为 | R7 处置 |
+|---|--------|--------|---------|
+| 9 | update.ts:52 submitEndless | **无 mode 门控**（COOP 原不可达） | **⚠️ 必须分叉**：COOP→`submitCoopEndless`（第六档 KEY_BEST_COOP_ENDLESS）/ SOLO→原档——**方法设计期抓获的 #6 同款隐患** |
+| 10 | update.ts:67 submitLevelScore | SOLO 门控 | 不变（同 #2） |
+| 11 | update.ts:72 submitCoop | COOP 全通 | 不变 |
+| 12 | update.ts:73 submitTotal | SOLO 全通 | 不变 |
+
+### 35.3 成就钩子调用点（grep `on*(` 调用处，5 命中；coopGated 移除后逐钩子语义）
+
+| # | 调用点 | R7 团队语义 |
+|---|--------|------------|
+| 13 | update.ts:62 onLevelCleared | NO_DEATH=**全员**满命（需 per-player levelStartLives 快照，见 §36）；FULL_CLEAR/PURIST 团队语义（runPickupTypes 本就 world 级=团队合计，**免费**） |
+| 14 | combat.ts:197 onBrickDestroyed | DEMOLITION 模式无关，直接开放 |
+| 15 | combat.ts:218 onEnemyKilled | FIRST_BLOOD/CENTURION 任一玩家计入；kills 跨模式累计（OPEN-R7-3） |
+| 16 | powerup.ts:46 onPickup | COLLECTOR 团队合计（world 级聚合，免费） |
+| 17 | level.ts:150 onLevelLoaded | ENDLESS_8 模式无关，直接开放 |
+
+## 36. 结构增量
+
+```ts
+const KEY_BEST_COOP_ENDLESS = 'tank-world.best-coop-endless';  // 第六档
+// PlayerTank 增量：levelStartLives: number（NO_DEATH 全员判定的 per-player 快照，loadLevel 时落）
+// world.levelStartLives 保留（SOLO 兼容）但判定改用 per-player 快照统一逻辑
+```
+
+## 37. 基线冲击预判（断言强度扫描）
+
+恰 2 处，均为 spec 行为反转所致的**必然修订**（v6 改判依据齐备）：
+- T-2P-16「achievements gated off in co-op」→ 断言被 §3.20 反转
+- T-2P-17「no endless entry for co-op」→ 断言被 §3.19 反转
+其余 173 块无 world.player 类引用风险（R6-D 已清），预判零额外修订。
+
+## 38. R7 实现切片
+
+```
+X1 第六档 + submitEndless 分叉（§35.2-9 隐患修复先行）+ enterEndless/overlay 门控移除
+X2 成就团队语义（coopGated 移除 + per-player 快照 + 逐钩子）
+X3 HUD 第六档行 + 浏览器验收 + 基线修订 2 处（依据 v6）
+```
