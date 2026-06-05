@@ -92,13 +92,13 @@ describe('T-EN-2 endless map rotation L1→L2→L3 (skeleton signatures)', () =>
 describe('T-EN-3 entering endless from GAME_COMPLETE', () => {
   it('after the confirm window: PLAYING L4, banked snapshot, lives kept', () => {
     const world = completeRun();
-    world.player.lives = 2;
+    world.players[0].lives = 2;
     const banked = world.bankedScore;
     enterEndless(world, world.gameCompleteWallMs + ENDLESS_CONFIRM_DELAY_MS + 100);
     expect(world.state).toBe(GameState.PLAYING);
     expect(world.level).toBe(4);
     expect(world.endlessStartBanked).toBe(banked);
-    expect(world.player.lives).toBe(2); // not reset (consensus §3.13)
+    expect(world.players[0].lives).toBe(2); // not reset (consensus §3.13)
     expect(world.map.terrainAt(12, 6)).toBe(Terrain.BASE); // L1 layout loaded
   });
 });
@@ -139,8 +139,8 @@ describe('T-EN-6 endless death settles the endless segment', () => {
     world.state = GameState.PLAYING;
     loadLevel(world, 5);
     world.score = 300;
-    world.player.lives = 0;
-    world.player.alive = false;
+    world.players[0].lives = 0;
+    world.players[0].alive = false;
     judge(world);
     expect(world.state).toBe(GameState.ENDLESS_OVER);
     expect(store.get(KEY_BEST_ENDLESS)).toBe('800'); // 500 + 300
@@ -153,7 +153,7 @@ describe('T-EN-7 ENDLESS_OVER illegal transitions', () => {
     world.state = GameState.ENDLESS_OVER;
     togglePause(world);
     expect(world.state).toBe(GameState.ENDLESS_OVER);
-    updatePlayer(world, STEP_MS, { move: null, fire: true });
+    updatePlayer(world, STEP_MS, { move: null, fire: true }, world.players[0]);
     retryLevel(world); // DEFEAT-only — must refuse
     expect(world.state).toBe(GameState.ENDLESS_OVER);
     const fresh = restartToReady(world);
