@@ -171,6 +171,7 @@ export function retryLevel(world: World): void {
     p.lives = PLAYER_LIVES;
     p.doubleFire = false;
     p.alive = true;
+    p.score = 0; // fix #13（PM 决策 a）：重试清零个人分，维持 sum(个人) ≤ Total 不变量
   }
   loadLevel(world, world.level);
   world.state = GameState.PLAYING;
