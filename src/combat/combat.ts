@@ -131,9 +131,9 @@ function spawnBullet(world: World, shooter: Tank, owner: BulletOwner, playerId?:
 /**
  * Fire a player's bullet. The on-screen cap is per-player (R5 §30); any death
  * path of a previous bullet releases that player's slot (T-PLY-3).
- * Default param keeps v1~v4 single-player call sites valid (data-model §29).
+ * R6-D: explicit player arg — compat default removed.
  */
-export function firePlayerBullet(world: World, player: PlayerTank = world.players[0]): boolean {
+export function firePlayerBullet(world: World, player: PlayerTank): boolean {
   if (!player.alive) return false;
   const cap = player.doubleFire ? PLAYER_BULLETS_DOUBLE : PLAYER_BULLETS_BASE;
   const onScreen = world.bullets.filter(

@@ -98,8 +98,4 @@ export class Keyboard {
     return { move, fire };
   }
 
-  /** v1~v4 compat: combined P1 state (solo mapping). */
-  state(): InputState {
-    return this.stateFor(1, false);
-  }
 }

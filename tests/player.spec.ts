@@ -18,7 +18,7 @@ import type { InputState } from '../src/input/input';
 const FIRE: InputState = { move: null, fire: true };
 
 function tickPlayer(world: ReturnType<typeof makeWorld>, input: InputState, steps = 1): void {
-  for (let i = 0; i < steps; i++) updatePlayer(world, STEP_MS, input);
+  for (let i = 0; i < steps; i++) updatePlayer(world, STEP_MS, input, world.players[0]);
 }
 
 describe('T-PLY-1 four-direction movement', () => {
@@ -31,11 +31,11 @@ describe('T-PLY-1 four-direction movement', () => {
   for (const [dir, axis, sign] of cases) {
     it(`moves ${dir}`, () => {
       const world = makeWorld();
-      world.player.pos = cellCenter(6, 6);
-      const before = world.player.pos[axis];
+      world.players[0].pos = cellCenter(6, 6);
+      const before = world.players[0].pos[axis];
       tickPlayer(world, { move: dir, fire: false }, 10);
-      expect(world.player.dir).toBe(dir);
-      expect(Math.sign(world.player.pos[axis] - before)).toBe(sign);
+      expect(world.players[0].dir).toBe(dir);
+      expect(Math.sign(world.players[0].pos[axis] - before)).toBe(sign);
     });
   }
 });
@@ -43,8 +43,8 @@ describe('T-PLY-1 four-direction movement', () => {
 describe('T-PLY-2 one player bullet on screen', () => {
   it('second fire while bullet alive is ignored', () => {
     const world = makeWorld();
-    world.player.pos = cellCenter(12, 6);
-    world.player.dir = Direction.UP;
+    world.players[0].pos = cellCenter(12, 6);
+    world.players[0].dir = Direction.UP;
     tickPlayer(world, FIRE);
     expect(world.bullets.filter((b) => b.owner === BulletOwner.PLAYER)).toHaveLength(1);
     tickPlayer(world, FIRE, 5);
@@ -57,8 +57,8 @@ describe('T-PLY-3 firing right is restored after every bullet-death path', () =>
     const layout = emptyLayout();
     layout[8][6] = Terrain.BRICK;
     const world = makeWorld(layout);
-    world.player.pos = cellCenter(11, 6);
-    world.player.dir = Direction.UP;
+    world.players[0].pos = cellCenter(11, 6);
+    world.players[0].dir = Direction.UP;
     tickPlayer(world, FIRE);
     runCombat(world, 1000);
     expect(world.bullets).toHaveLength(0);
@@ -68,8 +68,8 @@ describe('T-PLY-3 firing right is restored after every bullet-death path', () =>
 
   it('path: bullet left the field', () => {
     const world = makeWorld();
-    world.player.pos = cellCenter(1, 6);
-    world.player.dir = Direction.UP;
+    world.players[0].pos = cellCenter(1, 6);
+    world.players[0].dir = Direction.UP;
     tickPlayer(world, FIRE);
     runCombat(world, 1000);
     expect(world.bullets).toHaveLength(0);
@@ -79,8 +79,8 @@ describe('T-PLY-3 firing right is restored after every bullet-death path', () =>
 
   it('path: bullet annihilated with an enemy bullet', () => {
     const world = makeWorld();
-    world.player.pos = cellCenter(6, 2);
-    world.player.dir = Direction.RIGHT;
+    world.players[0].pos = cellCenter(6, 2);
+    world.players[0].dir = Direction.RIGHT;
     tickPlayer(world, FIRE);
     world.bullets.push({
       pos: cellCenter(6, 10),
@@ -96,8 +96,8 @@ describe('T-PLY-3 firing right is restored after every bullet-death path', () =>
 
   it('path: bullet killed an enemy', () => {
     const world = makeWorld();
-    world.player.pos = cellCenter(6, 2);
-    world.player.dir = Direction.RIGHT;
+    world.players[0].pos = cellCenter(6, 2);
+    world.players[0].dir = Direction.RIGHT;
     addEnemy(world, EnemyType.BASIC, 6, 8);
     tickPlayer(world, FIRE);
     runCombat(world, 2000);
@@ -110,9 +110,9 @@ describe('T-PLY-3 firing right is restored after every bullet-death path', () =>
 describe('T-PLY-4 no input → no drift', () => {
   it('player stays put without input', () => {
     const world = makeWorld();
-    world.player.pos = cellCenter(6, 6);
+    world.players[0].pos = cellCenter(6, 6);
     tickPlayer(world, IDLE_INPUT, 60);
-    expect(world.player.pos).toEqual(cellCenter(6, 6));
+    expect(world.players[0].pos).toEqual(cellCenter(6, 6));
   });
 });
 
@@ -120,22 +120,22 @@ describe('T-PLY-5 respawn with invincibility window', () => {
   it('damage respawns at spawn point with 2s invincibility', () => {
     const world = makeWorld();
     world.clock = 30_000;
-    world.player.pos = cellCenter(3, 3);
-    damagePlayer(world);
-    expect(world.player.lives).toBe(2);
-    expect(world.player.alive).toBe(true);
-    expect(world.player.pos).toEqual(world.player.spawnPos);
-    expect(world.player.invincibleUntil).toBe(world.clock + INVINCIBLE_MS);
+    world.players[0].pos = cellCenter(3, 3);
+    damagePlayer(world, world.players[0]);
+    expect(world.players[0].lives).toBe(2);
+    expect(world.players[0].alive).toBe(true);
+    expect(world.players[0].pos).toEqual(world.players[0].spawnPos);
+    expect(world.players[0].invincibleUntil).toBe(world.clock + INVINCIBLE_MS);
   });
 });
 
 describe('T-PLY-6 last life lost → defeat, no respawn', () => {
   it('defeat on losing the final life', () => {
     const world = makeWorld();
-    world.player.lives = 1;
-    damagePlayer(world);
-    expect(world.player.alive).toBe(false);
-    expect(world.player.lives).toBe(0);
+    world.players[0].lives = 1;
+    damagePlayer(world, world.players[0]);
+    expect(world.players[0].alive).toBe(false);
+    expect(world.players[0].lives).toBe(0);
     judge(world);
     expect(world.state).toBe(GameState.DEFEAT);
   });

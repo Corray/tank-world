@@ -57,11 +57,11 @@ describe('T-ENM-2 occupied spawn point defers, never stacks', () => {
   it('no spawn while the target point is occupied; spawns after it frees up', () => {
     const world = makeWorld();
     // Occupy the first spawn point with the player.
-    world.player.pos = cellCenter(SPAWN_CELLS[0].row, SPAWN_CELLS[0].col);
+    world.players[0].pos = cellCenter(SPAWN_CELLS[0].row, SPAWN_CELLS[0].col);
     runSpawner(world, SPAWN_INTERVAL_MS * 4);
     expect(world.spawnedCount).toBe(0);
     // Free the point: move the player far away.
-    world.player.pos = cellCenter(12, 6);
+    world.players[0].pos = cellCenter(12, 6);
     runSpawner(world, SPAWN_INTERVAL_MS * 2);
     expect(world.spawnedCount).toBeGreaterThanOrEqual(1);
     const first = world.enemies[0];
@@ -72,7 +72,7 @@ describe('T-ENM-2 occupied spawn point defers, never stacks', () => {
 describe('T-ENM-3 spawn point cursor rotation', () => {
   it('first three spawns land on (0,0) → (0,6) → (0,12)', () => {
     const world = makeWorld();
-    world.player.pos = cellCenter(12, 6);
+    world.players[0].pos = cellCenter(12, 6);
     runSpawner(world, SPAWN_INTERVAL_MS * 4);
     expect(world.enemies.length).toBeGreaterThanOrEqual(3);
     for (let i = 0; i < 3; i++) {
@@ -88,7 +88,7 @@ describe('T-ENM-3 spawn point cursor rotation', () => {
 describe('T-ENM-4 spawn composition + carrier positions (L1)', () => {
   it('spawned types match L1 counts (4/3/3) and carriers sit at #4/#8', () => {
     const world = makeWorld();
-    world.player.pos = cellCenter(12, 6);
+    world.players[0].pos = cellCenter(12, 6);
     for (let round = 0; round < 8; round++) {
       runSpawner(world, SPAWN_INTERVAL_MS * 3);
       killAll(world);

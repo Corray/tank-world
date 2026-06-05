@@ -54,16 +54,16 @@ describe('T-PWR-2 non-carrier death drops nothing', () => {
 describe('T-PWR-3 pickup is player-only (C13)', () => {
   it('player overlapping picks up; effect applies; powerup removed', () => {
     const world = makeWorld();
-    world.player.pos = cellCenter(6, 6);
+    world.players[0].pos = cellCenter(6, 6);
     world.powerups.push({ type: PowerupType.SHIELD, pos: cellCenter(6, 6) });
     updatePowerups(world);
     expect(world.powerups).toHaveLength(0);
-    expect(world.player.shieldUntil).toBe(world.clock + SHIELD_MS);
+    expect(world.players[0].shieldUntil).toBe(world.clock + SHIELD_MS);
   });
 
   it('enemy overlapping does not pick up', () => {
     const world = makeWorld();
-    world.player.pos = cellCenter(12, 0);
+    world.players[0].pos = cellCenter(12, 0);
     addEnemy(world, EnemyType.BASIC, 6, 6);
     world.powerups.push({ type: PowerupType.BOMB, pos: cellCenter(6, 6) });
     updatePowerups(world);
@@ -75,46 +75,46 @@ describe('T-PWR-4 shield effect window', () => {
   it('shielded player survives a hit (bullet consumed), then turns vulnerable', () => {
     const world = makeWorld();
     world.clock = 10_000;
-    world.player.pos = cellCenter(6, 8);
-    world.player.shieldUntil = world.clock + SHIELD_MS;
+    world.players[0].pos = cellCenter(6, 8);
+    world.players[0].shieldUntil = world.clock + SHIELD_MS;
     world.bullets.push(makeBullet(BulletOwner.ENEMY, cellCenter(6, 4), Direction.RIGHT));
     runCombat(world, 1500);
     expect(world.bullets).toHaveLength(0);
-    expect(world.player.lives).toBe(3);
+    expect(world.players[0].lives).toBe(3);
     // Window expired → next hit damages.
-    world.clock = world.player.shieldUntil + 1;
-    world.player.invincibleUntil = 0;
+    world.clock = world.players[0].shieldUntil + 1;
+    world.players[0].invincibleUntil = 0;
     world.bullets.push(makeBullet(BulletOwner.ENEMY, cellCenter(6, 4), Direction.RIGHT));
     runCombat(world, 1500);
-    expect(world.player.lives).toBe(2);
+    expect(world.players[0].lives).toBe(2);
   });
 
   it('re-pickup refreshes the deadline', () => {
     const world = makeWorld();
     world.clock = 50_000;
-    world.player.pos = cellCenter(6, 6);
-    world.player.shieldUntil = world.clock + 1000; // stale shield
+    world.players[0].pos = cellCenter(6, 6);
+    world.players[0].shieldUntil = world.clock + 1000; // stale shield
     world.powerups.push({ type: PowerupType.SHIELD, pos: cellCenter(6, 6) });
     updatePowerups(world);
-    expect(world.player.shieldUntil).toBe(world.clock + SHIELD_MS);
+    expect(world.players[0].shieldUntil).toBe(world.clock + SHIELD_MS);
   });
 });
 
 describe('T-PWR-5 double fire allows two on-screen bullets', () => {
   it('2 allowed, 3rd rejected, slot frees on bullet death', () => {
     const world = makeWorld();
-    world.player.pos = cellCenter(6, 2);
-    world.player.dir = Direction.RIGHT;
-    world.player.doubleFire = true;
-    updatePlayer(world, STEP_MS, FIRE);
-    world.player.pos = cellCenter(8, 2); // move so 2nd bullet spawns apart
-    updatePlayer(world, STEP_MS, FIRE);
+    world.players[0].pos = cellCenter(6, 2);
+    world.players[0].dir = Direction.RIGHT;
+    world.players[0].doubleFire = true;
+    updatePlayer(world, STEP_MS, FIRE, world.players[0]);
+    world.players[0].pos = cellCenter(8, 2); // move so 2nd bullet spawns apart
+    updatePlayer(world, STEP_MS, FIRE, world.players[0]);
     expect(world.bullets).toHaveLength(2);
-    updatePlayer(world, STEP_MS, FIRE);
+    updatePlayer(world, STEP_MS, FIRE, world.players[0]);
     expect(world.bullets).toHaveLength(2); // 3rd rejected
     runCombat(world, 3000); // both leave the field
     expect(world.bullets).toHaveLength(0);
-    updatePlayer(world, STEP_MS, FIRE);
+    updatePlayer(world, STEP_MS, FIRE, world.players[0]);
     expect(world.bullets).toHaveLength(1);
   });
 });
@@ -122,21 +122,21 @@ describe('T-PWR-5 double fire allows two on-screen bullets', () => {
 describe('T-PWR-6 double fire is lost on death', () => {
   it('damagePlayer clears doubleFire', () => {
     const world = makeWorld();
-    world.player.doubleFire = true;
-    damagePlayer(world);
-    expect(world.player.doubleFire).toBe(false);
+    world.players[0].doubleFire = true;
+    damagePlayer(world, world.players[0]);
+    expect(world.players[0].doubleFire).toBe(false);
   });
 });
 
 describe('T-PWR-7 double fire survives level clear', () => {
   it('advanceLevel keeps doubleFire (AC-18)', () => {
     const world = makeWorld();
-    world.player.doubleFire = true;
+    world.players[0].doubleFire = true;
     world.spawnedCount = world.enemyTotal;
     judge(world);
     expect(world.state).toBe(GameState.LEVEL_CLEAR);
     advanceLevel(world);
-    expect(world.player.doubleFire).toBe(true);
+    expect(world.players[0].doubleFire).toBe(true);
   });
 });
 
@@ -147,7 +147,7 @@ describe('T-PWR-8 bomb kills the field without scoring', () => {
     addEnemy(world, EnemyType.BASIC, 2, 2);
     addEnemy(world, EnemyType.FAST, 2, 10);
     addEnemy(world, EnemyType.ARMORED, 8, 6);
-    world.player.pos = cellCenter(12, 0);
+    world.players[0].pos = cellCenter(12, 0);
     world.powerups.push({ type: PowerupType.BOMB, pos: cellCenter(12, 0) });
     updatePowerups(world);
     expect(world.enemies.every((e) => !e.alive)).toBe(true);
@@ -164,7 +164,7 @@ describe('T-PWR-9 bomb beats same-frame bullet scoring (risk §15)', () => {
     world.bullets.push(
       makeBullet(BulletOwner.PLAYER, { x: enemy.pos.x - 20, y: enemy.pos.y }, Direction.RIGHT),
     );
-    world.player.pos = cellCenter(12, 0);
+    world.players[0].pos = cellCenter(12, 0);
     world.powerups.push({ type: PowerupType.BOMB, pos: cellCenter(12, 0) });
     updateWorld(world, STEP_MS, IDLE_INPUT);
     expect(enemy.alive).toBe(false);

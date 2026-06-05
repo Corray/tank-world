@@ -71,8 +71,8 @@ describe('T-LVL-4 retry resets exactly the six fields (AC-15)', () => {
     world.state = GameState.PLAYING;
     world.score = 300;
     world.bankedScore = 700;
-    world.player.lives = 1;
-    world.player.doubleFire = true;
+    world.players[0].lives = 1;
+    world.players[0].doubleFire = true;
     world.map.hitBrick(12, 5, Direction.UP);
     world.powerups.push({ type: PowerupType.BOMB, pos: cellCenter(6, 6) });
     world.spawnedCount = 5;
@@ -84,8 +84,8 @@ describe('T-LVL-4 retry resets exactly the six fields (AC-15)', () => {
     expect(world.level).toBe(2); // not back to L1
     expect(world.score).toBe(0);
     expect(world.bankedScore).toBe(700);
-    expect(world.player.lives).toBe(PLAYER_LIVES);
-    expect(world.player.doubleFire).toBe(false); // death path loses double fire
+    expect(world.players[0].lives).toBe(PLAYER_LIVES);
+    expect(world.players[0].doubleFire).toBe(false); // death path loses double fire
     expect(world.powerups).toHaveLength(0);
     expect(world.spawnedCount).toBe(0);
     expect(world.map.subMask(12, 5)).toBe(SUB_ALL); // map sub-blocks restored
@@ -139,12 +139,12 @@ describe('T-LVL-6 LEVELS config matches consensus §3.7', () => {
 describe('T-LVL-7 lives carry across levels', () => {
   it('clearing L1 with 2 lives keeps 2 lives in L2', () => {
     const world = makeWorld();
-    world.player.lives = 2;
+    world.players[0].lives = 2;
     clearField(world);
     judge(world);
     advanceLevel(world);
     expect(world.level).toBe(2);
-    expect(world.player.lives).toBe(2);
+    expect(world.players[0].lives).toBe(2);
   });
 });
 

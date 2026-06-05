@@ -15,7 +15,7 @@ import type { InputState } from '../src/input/input';
 const RIGHT: InputState = { move: Direction.RIGHT, fire: false };
 
 function tick(world: ReturnType<typeof makeWorld>, input: InputState, steps: number): void {
-  for (let i = 0; i < steps; i++) updatePlayer(world, STEP_MS, input);
+  for (let i = 0; i < steps; i++) updatePlayer(world, STEP_MS, input, world.players[0]);
 }
 
 describe('T-TER-1 bush: passable for tanks, transparent for bullets', () => {
@@ -24,9 +24,9 @@ describe('T-TER-1 bush: passable for tanks, transparent for bullets', () => {
     layout[6][6] = Terrain.BUSH;
     layout[6][8] = Terrain.BRICK;
     const world = makeWorld(layout);
-    world.player.pos = cellCenter(6, 5);
+    world.players[0].pos = cellCenter(6, 5);
     tick(world, RIGHT, 40);
-    expect(world.player.pos.x).toBeGreaterThan(6 * CELL); // drove into the bush cell
+    expect(world.players[0].pos.x).toBeGreaterThan(6 * CELL); // drove into the bush cell
     world.bullets.push(makeBullet(BulletOwner.PLAYER, cellCenter(6, 4), Direction.RIGHT));
     runCombat(world, 1500);
     expect(world.map.subMask(6, 8)).not.toBe(SUB_ALL); // brick beyond got hit
@@ -39,9 +39,9 @@ describe('T-TER-2 water: blocks tanks, lets bullets pass (C14/C15)', () => {
     layout[6][7] = Terrain.WATER;
     layout[6][9] = Terrain.BRICK;
     const world = makeWorld(layout);
-    world.player.pos = cellCenter(6, 6);
-    for (let i = 0; i < 120; i++) moveTank(world, world.player, Direction.RIGHT, STEP_MS);
-    expect(world.player.pos.x + TANK_SIZE / 2).toBeLessThanOrEqual(7 * CELL);
+    world.players[0].pos = cellCenter(6, 6);
+    for (let i = 0; i < 120; i++) moveTank(world, world.players[0], Direction.RIGHT, STEP_MS);
+    expect(world.players[0].pos.x + TANK_SIZE / 2).toBeLessThanOrEqual(7 * CELL);
     world.bullets.push(makeBullet(BulletOwner.PLAYER, cellCenter(6, 5), Direction.RIGHT));
     runCombat(world, 1500);
     expect(world.map.subMask(6, 9)).not.toBe(SUB_ALL);
@@ -53,16 +53,16 @@ describe('T-TER-3 ice: releasing input keeps the tank sliding, stops ≤0.6s', (
     const layout = emptyLayout();
     for (let c = 3; c <= 10; c++) layout[6][c] = Terrain.ICE;
     const world = makeWorld(layout);
-    world.player.pos = cellCenter(6, 4);
+    world.players[0].pos = cellCenter(6, 4);
     tick(world, RIGHT, 30); // build momentum on ice
-    const atRelease = world.player.pos.x;
+    const atRelease = world.players[0].pos.x;
     tick(world, IDLE_INPUT, 6); // 100ms of coasting
-    const coasted = world.player.pos.x;
+    const coasted = world.players[0].pos.x;
     expect(coasted).toBeGreaterThan(atRelease); // still sliding
     tick(world, IDLE_INPUT, 36); // up to 0.7s total after release
-    const settled = world.player.pos.x;
+    const settled = world.players[0].pos.x;
     tick(world, IDLE_INPUT, 12);
-    expect(world.player.pos.x).toBe(settled); // fully stopped
+    expect(world.players[0].pos.x).toBe(settled); // fully stopped
   });
 });
 
@@ -74,13 +74,13 @@ describe('T-TER-4 ice slide never penetrates walls', () => {
     layout[6][6] = Terrain.ICE;
     layout[6][7] = Terrain.STEEL;
     const world = makeWorld(layout);
-    world.player.pos = cellCenter(6, 4);
+    world.players[0].pos = cellCenter(6, 4);
     tick(world, RIGHT, 30);
     tick(world, IDLE_INPUT, 60); // coast into the wall
-    expect(world.player.pos.x + TANK_SIZE / 2).toBeLessThanOrEqual(7 * CELL);
-    const rest = world.player.pos.x;
+    expect(world.players[0].pos.x + TANK_SIZE / 2).toBeLessThanOrEqual(7 * CELL);
+    const rest = world.players[0].pos.x;
     tick(world, IDLE_INPUT, 12);
-    expect(world.player.pos.x).toBe(rest); // momentum cleared at the wall
+    expect(world.players[0].pos.x).toBe(rest); // momentum cleared at the wall
   });
 });
 
@@ -90,34 +90,34 @@ describe('T-TER-5 leaving ice kills the momentum', () => {
     layout[6][4] = Terrain.ICE;
     layout[6][5] = Terrain.ICE;
     const world = makeWorld(layout);
-    world.player.pos = cellCenter(6, 4);
+    world.players[0].pos = cellCenter(6, 4);
     tick(world, RIGHT, 25);
     tick(world, IDLE_INPUT, 60);
     // Center may exit the ice strip but must stop within a small overshoot.
-    expect(world.player.pos.x).toBeLessThanOrEqual(6 * CELL + 12);
+    expect(world.players[0].pos.x).toBeLessThanOrEqual(6 * CELL + 12);
   });
 });
 
 describe('T-TER-6 level load / respawn clear momentum', () => {
   it('loadLevel and damagePlayer reset slide', () => {
     const world = createWorld();
-    world.player.slide = { dir: Direction.RIGHT, speed: 96 };
+    world.players[0].slide = { dir: Direction.RIGHT, speed: 96 };
     loadLevel(world, 2);
-    expect(world.player.slide ?? null).toBeNull();
-    world.player.slide = { dir: Direction.LEFT, speed: 96 };
-    damagePlayer(world);
-    expect(world.player.slide ?? null).toBeNull();
+    expect(world.players[0].slide ?? null).toBeNull();
+    world.players[0].slide = { dir: Direction.LEFT, speed: 96 };
+    damagePlayer(world, world.players[0]);
+    expect(world.players[0].slide ?? null).toBeNull();
   });
 });
 
 describe('T-TER-7 no drift on plain ground (regression of T-PLY-4 semantics)', () => {
   it('movement then release on empty ground stops immediately', () => {
     const world = makeWorld();
-    world.player.pos = cellCenter(6, 6);
+    world.players[0].pos = cellCenter(6, 6);
     tick(world, RIGHT, 10);
-    const stopped = world.player.pos.x;
+    const stopped = world.players[0].pos.x;
     tick(world, IDLE_INPUT, 30);
-    expect(world.player.pos.x).toBe(stopped);
+    expect(world.players[0].pos.x).toBe(stopped);
   });
 });
 
@@ -126,7 +126,7 @@ describe('T-TER-8 AI does not jam at the river bank', () => {
     const layout = emptyLayout();
     layout[6][7] = Terrain.WATER;
     const world = makeWorld(layout);
-    world.player.pos = cellCenter(12, 0);
+    world.players[0].pos = cellCenter(12, 0);
     const enemy = addEnemy(world, EnemyType.BASIC, 6, 6);
     enemy.dir = Direction.RIGHT;
     const startX = enemy.pos.x;
@@ -144,7 +144,7 @@ describe('T-TER-9 AI is symmetric on ice', () => {
     const layout = emptyLayout();
     for (let c = 2; c <= 10; c++) layout[6][c] = Terrain.ICE;
     const world = makeWorld(layout);
-    world.player.pos = cellCenter(12, 0);
+    world.players[0].pos = cellCenter(12, 0);
     const enemy = addEnemy(world, EnemyType.BASIC, 6, 6);
     updateEnemies(world, STEP_MS);
     expect(enemy.slide ?? null).not.toBeNull();

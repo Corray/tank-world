@@ -24,15 +24,10 @@ export interface World {
   /** R5: solo vs co-op (mode fork list in data-model §31). */
   mode: GameMode;
   /**
-   * R5: THE player state — length 1 (SOLO) or 2 (COOP). Single source.
-   * 数据唯一在此；`player` 为 players[0] 只读别名（见下）。
+   * THE player state — length 1 (SOLO) or 2 (COOP). Single source.
+   * R6-D: legacy `player` alias removed — explicit players[] access only.
    */
   players: PlayerTank[];
-  /**
-   * @deprecated v1~v4 基线兼容别名 = players[0]（getter，零状态复制）。
-   * 新代码一律使用 players[]；R6 候选清理项（data-model §33）。
-   */
-  readonly player: PlayerTank;
   enemies: EnemyTank[];
   bullets: Bullet[];
   /** Current-level score (banks into bankedScore on LEVEL_CLEAR, AC-15). */
@@ -99,10 +94,6 @@ export function createWorld(): World {
     map: new GameMap(l1.layout),
     mode: GameMode.SOLO,
     players: [createPlayer(1)],
-    /** Baseline-compat alias: always the live players[0] (no state copy). */
-    get player(): PlayerTank {
-      return this.players[0];
-    },
     enemies: [],
     bullets: [],
     score: 0,

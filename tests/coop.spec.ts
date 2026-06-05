@@ -310,13 +310,16 @@ describe('T-2P-17 no endless entry for co-op', () => {
   });
 });
 
-describe('T-2P-18 solo compat contract', () => {
-  it('SOLO world: single player and live alias identity', () => {
+// 基线修订 2026-06-05（R6 PRD F-R6-3）：别名 getter 与默认参兼容层退役，
+// 「solo compat contract」随之改写为纯 players[] 契约。
+describe('T-2P-18 solo contract (post alias-cleanup)', () => {
+  it('SOLO world: exactly one player, explicit players[] access only', () => {
     const world = createWorld();
     expect(world.mode).toBe(GameMode.SOLO);
     expect(world.players).toHaveLength(1);
-    expect(world.player).toBe(world.players[0]); // alias is the same object
-    updatePlayer(world, STEP_MS, IDLE); // default-param path still works
+    expect(world.players[0].id).toBe(1);
+    updatePlayer(world, STEP_MS, IDLE, world.players[0]); // explicit player arg
+    expect('player' in world).toBe(false); // alias fully removed
     void damagePlayer;
     void CELL;
   });

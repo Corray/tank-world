@@ -50,8 +50,8 @@ describe('T-SM-3 both defeat entries', () => {
 
   it('lives exhausted → DEFEAT', () => {
     const world = makeWorld();
-    world.player.lives = 0;
-    world.player.alive = false;
+    world.players[0].lives = 0;
+    world.players[0].alive = false;
     judge(world);
     expect(world.state).toBe(GameState.DEFEAT);
   });
@@ -61,8 +61,8 @@ describe('T-SM-4 same-frame base + lives defeat: single DEFEAT, idempotent', () 
   it('both conditions in one frame yield exactly DEFEAT', () => {
     const world = makeWorld();
     world.map.destroyBase();
-    world.player.lives = 0;
-    world.player.alive = false;
+    world.players[0].lives = 0;
+    world.players[0].alive = false;
     judge(world);
     expect(world.state).toBe(GameState.DEFEAT);
     judge(world); // second judgement must not change or throw
@@ -147,14 +147,14 @@ describe('T-SM-8 restart fully resets the world', () => {
     const world = makeWorld();
     world.state = GameState.GAME_COMPLETE;
     world.score = 1234;
-    world.player.lives = 1;
+    world.players[0].lives = 1;
     world.spawnedCount = ENEMY_TOTAL;
     world.map.hitBrick(1, 1, Direction.UP); // damage the default map? (custom empty here)
     const fresh = restartToReady(world);
     expect(fresh).not.toBe(world);
     expect(fresh.state).toBe(GameState.READY);
     expect(fresh.score).toBe(0);
-    expect(fresh.player.lives).toBe(PLAYER_LIVES);
+    expect(fresh.players[0].lives).toBe(PLAYER_LIVES); // R6-D 迁移（fresh.player 漏网点，CI 红灯拦截后补）
     expect(fresh.spawnedCount).toBe(0);
     expect(fresh.bullets).toHaveLength(0);
     expect(fresh.enemies).toHaveLength(0);

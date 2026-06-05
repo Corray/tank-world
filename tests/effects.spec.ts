@@ -103,8 +103,8 @@ describe('T-FX-6 player hit triggers flash + explosion', () => {
   it('flashUntil set within the 200ms budget', () => {
     const world = makeWorld();
     world.clock = 30_000;
-    const before = world.player.pos;
-    damagePlayer(world);
+    const before = world.players[0].pos;
+    damagePlayer(world, world.players[0]);
     expect(world.flashUntil).toBe(world.clock + FLASH_MS);
     expect(FLASH_MS).toBeLessThanOrEqual(200);
     const explosion = world.effects.find((e) => e.kind === EffectKind.EXPLOSION);
@@ -116,7 +116,7 @@ describe('T-FX-6 player hit triggers flash + explosion', () => {
 describe('T-FX-7 effects never affect entity behaviour (sanity)', () => {
   it('a wall of effects does not block tank movement', () => {
     const world = makeWorld();
-    world.player.pos = cellCenter(6, 6);
+    world.players[0].pos = cellCenter(6, 6);
     for (let c = 0; c < 13; c++) {
       world.effects.push({
         kind: EffectKind.EXPLOSION,
@@ -125,10 +125,10 @@ describe('T-FX-7 effects never affect entity behaviour (sanity)', () => {
         durationMs: 10_000,
       });
     }
-    const before = world.player.pos.x;
+    const before = world.players[0].pos.x;
     runCombat(world, 0); // no-op sanity anchor
     updateWorld(world, STEP_MS * 10, { move: Direction.RIGHT, fire: false });
-    expect(world.player.pos.x).toBeGreaterThan(before);
+    expect(world.players[0].pos.x).toBeGreaterThan(before);
     void TANK_SIZE;
   });
 });
