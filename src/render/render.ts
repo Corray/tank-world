@@ -1,7 +1,7 @@
 // Render module: procedural Canvas drawing, read-only over world state (N5).
 
 import { GRID, CELL, SUB, FIELD, TANK_SIZE, BULLET_SIZE } from '../core/constants';
-import { GameState, Terrain, Direction, BulletOwner, PowerupType, EffectKind, type EnemyType } from '../core/types';
+import { GameState, GameMode, Terrain, Direction, BulletOwner, PowerupType, EffectKind, type EnemyType } from '../core/types';
 import type { Tank, PlayerTank } from '../core/types';
 import { SUB_TL, SUB_TR, SUB_BL } from '../map/map';
 import { POWERUP_SIZE } from '../powerup/powerup';
@@ -266,10 +266,19 @@ function drawBullets(ctx: CanvasRenderingContext2D, world: World): void {
   }
 }
 
-function drawOverlay(ctx: CanvasRenderingContext2D, world: World): void {
+/**
+ * Overlay text for the current state — exported for unit testing (fix #7).
+ * GAME_COMPLETE is mode-aware: co-op has no endless entry (AC-44).
+ */
+export function overlayLines(world: World): string[] | null {
   const total = world.bankedScore + world.score;
   const endlessScore =
     world.endlessStartBanked >= 0 ? total - world.endlessStartBanked : 0;
+  const gameCompleteLines = ['YOU WIN!', `Total score: ${total}`];
+  if (world.mode === GameMode.SOLO) {
+    gameCompleteLines.push('Press any move/fire key for ENDLESS mode');
+  }
+  gameCompleteLines.push('Press R for a new run');
   const messages: Partial<Record<GameState, string[]>> = {
     [GameState.READY]: [
       'TANK WORLD',
@@ -283,12 +292,7 @@ function drawOverlay(ctx: CanvasRenderingContext2D, world: World): void {
       `Level score: ${world.lastLevelScore}   Total: ${total}`,
       'Press any move/fire key for next level',
     ],
-    [GameState.GAME_COMPLETE]: [
-      'YOU WIN!',
-      `Total score: ${total}`,
-      'Press any move/fire key for ENDLESS mode',
-      'Press R for a new run',
-    ],
+    [GameState.GAME_COMPLETE]: gameCompleteLines,
     [GameState.DEFEAT]: [
       'GAME OVER',
       `Total: ${total}`,
@@ -300,7 +304,11 @@ function drawOverlay(ctx: CanvasRenderingContext2D, world: World): void {
       'Press R for a new run',
     ],
   };
-  const lines = messages[world.state];
+  return messages[world.state] ?? null;
+}
+
+function drawOverlay(ctx: CanvasRenderingContext2D, world: World): void {
+  const lines = overlayLines(world);
   if (!lines) return;
   ctx.fillStyle = COLOR.overlayBg;
   ctx.fillRect(0, 0, FIELD, FIELD);

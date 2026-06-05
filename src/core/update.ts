@@ -63,7 +63,8 @@ export function judge(world: World): void {
     world.lastLevelScore = world.score;
     world.bankedScore += world.score;
     world.score = 0;
-    submitLevelScore(world.lastLevelScore);
+    // fix #6 (AC-43): best-level is a SOLO bucket — co-op never writes it.
+    if (world.mode === GameMode.SOLO) submitLevelScore(world.lastLevelScore);
     if (world.level === LEVEL_COUNT) {
       world.state = GameState.GAME_COMPLETE;
       world.gameCompleteWallMs = Date.now(); // anti-misfire window anchor (risk §21)
