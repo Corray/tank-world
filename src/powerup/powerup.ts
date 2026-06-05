@@ -2,7 +2,7 @@
 // (consensus §3.8, data-model §12).
 
 import { PowerupType } from '../core/types';
-import type { Vec } from '../core/types';
+import type { Vec, PlayerTank } from '../core/types';
 import type { World } from '../core/world';
 import { TANK_SIZE, SHIELD_MS } from '../core/constants';
 import { playSound, SoundEvent } from '../audio/audio';
@@ -27,31 +27,35 @@ export function dropFromCarrier(world: World, pos: Vec): void {
 
 /**
  * Pickup pass (runs BEFORE combat each step — risk §15: bomb kills must
- * exclude enemies from same-frame bullet scoring). Pickup is player-only (C13).
+ * exclude enemies from same-frame bullet scoring). Pickup is player-only
+ * (C13′); effects belong to the picker (R5 §30).
  */
 export function updatePowerups(world: World): void {
-  const p = world.player;
-  if (!p.alive || world.powerups.length === 0) return;
+  if (world.powerups.length === 0) return;
   const reach = (TANK_SIZE + POWERUP_SIZE) / 2;
   world.powerups = world.powerups.filter((pu) => {
-    const overlap =
-      Math.abs(pu.pos.x - p.pos.x) < reach && Math.abs(pu.pos.y - p.pos.y) < reach;
-    if (!overlap) return true;
-    applyEffect(world, pu.type);
+    const picker = world.players.find(
+      (p) =>
+        p.alive &&
+        Math.abs(pu.pos.x - p.pos.x) < reach &&
+        Math.abs(pu.pos.y - p.pos.y) < reach,
+    );
+    if (!picker) return true;
+    applyEffect(world, pu.type, picker);
     playSound(SoundEvent.PICKUP); // R3 (AC-26)
-    onPickup(world, pu.type); // R4: COLLECTOR / PURIST tracking (§26)
+    onPickup(world, pu.type); // R4: COLLECTOR / PURIST tracking (§26; COOP gated inside)
     return false;
   });
 }
 
-function applyEffect(world: World, type: PowerupType): void {
+function applyEffect(world: World, type: PowerupType, picker: PlayerTank): void {
   switch (type) {
     case PowerupType.SHIELD:
-      // Re-pickup refreshes the window (consensus §3.8).
-      world.player.shieldUntil = world.clock + SHIELD_MS;
+      // Re-pickup refreshes the window (consensus §3.8); per-picker (AC-42).
+      picker.shieldUntil = world.clock + SHIELD_MS;
       break;
     case PowerupType.DOUBLE_FIRE:
-      world.player.doubleFire = true;
+      picker.doubleFire = true;
       break;
     case PowerupType.BOMB:
       // Field wipe, no scoring, no drops from bombed carriers (consensus AC-19).

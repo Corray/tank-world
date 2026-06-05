@@ -114,8 +114,24 @@ export function decideDirection(world: World, enemy: EnemyTank): Direction {
   if (biased && enemy.type === EnemyType.FAST) {
     return directionToward(enemy.pos, BASE_POS);
   }
-  if (biased && enemy.type === EnemyType.ARMORED && world.player.alive) {
-    return directionToward(enemy.pos, world.player.pos);
+  if (biased && enemy.type === EnemyType.ARMORED) {
+    // R5 §31: pressure the NEAREST alive player.
+    const target = nearestAlivePlayer(world, enemy.pos);
+    if (target) return directionToward(enemy.pos, target.pos);
   }
   return DIRECTIONS[Math.floor(Math.random() * DIRECTIONS.length)];
+}
+
+function nearestAlivePlayer(world: World, from: Vec): { pos: Vec } | null {
+  let best: { pos: Vec } | null = null;
+  let bestDist = Infinity;
+  for (const p of world.players) {
+    if (!p.alive) continue;
+    const d = Math.abs(p.pos.x - from.x) + Math.abs(p.pos.y - from.y);
+    if (d < bestDist) {
+      bestDist = d;
+      best = p;
+    }
+  }
+  return best;
 }

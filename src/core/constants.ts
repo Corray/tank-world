@@ -103,3 +103,8 @@ export const KEY_KILLS = 'tank-world.kills';
 /** Endless variant: slots used = VARIANT_BASE + (level % VARIANT_MOD), data-model §25. */
 export const VARIANT_BASE = 6;
 export const VARIANT_MOD = 5;
+
+// --- R5 additions (consensus §3.17~3.18) ---
+
+/** Co-op combined best score (data-model §31). */
+export const KEY_BEST_COOP = 'tank-world.best-coop';

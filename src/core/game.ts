@@ -1,8 +1,8 @@
 // Game core: fixed-timestep main loop + game state machine (architecture §3.1).
 
 import { STEP_MS } from './constants';
-import { GameState } from './types';
-import { createWorld, type World } from './world';
+import { GameState, GameMode } from './types';
+import { createWorld, createPlayer, type World } from './world';
 
 export type UpdateFn = (world: World, dtMs: number) => void;
 export type RenderFn = (world: World) => void;
@@ -10,6 +10,14 @@ export type RenderFn = (world: World) => void;
 /** Legal state transitions — any other transition is a bug (data-model §4). */
 export function startGame(world: World): void {
   if (world.state === GameState.READY) world.state = GameState.PLAYING;
+}
+
+/** R5 §3.17: READY + key "2" → local co-op (adds P2, switches mode). */
+export function startCoop(world: World): void {
+  if (world.state !== GameState.READY) return;
+  world.mode = GameMode.COOP;
+  world.players.push(createPlayer(2));
+  world.state = GameState.PLAYING;
 }
 
 export function togglePause(world: World): void {

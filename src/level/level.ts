@@ -1,7 +1,7 @@
 // Level module (R2): three-level configs, spawn sequence generation,
 // level progression / retry with layered scoring (consensus §3.7, data-model §11).
 
-import { EnemyType, Direction, GameState, Terrain } from '../core/types';
+import { EnemyType, Direction, GameState, GameMode, Terrain } from '../core/types';
 import {
   INVINCIBLE_MS,
   PLAYER_LIVES,
@@ -136,15 +136,17 @@ export function loadLevel(world: World, level: number): void {
   world.enemyTotal = cfg.enemyCounts.BASIC + cfg.enemyCounts.FAST + cfg.enemyCounts.ARMORED;
   world.spawnIntervalMs = cfg.spawnIntervalMs;
 
-  const p = world.player;
-  p.pos = { ...p.spawnPos };
-  p.dir = Direction.UP;
-  p.alive = true;
-  p.invincibleUntil = world.clock + INVINCIBLE_MS;
-  p.shieldUntil = 0;
-  p.slide = null; // R4: level transitions never carry momentum (T-TER-6)
+  // R5: reset EVERY player (positions/invincibility); lives carry per player.
+  for (const p of world.players) {
+    p.pos = { ...p.spawnPos };
+    p.dir = Direction.UP;
+    p.alive = p.lives > 0;
+    p.invincibleUntil = world.clock + INVINCIBLE_MS;
+    p.shieldUntil = 0;
+    p.slide = null; // R4: level transitions never carry momentum (T-TER-6)
+  }
 
-  world.levelStartLives = p.lives; // R4: NO_DEATH_LEVEL snapshot (§26)
+  world.levelStartLives = world.players[0].lives; // R4: NO_DEATH_LEVEL snapshot (§26)
   onLevelLoaded(world); // R4: ENDLESS_8 hook
 }
 
@@ -163,8 +165,12 @@ export function advanceLevel(world: World): void {
 export function retryLevel(world: World): void {
   if (world.state !== GameState.DEFEAT) return;
   world.score = 0;
-  world.player.lives = PLAYER_LIVES;
-  world.player.doubleFire = false;
+  // R5 AC-40: every player revives at full lives on retry.
+  for (const p of world.players) {
+    p.lives = PLAYER_LIVES;
+    p.doubleFire = false;
+    p.alive = true;
+  }
   loadLevel(world, world.level);
   world.state = GameState.PLAYING;
 }
@@ -212,6 +218,7 @@ export function endlessConfig(level: number): LevelConfig {
  */
 export function enterEndless(world: World, wallNowMs: number): void {
   if (world.state !== GameState.GAME_COMPLETE) return;
+  if (world.mode !== GameMode.SOLO) return; // R5 AC-44: no co-op endless (R6 候选)
   if (wallNowMs - world.gameCompleteWallMs <= ENDLESS_CONFIRM_DELAY_MS) return;
   world.endlessStartBanked = world.bankedScore;
   loadLevel(world, 4);
