@@ -5,6 +5,7 @@ import { GameState, Terrain, Direction, BulletOwner, PowerupType, EffectKind, ty
 import type { Tank } from '../core/types';
 import { SUB_TL, SUB_TR, SUB_BL } from '../map/map';
 import { POWERUP_SIZE } from '../powerup/powerup';
+import { unlockedCount, ACHIEVEMENT_COUNT } from '../achievements/achievements';
 import type { World } from '../core/world';
 
 const COLOR = {
@@ -33,6 +34,7 @@ export function render(ctx: CanvasRenderingContext2D, world: World): void {
   }
   if (world.player.alive) drawPlayer(ctx, world);
   drawBullets(ctx, world);
+  drawBushOverlay(ctx, world); // bushes above tanks, below effects (AC-32)
   drawEffects(ctx, world);
   drawFlash(ctx, world);
   drawOverlay(ctx, world);
@@ -66,6 +68,19 @@ function drawEffects(ctx: CanvasRenderingContext2D, world: World): void {
       ctx.font = 'bold 13px monospace';
       ctx.textAlign = 'center';
       ctx.fillText(e.text ?? '', e.pos.x, e.pos.y - 18 * t);
+      ctx.globalAlpha = 1;
+    } else if (e.kind === EffectKind.TOAST) {
+      // R4: achievement banner, top-center (AC-36).
+      const alpha = t > 0.85 ? (1 - t) / 0.15 : 1;
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+      ctx.fillRect(e.pos.x - 120, e.pos.y - 12, 240, 24);
+      ctx.strokeStyle = '#ffd700';
+      ctx.strokeRect(e.pos.x - 120, e.pos.y - 12, 240, 24);
+      ctx.fillStyle = '#ffd700';
+      ctx.font = 'bold 12px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(e.text ?? '', e.pos.x, e.pos.y + 4);
       ctx.globalAlpha = 1;
     }
   }
@@ -108,6 +123,54 @@ function drawTerrain(ctx: CanvasRenderingContext2D, world: World): void {
       if (t === Terrain.BRICK) drawBrick(ctx, r, c, world.map.subMask(r, c));
       else if (t === Terrain.STEEL) drawSteel(ctx, r, c);
       else if (t === Terrain.BASE) drawBase(ctx, r, c, world.map.baseDestroyed);
+      else if (t === Terrain.WATER) drawWater(ctx, r, c);
+      else if (t === Terrain.ICE) drawIce(ctx, r, c);
+      // BUSH is drawn ABOVE tanks (drawBushOverlay) — consensus §3.14.
+    }
+  }
+}
+
+function drawWater(ctx: CanvasRenderingContext2D, row: number, col: number): void {
+  const x = col * CELL;
+  const y = row * CELL;
+  ctx.fillStyle = '#1565c0';
+  ctx.fillRect(x, y, CELL, CELL);
+  ctx.strokeStyle = '#64b5f6';
+  ctx.beginPath();
+  ctx.moveTo(x + 4, y + 12);
+  ctx.lineTo(x + 14, y + 12);
+  ctx.moveTo(x + 18, y + 22);
+  ctx.lineTo(x + 28, y + 22);
+  ctx.stroke();
+}
+
+function drawIce(ctx: CanvasRenderingContext2D, row: number, col: number): void {
+  const x = col * CELL;
+  const y = row * CELL;
+  ctx.fillStyle = '#b3e5fc';
+  ctx.fillRect(x, y, CELL, CELL);
+  ctx.strokeStyle = '#e1f5fe';
+  ctx.beginPath();
+  ctx.moveTo(x + 6, y + 26);
+  ctx.lineTo(x + 26, y + 6);
+  ctx.moveTo(x + 16, y + 28);
+  ctx.lineTo(x + 28, y + 16);
+  ctx.stroke();
+}
+
+/** R4: bushes hide tanks — drawn after tanks/bullets (AC-32). */
+function drawBushOverlay(ctx: CanvasRenderingContext2D, world: World): void {
+  for (let r = 0; r < GRID; r++) {
+    for (let c = 0; c < GRID; c++) {
+      if (world.map.terrainAt(r, c) !== Terrain.BUSH) continue;
+      const x = c * CELL;
+      const y = r * CELL;
+      ctx.fillStyle = '#2e7d32';
+      ctx.fillRect(x, y, CELL, CELL);
+      ctx.fillStyle = '#43a047';
+      for (let i = 0; i < 4; i++) {
+        ctx.fillRect(x + 3 + (i % 2) * 16, y + 3 + Math.floor(i / 2) * 16, 10, 10);
+      }
     }
   }
 }
@@ -205,7 +268,11 @@ function drawOverlay(ctx: CanvasRenderingContext2D, world: World): void {
   const endlessScore =
     world.endlessStartBanked >= 0 ? total - world.endlessStartBanked : 0;
   const messages: Partial<Record<GameState, string[]>> = {
-    [GameState.READY]: ['TANK WORLD', 'Press any move/fire key to start'],
+    [GameState.READY]: [
+      'TANK WORLD',
+      'Press any move/fire key to start',
+      `Achievements: ${unlockedCount()}/${ACHIEVEMENT_COUNT}`,
+    ],
     [GameState.PAUSED]: ['PAUSED', 'Press P to resume'],
     [GameState.LEVEL_CLEAR]: [
       `LEVEL ${world.level} CLEAR!`,
