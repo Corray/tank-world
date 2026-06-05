@@ -2,7 +2,7 @@
 // FAIL→PASS；PM 决策依据见各 issue 的决策记录 comment。
 
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { GameState, EnemyType, Direction, BulletOwner } from '../src/core/types';
+import { EnemyType, Direction, BulletOwner } from '../src/core/types';
 import { createWorld } from '../src/core/world';
 import { startCoop } from '../src/core/game';
 import { judge } from '../src/core/update';
