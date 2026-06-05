@@ -39,7 +39,7 @@ src/
 ├── hud/                 # DOM 侧栏（双人行/成就明细）
 ├── input/               # 键盘双通道映射（SOLO/COOP）
 └── render/              # Canvas 程序化绘制（草上层/特效/覆盖层）
-tests/                   # Vitest（18 文件 / 175 断言块）
+tests/                   # Vitest 全量单测（数字随轮增长，见 CI）
 .github/workflows/       # CI：PR 门禁 + master 自动部署 Pages（R5）
 index.html
 ```

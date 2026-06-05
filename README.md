@@ -21,7 +21,7 @@
 
 ## 技术
 
-TypeScript + 裸 Canvas 2D + Vite（singlefile）+ Vitest。166 个单元测试，CI 门禁 + 自动部署。
+TypeScript + 裸 Canvas 2D + Vite（singlefile）+ Vitest。全量单元测试 + CI 门禁 + 自动部署（实时数字见 CI 徽标与 tests/）。
 
 ```bash
 npm ci && npm run dev    # 开发

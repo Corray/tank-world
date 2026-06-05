@@ -70,7 +70,7 @@ standard_path: /Users/chat/backend-ai-workflow/agent-dev-standard
 
 | Phase | Spec 侧输入 | 实现侧输入 | 状态 |
 |-------|------------|-----------|------|
-| spec | `docs/prd/*.md` + `docs/spec/consensus.md` + `docs/spec/modules.md` | —（自身质量审查） | 启用 |
+| spec | `docs/prd/*.md` + `docs/spec/consensus.md` + `docs/spec/modules.md` + `README.md`（refs #15 堵反向盲区） | —（自身质量审查） | 启用 |
 | architecture | `docs/spec/consensus.md` + `docs/spec/modules.md` + `docs/spec/architecture.md` + `docs/adr/` | `src/` 目录结构与管线 | 启用 |
 | data-model | `docs/spec/data-model.md`（碰撞矩阵/常量表/状态机/分叉清单） | `src/core/constants.ts` + `src/core/types.ts` + 各模块实现 | 启用（替代 api phase：纯前端无 HTTP API，契约层 = 数据模型与模块间接口） |
 | behavior | `docs/spec/consensus.md` §5 AC + `docs/spec/test-plan/` | `tests/` + CI | 启用 |
