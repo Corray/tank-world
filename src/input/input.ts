@@ -74,6 +74,17 @@ export class Keyboard {
     target.addEventListener('keyup', (e) => {
       this.pressOrder = this.pressOrder.filter((c) => c !== e.code);
     });
+    // fix #8: keyup events are lost while unfocused — clear held keys on
+    // blur (and tab-hide as a fallback) so tanks stop when focus returns.
+    target.addEventListener('blur', () => this.releaseAll());
+    target.document?.addEventListener?.('visibilitychange', () => {
+      if (target.document.visibilityState === 'hidden') this.releaseAll();
+    });
+  }
+
+  /** Drop every held key (focus loss — keyup will never arrive). */
+  releaseAll(): void {
+    this.pressOrder = [];
   }
 
   /** Input lane for a player slot under the given mode (AC-39). */
