@@ -87,6 +87,7 @@ standard_path: /Users/chat/backend-ai-workflow/agent-dev-standard
 - **BE 任务收尾 3 件套：** commit / push / Issue comment（缺一不算闭环）
 - **commit + push 硬门禁：** handoff 收尾未 push = 未完成
 - **commit message：** Conventional Commits 中文风格（`feat(scope): 描述`），禁 auto-close 关键词（`fixes #N` 等），用 `refs #N`
+- **分支保护例外（F-PROC-50a9 决议 2026-06-05）：** docs-only commit（spec/prd/audit/registry/spool 等纯文档）允许 admin 直推 master（bypass required check）；任何触及 `src/`、`tests/`、构建配置的 commit **必须**走 PR+CI | 撤销触发：误把代码混入「文档直推」一次即收紧为全量 PR
 - **工时管理：** 弱约束，无需逐任务记录
 
 ---

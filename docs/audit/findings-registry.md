@@ -14,7 +14,7 @@
 | F-ARCH-20260605-4c50 | MEDIUM | 偏差 | architecture/modules 停更 v1（8 vs 14 模块、管线缺步骤、复数化未反映） | 2026-06-05-architecture.md | resolved（R6-C 直修，commit 见 git log） |
 | F-DM-20260605-6bc0 | MEDIUM | 偏差（家族×5） | data-model v1 五处被取代无标注 + ENEMY_SPEED 未入表 | 2026-06-05-data-model.md | resolved（R6-C 直修，commit 见 git log） |
 | F-PROC-20260605-6fd2 | MEDIUM | 偏差 | CLAUDE.md 项目 context 六轮未更新（「代码未起步」） | 2026-06-05-behavior.md | resolved（R6-C 直修，commit 见 git log） |
-| F-PROC-20260605-50a9 | MEDIUM | 风险 | 文档直推 master 与分支保护冲突（bypass 实证），需决策 | 2026-06-05-behavior.md | confirmed（待用户决策：docs 走 PR vs 声明 bypass 例外） |
+| F-PROC-20260605-50a9 | MEDIUM | 风险 | 文档直推 master 与分支保护冲突（bypass 实证），需决策 | 2026-06-05-behavior.md | resolved（决议：docs-only bypass 例外入 CLAUDE.md Flow 段，含撤销触发；代码类严格 PR） |
 | F-PROC-20260605-e0e8 | LOW | 缺失 | Code Map 伴生产物六轮未建 | 2026-06-05-behavior.md | resolved（R6-C 直修，commit 见 git log） |
 
 > **编号格式 Migration(ADR-008 / 2026-05-25 起 / 多 dev 并发防撞号):**
