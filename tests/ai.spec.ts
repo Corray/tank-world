@@ -14,7 +14,7 @@ function ratio(picks: Direction[], dir: Direction): number {
 
 function decide(type: EnemyType, row: number, col: number): Direction[] {
   const world = makeWorld();
-  world.player.pos = cellCenter(1, 11); // player parked top-right
+  world.players[0].pos = cellCenter(1, 11); // player parked top-right
   const enemy = addEnemy(world, type, row, col);
   return Array.from({ length: N }, () => decideDirection(world, enemy));
 }

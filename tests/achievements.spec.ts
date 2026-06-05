@@ -66,7 +66,7 @@ describe('T-ACH-2 NO_DEATH_LEVEL', () => {
   it('clearing after losing a life does not unlock', () => {
     const world = createWorld();
     loadLevel(world, 1);
-    world.player.lives = world.levelStartLives - 1;
+    world.players[0].lives = world.levelStartLives - 1;
     clearLevel(world);
     expect(isUnlocked(AchievementId.NO_DEATH_LEVEL)).toBe(false);
   });
@@ -104,7 +104,7 @@ describe('T-ACH-5 COLLECTOR needs all three powerup types in one run', () => {
 
   it('integration: pickup via updatePowerups feeds the hook', () => {
     const world = makeWorld();
-    world.player.pos = cellCenter(6, 6);
+    world.players[0].pos = cellCenter(6, 6);
     world.powerups.push({ type: PowerupType.SHIELD, pos: cellCenter(6, 6) });
     updatePowerups(world);
     expect(world.runPickupTypes).toContain(PowerupType.SHIELD);
