@@ -43,7 +43,10 @@ export function renderHud(el: HTMLElement, world: World): void {
     `<div style="font-size:11px;color:#aaa">ACH&nbsp;&nbsp;${unlockedCount()}/${ACHIEVEMENT_COUNT}</div>`,
     `<div style="font-size:10px;line-height:1.5">${achievementRows()}</div>`,
     `<hr/>`,
-    `<div style="font-size:11px;color:#888">Move: WASD / Arrows<br/>Fire: Space / J<br/>Pause: P &nbsp; Restart: R<br/>Sound: M (${isMuted() ? 'muted' : 'on'})</div>`,
+    // fix #7 family: key help follows the mode (co-op bindings differ, AC-39).
+    coop
+      ? `<div style="font-size:11px;color:#888">P1: WASD+J<br/>P2: Arrows+Enter<br/>Pause: P &nbsp; Restart: R<br/>Sound: M (${isMuted() ? 'muted' : 'on'})</div>`
+      : `<div style="font-size:11px;color:#888">Move: WASD / Arrows<br/>Fire: Space / J<br/>Pause: P &nbsp; Restart: R<br/>Sound: M (${isMuted() ? 'muted' : 'on'})</div>`,
   ].join('');
 }
 
