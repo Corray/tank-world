@@ -8,3 +8,4 @@
 | R4（地形深度+成就） | [test-plan-r4.md](./test-plan-r4.md) | v1.1 执行完毕（147/147 + [M] 见 §5）；R5 期回归基线 |
 | R5（双人协同+面世管道) | [test-plan-r5.md](./test-plan-r5.md) | v1.1 执行完毕（166/166）；后续轮回归基线 |
 | R7（合作无界） | [test-plan-r7.md](./test-plan-r7.md) | v1.1 执行完毕（186/186 + [M] 见 §5） |
+| R8（双人对战 VS） | [test-plan-r8.md](./test-plan-r8.md) | G3 产出（分叉清单 v3 + AC-52~59 映射 + T-VS-* 用例）；待 G4 骨架 |
