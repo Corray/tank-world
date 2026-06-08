@@ -4,7 +4,7 @@
 import { PowerupType } from '../core/types';
 import type { Vec, PlayerTank } from '../core/types';
 import type { World } from '../core/world';
-import { TANK_SIZE, SHIELD_MS } from '../core/constants';
+import { TANK_SIZE, SHIELD_MS, CELL, VS_POWERUP_INTERVAL_MS, VS_POWERUP_CELLS } from '../core/constants';
 import { playSound, SoundEvent } from '../audio/audio';
 import { onPickup } from '../achievements/achievements';
 
@@ -23,6 +23,26 @@ export function dropFromCarrier(world: World, pos: Vec): void {
   const type = DROP_CYCLE[world.powerupDropCursor % DROP_CYCLE.length];
   world.powerupDropCursor += 1;
   world.powerups.push({ type, pos: { ...pos } });
+}
+
+/** R8 §3.21: VERSUS neutral drop cycle — shield/double-fire only, NO bomb. */
+const VS_DROP_CYCLE: readonly PowerupType[] = [PowerupType.SHIELD, PowerupType.DOUBLE_FIRE];
+
+/**
+ * R8 §3.21: VERSUS has no carriers — neutral powerups respawn on a timer at
+ * mid-line symmetric cells (shield/double-fire alternate, never a bomb). A
+ * cell already holding a powerup is skipped so they do not pile up.
+ */
+export function spawnNeutralPowerup(world: World, dtMs: number): void {
+  world.versusPowerupCooldownMs -= dtMs;
+  if (world.versusPowerupCooldownMs > 0) return;
+  world.versusPowerupCooldownMs = VS_POWERUP_INTERVAL_MS;
+  const idx = world.powerupDropCursor;
+  world.powerupDropCursor += 1;
+  const [row, col] = VS_POWERUP_CELLS[idx % VS_POWERUP_CELLS.length];
+  const pos = { x: col * CELL + CELL / 2, y: row * CELL + CELL / 2 };
+  if (world.powerups.some((pu) => pu.pos.x === pos.x && pu.pos.y === pos.y)) return;
+  world.powerups.push({ type: VS_DROP_CYCLE[idx % VS_DROP_CYCLE.length], pos });
 }
 
 /**

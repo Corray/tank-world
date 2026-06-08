@@ -5,6 +5,7 @@ import { EnemyType, Direction, GameState, Terrain } from '../core/types';
 import {
   INVINCIBLE_MS,
   PLAYER_LIVES,
+  CELL,
   VARIANT_BASE,
   VARIANT_MOD,
   ENDLESS_TOTAL_STEP,
@@ -14,6 +15,9 @@ import {
   ENDLESS_ARMOR_STEP,
   ENDLESS_ARMOR_CAP,
   ENDLESS_CONFIRM_DELAY_MS,
+  VS_SPAWN_P1,
+  VS_SPAWN_P2,
+  VS_POWERUP_INTERVAL_MS,
 } from '../core/constants';
 import { GameMap } from '../map/map';
 import { onLevelLoaded } from '../achievements/achievements';
@@ -78,6 +82,26 @@ const L3_LAYOUT: number[][] = [
   [0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0],
   [0, 1, 2, 0, 1, 1, 1, 1, 1, 0, 2, 1, 0],
   [0, 0, 0, 0, 1, 1, 3, 1, 1, 0, 0, 0, 0],
+];
+
+// R8 §3.21: VERSUS arena — vertically symmetric (row r mirrors 12-r), two
+// bases: P2 (0,6) top / P1 (12,6) bottom, each with a brick shell. Player
+// spawns (0,10)/(12,2) and mid-line powerup cells (6,2)/(6,10) kept clear.
+// prettier-ignore
+const VS_LAYOUT: number[][] = [
+  [0, 0, 0, 0, 0, 1, 3, 1, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+  [0, 2, 0, 1, 0, 0, 0, 0, 0, 1, 0, 2, 0],
+  [0, 0, 0, 1, 0, 4, 0, 4, 0, 1, 0, 0, 0],
+  [0, 1, 1, 0, 0, 2, 0, 2, 0, 0, 1, 1, 0],
+  [0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0],
+  [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
+  [0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0],
+  [0, 1, 1, 0, 0, 2, 0, 2, 0, 0, 1, 1, 0],
+  [0, 0, 0, 1, 0, 4, 0, 4, 0, 1, 0, 0, 0],
+  [0, 2, 0, 1, 0, 0, 0, 0, 0, 1, 0, 2, 0],
+  [0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 1, 3, 1, 0, 0, 0, 0, 0],
 ];
 
 // R4: hand-curated safe EMPTY cells per layout for endless variants
@@ -174,6 +198,51 @@ export function retryLevel(world: World): void {
     p.score = 0; // fix #13（PM 决策 a）：重试清零个人分，维持 sum(个人) ≤ Total 不变量
   }
   loadLevel(world, world.level);
+  world.state = GameState.PLAYING;
+}
+
+// --- R8: versus mode (consensus §3.21) ---
+
+/**
+ * R8 §3.21: (re)set a versus round — load the VS arena, place P1 (bottom) /
+ * P2 (top), no NPCs (enemyTotal=0 → trySpawnEnemy no-ops), clear the field.
+ * Does NOT touch versusWins (preserved across rounds — advanceVersusRound).
+ */
+const VS_SPAWNS: Record<1 | 2, readonly [number, number]> = { 1: VS_SPAWN_P1, 2: VS_SPAWN_P2 };
+
+export function setupVersus(world: World): void {
+  world.map = new GameMap(VS_LAYOUT);
+  world.enemies = [];
+  world.bullets = [];
+  world.powerups = [];
+  world.powerupDropCursor = 0;
+  world.enemyTotal = 0;
+  world.spawnedCount = 0;
+  world.spawnCooldownMs = 0;
+  world.versusPowerupCooldownMs = VS_POWERUP_INTERVAL_MS;
+  for (const p of world.players) {
+    const [r, c] = VS_SPAWNS[p.id];
+    p.spawnPos = { x: c * CELL + CELL / 2, y: r * CELL + CELL / 2 };
+    p.pos = { ...p.spawnPos };
+    p.dir = p.id === 1 ? Direction.UP : Direction.DOWN;
+    p.lives = PLAYER_LIVES;
+    p.alive = true;
+    p.invincibleUntil = 0;
+    p.shieldUntil = 0;
+    p.doubleFire = false;
+    p.score = 0;
+    p.kills = 0;
+    p.slide = null;
+  }
+}
+
+/**
+ * R8 §3.21: VERSUS_ROUND → next round. Both sides revive at full lives, the
+ * arena/powerups reset; round wins (versusWins) are preserved across rounds.
+ */
+export function advanceVersusRound(world: World): void {
+  if (world.state !== GameState.VERSUS_ROUND) return;
+  setupVersus(world);
   world.state = GameState.PLAYING;
 }
 

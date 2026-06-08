@@ -113,3 +113,18 @@ export const KEY_BEST_COOP = 'tank-world.best-coop';
 
 /** Co-op endless best — the sixth bucket (data-model §36). */
 export const KEY_BEST_COOP_ENDLESS = 'tank-world.best-coop-endless';
+
+// --- R8 additions (consensus §3.21) ---
+
+/** VERSUS best-of-N: rounds a side must win to take the match (3局2胜). */
+export const VS_WINS_NEEDED = 2;
+/** VERSUS neutral powerup respawn interval, ms (§3.21 default — tunable). */
+export const VS_POWERUP_INTERVAL_MS = 12_000;
+/** VERSUS spawn cells (data-model §VS): P1 bottom-left, P2 top-right (mirror). */
+export const VS_SPAWN_P1: readonly [number, number] = [12, 2];
+export const VS_SPAWN_P2: readonly [number, number] = [0, 10];
+/** VERSUS neutral powerup spawn cells: mid-line symmetric points. */
+export const VS_POWERUP_CELLS: ReadonlyArray<readonly [number, number]> = [
+  [6, 2],
+  [6, 10],
+];

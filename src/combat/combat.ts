@@ -19,7 +19,7 @@ import { onEnemyKilled, onBrickDestroyed } from '../achievements/achievements';
 
 /** Explosion primary colors (enemy vs player — consensus §3.11). */
 const EXPLOSION_COLOR_ENEMY = '#ff7043';
-import { Terrain, BulletOwner, DIR_VEC } from '../core/types';
+import { Terrain, BulletOwner, GameMode, DIR_VEC } from '../core/types';
 import type { World } from '../core/world';
 import type { Bullet, EnemyTank, PlayerTank, Tank, Direction, Vec } from '../core/types';
 import { damagePlayer } from '../player/player';
@@ -186,7 +186,7 @@ function advanceBullet(world: World, b: Bullet, dtMs: number): boolean {
       return false;
     }
     if (terrain === Terrain.BASE) {
-      world.map.destroyBase(); // C3 — judge() flips to DEFEAT/ENDLESS_OVER
+      world.map.destroyBase(row); // C3 — judge() flips to DEFEAT/ENDLESS_OVER (R8: row → VS side)
       spawnBaseExplosion(world, { x: col * CELL + CELL / 2, y: row * CELL + CELL / 2 });
       return false;
     }
@@ -219,6 +219,22 @@ function advanceBullet(world: World, b: Bullet, dtMs: number): boolean {
           onEnemyKilled(world); // R4: FIRST_BLOOD / CENTURION (§26)
         }
         return false;
+      }
+      // R8 §3.21 (C17 reversed in VERSUS): a player bullet damages the OPPOSING
+      // player; own bullets still pass through. SOLO/COOP keep full pass-through.
+      if (world.mode === GameMode.VERSUS) {
+        const foe = world.players.find(
+          (p) => p.alive && p.id !== b.playerId && bulletHitsTank(b, p),
+        );
+        if (foe) {
+          const invincible = world.clock < Math.max(foe.invincibleUntil, foe.shieldUntil);
+          if (!invincible) {
+            damagePlayer(world, foe);
+            const killer = world.players.find((p) => p.id === b.playerId);
+            if (killer) killer.kills += 1;
+          }
+          return false; // bullet consumed on contact (even if blocked by invincibility)
+        }
       }
       // R5 C17: player bullets pass through ALL player tanks (no friendly fire).
     } else {

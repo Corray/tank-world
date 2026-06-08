@@ -3,6 +3,7 @@
 import { STEP_MS } from './constants';
 import { GameState, GameMode } from './types';
 import { createWorld, createPlayer, type World } from './world';
+import { setupVersus } from '../level/level';
 
 export type UpdateFn = (world: World, dtMs: number) => void;
 export type RenderFn = (world: World) => void;
@@ -20,6 +21,15 @@ export function startCoop(world: World): void {
   world.state = GameState.PLAYING;
 }
 
+/** R8 §3.21: READY + key "3" → local versus (adds P2, loads the VS arena). */
+export function startVersus(world: World): void {
+  if (world.state !== GameState.READY) return;
+  world.mode = GameMode.VERSUS;
+  world.players.push(createPlayer(2));
+  setupVersus(world);
+  world.state = GameState.PLAYING;
+}
+
 export function togglePause(world: World): void {
   if (world.state === GameState.PLAYING) world.state = GameState.PAUSED;
   else if (world.state === GameState.PAUSED) world.state = GameState.PLAYING;
@@ -31,7 +41,11 @@ export function togglePause(world: World): void {
  * DEFEAT → retry the CURRENT level (handled by level.retryLevel, not here).
  */
 export function restartToReady(world: World): World {
-  if (world.state === GameState.GAME_COMPLETE || world.state === GameState.ENDLESS_OVER) {
+  if (
+    world.state === GameState.GAME_COMPLETE ||
+    world.state === GameState.ENDLESS_OVER ||
+    world.state === GameState.VERSUS_OVER // R8 §3.21: match over → fresh run (READY)
+  ) {
     return createWorld(); // full reset: scores, lives, map sub-blocks, spawn counters
   }
   return world;

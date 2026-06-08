@@ -36,6 +36,8 @@ export class GameMap {
   /** Alive sub-block mask per brick cell, keyed by row * GRID + col. */
   private brickSub: Map<number, number>;
   baseDestroyed = false;
+  /** R8: rows of base cells that fell — per-side VERSUS judging (§3.21). */
+  private destroyedBaseRows = new Set<number>();
 
   constructor(layout: number[][] = LAYOUT) {
     this.grid = layout.map((row) => row.map((v) => v as Terrain));
@@ -141,7 +143,23 @@ export class GameMap {
     return true;
   }
 
-  destroyBase(): void {
+  destroyBase(row?: number): void {
     this.baseDestroyed = true;
+    if (row !== undefined) this.destroyedBaseRows.add(row);
+  }
+
+  /** R8: whether the base cell in `row` has fallen; falls back to the single
+   *  PvE flag when no per-row record exists (zero PvE regression). */
+  baseDestroyedAt(row: number): boolean {
+    return this.destroyedBaseRows.size > 0 ? this.destroyedBaseRows.has(row) : this.baseDestroyed;
+  }
+
+  /** R8 §3.21: a side's base is down — P1 = bottom half, P2 = top half. */
+  versusBaseDown(side: 1 | 2): boolean {
+    for (const r of this.destroyedBaseRows) {
+      if (side === 1 && r >= GRID / 2) return true;
+      if (side === 2 && r < GRID / 2) return true;
+    }
+    return false;
   }
 }
