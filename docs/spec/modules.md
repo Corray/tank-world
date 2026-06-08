@@ -2,6 +2,7 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
+| v6 | 2026-06-08 | R8 增量：无新模块；core（GameMode 增 VERSUS + 回合状态/比分）/combat（C17 友军火力 VERSUS 反转 + 基地/命数归属到方）/level（VS 专用对称图 + 双基地 + best-of-3 回合 + 中立道具刷新 + enemy 不激活）/powerup（VS 中立点刷新来源，去炸弹）/input（按 3 进 VS）/render/hud（双基地/比分/VS 结算）职责扩展（待 R8-G1/G2 确认） |
 | v5 | 2026-06-05 | R5 增量：无新模块；core（players[] 复数化+GameMode）/input（双键位映射）/combat（C6′/C11′/C13′/C17+per-player 发射权）/player（复数入口+兼容默认参）/level/storage/hud/render 职责扩展；新增 .github/workflows CI 管道（待 R5-G1 确认） |
 | v4 | 2026-06-05 | R4 增量：新增 achievements 模块；map（三新地形+变体生成）/combat（C14~C16+冰面惯性）/level/render/hud 职责扩展（R4-G1 已确认） |
 | v3 | 2026-06-04 | R3 增量：新增 effects / audio 两模块；level（无尽配置）/storage（best-endless+muted）/core/input/render/hud 职责扩展（R3-G1 已确认） |
