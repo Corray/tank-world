@@ -54,6 +54,8 @@ export class Keyboard {
   onMute: () => void = () => {};
   /** R5: READY + "2" → co-op (consensus §3.17). */
   onCoop: () => void = () => {};
+  /** R8: READY + "3" → versus (consensus §3.21). */
+  onVersus: () => void = () => {};
 
   attach(target: Window): void {
     target.addEventListener('keydown', (e) => {
@@ -69,6 +71,8 @@ export class Keyboard {
         this.onMute();
       } else if (e.code === 'Digit2') {
         this.onCoop();
+      } else if (e.code === 'Digit3') {
+        this.onVersus();
       }
     });
     target.addEventListener('keyup', (e) => {
@@ -87,9 +91,10 @@ export class Keyboard {
     this.pressOrder = [];
   }
 
-  /** Input lane for a player slot under the given mode (AC-39). */
-  stateFor(playerId: 1 | 2, coop: boolean): InputState {
-    const mapping = coop ? (playerId === 1 ? COOP_P1 : COOP_P2) : SOLO_P1;
+  /** Input lane for a player slot. `twoPlayer` (COOP or VERSUS) → split
+   *  bindings P1=WASD+J / P2=Arrows+Enter; SOLO → P1 uses both (AC-39/§3.21). */
+  stateFor(playerId: 1 | 2, twoPlayer: boolean): InputState {
+    const mapping = twoPlayer ? (playerId === 1 ? COOP_P1 : COOP_P2) : SOLO_P1;
     let move: Direction | null = null;
     for (const code of this.pressOrder) {
       if (mapping.moves[code]) move = mapping.moves[code]; // last pressed wins

@@ -1,7 +1,7 @@
 // Entry point: wire modules together and start the loop (architecture §2).
 
-import { GameLoop, startGame, startCoop, togglePause, restartToReady } from './core/game';
-import { advanceLevel, retryLevel, enterEndless } from './level/level';
+import { GameLoop, startGame, startCoop, startVersus, togglePause, restartToReady } from './core/game';
+import { advanceLevel, retryLevel, enterEndless, advanceVersusRound } from './level/level';
 import { toggleMute } from './audio/audio';
 import { createWorld } from './core/world';
 import { GameState, GameMode } from './core/types';
@@ -22,8 +22,8 @@ keyboard.attach(window);
 const loop = new GameLoop(
   createWorld(),
   (world, dt) => {
-    const coop = world.mode === GameMode.COOP;
-    updateWorld(world, dt, [keyboard.stateFor(1, coop), keyboard.stateFor(2, coop)]);
+    const twoLane = world.mode !== GameMode.SOLO; // COOP or VERSUS → split bindings
+    updateWorld(world, dt, [keyboard.stateFor(1, twoLane), keyboard.stateFor(2, twoLane)]);
   },
   (world) => {
     render(ctx, world);
@@ -36,10 +36,13 @@ keyboard.onAnyAction = () => {
   if (loop.world.state === GameState.LEVEL_CLEAR) advanceLevel(loop.world);
   // R3: GAME_COMPLETE → endless (guarded by the anti-misfire window).
   if (loop.world.state === GameState.GAME_COMPLETE) enterEndless(loop.world, Date.now());
+  // R8 §3.21: VERSUS_ROUND interlude → next round.
+  if (loop.world.state === GameState.VERSUS_ROUND) advanceVersusRound(loop.world);
 };
 keyboard.onPause = () => togglePause(loop.world);
 keyboard.onMute = () => toggleMute();
 keyboard.onCoop = () => startCoop(loop.world); // READY + "2" (AC-38)
+keyboard.onVersus = () => startVersus(loop.world); // READY + "3" (AC-52)
 keyboard.onRestart = () => {
   if (loop.world.state === GameState.DEFEAT) {
     retryLevel(loop.world); // R2: retry current level (AC-15)

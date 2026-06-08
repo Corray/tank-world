@@ -41,7 +41,11 @@ export function togglePause(world: World): void {
  * DEFEAT → retry the CURRENT level (handled by level.retryLevel, not here).
  */
 export function restartToReady(world: World): World {
-  if (world.state === GameState.GAME_COMPLETE || world.state === GameState.ENDLESS_OVER) {
+  if (
+    world.state === GameState.GAME_COMPLETE ||
+    world.state === GameState.ENDLESS_OVER ||
+    world.state === GameState.VERSUS_OVER // R8 §3.21: match over → fresh run (READY)
+  ) {
     return createWorld(); // full reset: scores, lives, map sub-blocks, spawn counters
   }
   return world;

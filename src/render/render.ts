@@ -123,7 +123,7 @@ function drawTerrain(ctx: CanvasRenderingContext2D, world: World): void {
       const t = world.map.terrainAt(r, c);
       if (t === Terrain.BRICK) drawBrick(ctx, r, c, world.map.subMask(r, c));
       else if (t === Terrain.STEEL) drawSteel(ctx, r, c);
-      else if (t === Terrain.BASE) drawBase(ctx, r, c, world.map.baseDestroyed);
+      else if (t === Terrain.BASE) drawBase(ctx, r, c, world.map.baseDestroyedAt(r));
       else if (t === Terrain.WATER) drawWater(ctx, r, c);
       else if (t === Terrain.ICE) drawIce(ctx, r, c);
       // BUSH is drawn ABOVE tanks (drawBushOverlay) — consensus §3.14.
@@ -274,6 +274,7 @@ export function overlayLines(world: World): string[] | null {
   const total = world.bankedScore + world.score;
   const endlessScore =
     world.endlessStartBanked >= 0 ? total - world.endlessStartBanked : 0;
+  const vw = world.versusWins; // R8: round score P1 : P2 (§3.21)
   // R7 §3.19: endless hint in BOTH modes（清单 §35.1-1 门控移除）。
   const gameCompleteLines = [
     'YOU WIN!',
@@ -285,7 +286,7 @@ export function overlayLines(world: World): string[] | null {
     [GameState.READY]: [
       'TANK WORLD',
       'Press any move/fire key to start',
-      'Press 2 for local CO-OP',
+      'Press 2 for CO-OP   Press 3 for VERSUS',
       `Achievements: ${unlockedCount()}/${ACHIEVEMENT_COUNT}`,
     ],
     [GameState.PAUSED]: ['PAUSED', 'Press P to resume'],
@@ -304,6 +305,16 @@ export function overlayLines(world: World): string[] | null {
       'ENDLESS OVER',
       `Endless score: ${endlessScore}   Reached level ${world.level}`,
       'Press R for a new run',
+    ],
+    [GameState.VERSUS_ROUND]: [
+      `ROUND TO P${world.versusRoundWinner}`,
+      `Score   P1 ${vw[1]} : ${vw[2]} P2`,
+      'Press any move/fire key for the next round',
+    ],
+    [GameState.VERSUS_OVER]: [
+      `P${world.versusMatchWinner} WINS!`,
+      `Final   P1 ${vw[1]} : ${vw[2]} P2`,
+      'Press R for a new match',
     ],
   };
   return messages[world.state] ?? null;

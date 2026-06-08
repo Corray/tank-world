@@ -5,6 +5,7 @@ import { EnemyType, Direction, GameState, Terrain } from '../core/types';
 import {
   INVINCIBLE_MS,
   PLAYER_LIVES,
+  CELL,
   VARIANT_BASE,
   VARIANT_MOD,
   ENDLESS_TOTAL_STEP,
@@ -14,6 +15,9 @@ import {
   ENDLESS_ARMOR_STEP,
   ENDLESS_ARMOR_CAP,
   ENDLESS_CONFIRM_DELAY_MS,
+  VS_SPAWN_P1,
+  VS_SPAWN_P2,
+  VS_POWERUP_INTERVAL_MS,
 } from '../core/constants';
 import { GameMap } from '../map/map';
 import { onLevelLoaded } from '../achievements/achievements';
@@ -200,22 +204,46 @@ export function retryLevel(world: World): void {
 // --- R8: versus mode (consensus §3.21) ---
 
 /**
- * R8 §3.21: set up a versus round — load the VS arena, place P1 (bottom) /
- * P2 (top), no NPCs (enemyTotal=0), clear field/powerups/bullets.
- * G4 骨架桩：实现于 impl 阶段填充。
+ * R8 §3.21: (re)set a versus round — load the VS arena, place P1 (bottom) /
+ * P2 (top), no NPCs (enemyTotal=0 → trySpawnEnemy no-ops), clear the field.
+ * Does NOT touch versusWins (preserved across rounds — advanceVersusRound).
  */
+const VS_SPAWNS: Record<1 | 2, readonly [number, number]> = { 1: VS_SPAWN_P1, 2: VS_SPAWN_P2 };
+
 export function setupVersus(world: World): void {
-  void world; // stub
-  void VS_LAYOUT;
+  world.map = new GameMap(VS_LAYOUT);
+  world.enemies = [];
+  world.bullets = [];
+  world.powerups = [];
+  world.powerupDropCursor = 0;
+  world.enemyTotal = 0;
+  world.spawnedCount = 0;
+  world.spawnCooldownMs = 0;
+  world.versusPowerupCooldownMs = VS_POWERUP_INTERVAL_MS;
+  for (const p of world.players) {
+    const [r, c] = VS_SPAWNS[p.id];
+    p.spawnPos = { x: c * CELL + CELL / 2, y: r * CELL + CELL / 2 };
+    p.pos = { ...p.spawnPos };
+    p.dir = p.id === 1 ? Direction.UP : Direction.DOWN;
+    p.lives = PLAYER_LIVES;
+    p.alive = true;
+    p.invincibleUntil = 0;
+    p.shieldUntil = 0;
+    p.doubleFire = false;
+    p.score = 0;
+    p.kills = 0;
+    p.slide = null;
+  }
 }
 
 /**
  * R8 §3.21: VERSUS_ROUND → next round. Both sides revive at full lives, the
  * arena/powerups reset; round wins (versusWins) are preserved across rounds.
- * G4 骨架桩：实现于 impl 阶段填充。
  */
 export function advanceVersusRound(world: World): void {
-  void world; // stub
+  if (world.state !== GameState.VERSUS_ROUND) return;
+  setupVersus(world);
+  world.state = GameState.PLAYING;
 }
 
 // --- R3: endless mode (consensus §3.13, data-model §19) ---
