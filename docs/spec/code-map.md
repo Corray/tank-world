@@ -2,6 +2,7 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
+| v2 | 2026-06-08 | R8 VERSUS：judge 增 judgeVersus 分叉；双基地建模；C17 友军火力反转；VS 入口与中立道具 |
 | v1 | 2026-06-05 | 初建（F-PROC-e0e8 补缺；spec-to-code-flow §6 伴生产物） |
 
 > 维护约定：关键链路变更时更新（与实现总结同时落）。
@@ -11,8 +12,10 @@
 ```
 index.html → src/main.ts
   ├─ createWorld()                    core/world.ts   ← World 唯一状态源（players[] 复数）
-  ├─ Keyboard.attach(window)          input/input.ts  ← 双通道映射 + blur 兜底
+  ├─ Keyboard.attach(window)          input/input.ts  ← 双通道映射 + blur 兜底；2=COOP / 3=VERSUS
   └─ GameLoop.start()                 core/game.ts    ← rAF + 固定时间步 advance()
+
+模式入口：startGame(SOLO) / startCoop(2) / startVersus(3) → core/game.ts；VS 经 level.setupVersus 装载竞技场
 ```
 
 ## 每帧主链（core/update.ts updateWorld）
@@ -36,7 +39,10 @@ updatePlayers → updatePowerups(先于 combat) → trySpawnEnemy → updateEnem
 | 成就触发 | achievements/achievements.ts | on* 钩子（COOP 全 gate） |
 | 音效配方 | audio/audio.ts | RECIPES（dispatch 可测层） |
 | 存档档位 | storage/storage.ts + constants KEY_* | 五档 + muted |
-| 双人键位 | input/input.ts | SOLO_P1/COOP_P1/COOP_P2 映射表 |
+| 双人键位 | input/input.ts | SOLO_P1/COOP_P1/COOP_P2 映射表（VS 复用 COOP 双键位）|
+| VS 胜负/回合 | core/update.ts judgeVersus + level.ts advanceVersusRound | 双条件胜负/best-of-3；双基地 = map.versusBaseDown |
+| VS 友军火力 | combat/combat.ts | C17 VERSUS 分支（playerId≠target.id 互伤）|
+| VS 道具来源 | powerup/powerup.ts spawnNeutralPowerup | 中立点定时刷新（去炸弹）|
 
 ## 跨模块事件钩子（隐式依赖，改动须同步检查）
 
