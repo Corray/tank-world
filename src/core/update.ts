@@ -38,6 +38,16 @@ function endlessSettlement(world: World): number {
 }
 
 /**
+ * R8 §3.21: VERSUS judgement — a side loses its round when its base falls OR
+ * it runs out of lives; the other side takes the round. Best-of-3: reaching
+ * VS_WINS_NEEDED ends the match (VERSUS_OVER), else a VERSUS_ROUND interlude.
+ * Writes NO storage bucket. G4 骨架桩：实现于 impl 阶段填充。
+ */
+export function judgeVersus(world: World): void {
+  void world; // stub
+}
+
+/**
  * Judgement (data-model §10/§20). Single exit per step; death conditions win
  * over clear if both fire in the same frame (T-SM-4). Death routes by level:
  * L1~3 → DEFEAT (retryable), L4+ → ENDLESS_OVER (settles best-endless).

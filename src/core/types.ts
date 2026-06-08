@@ -11,6 +11,10 @@ export enum GameState {
   DEFEAT = 'DEFEAT',
   /** R3: died in endless mode — settlement screen, no retry (consensus §3.13). */
   ENDLESS_OVER = 'ENDLESS_OVER',
+  /** R8: VERSUS between-round interlude — shows the score, next round on key (§3.21). */
+  VERSUS_ROUND = 'VERSUS_ROUND',
+  /** R8: VERSUS match settled (best-of-3 reached) — winner screen, R for a new match. */
+  VERSUS_OVER = 'VERSUS_OVER',
 }
 
 /** R3: visual effect kinds (consensus §3.11) — pure visuals, no collision. */
@@ -72,10 +76,12 @@ export enum BulletOwner {
   ENEMY = 'ENEMY',
 }
 
-/** R5: solo vs local co-op (consensus §3.17). */
+/** R5: solo vs local co-op; R8 adds VERSUS (1v1 PvP, consensus §3.17/§3.21). */
 export enum GameMode {
   SOLO = 'SOLO',
   COOP = 'COOP',
+  /** R8: local 2-player versus — adversarial, first opposing alignment (§3.21). */
+  VERSUS = 'VERSUS',
 }
 
 export interface Vec {
@@ -108,6 +114,8 @@ export interface PlayerTank extends Tank {
   score: number;
   /** R7: lives snapshot at level load — NO_DEATH team judging (§36). */
   levelStartLives: number;
+  /** R8: VERSUS frags — times this player downed the opponent (HUD only, §3.21). */
+  kills: number;
 }
 
 export interface EnemyTank extends Tank {

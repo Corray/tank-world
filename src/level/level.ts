@@ -80,6 +80,26 @@ const L3_LAYOUT: number[][] = [
   [0, 0, 0, 0, 1, 1, 3, 1, 1, 0, 0, 0, 0],
 ];
 
+// R8 §3.21: VERSUS arena — vertically symmetric (row r mirrors 12-r), two
+// bases: P2 (0,6) top / P1 (12,6) bottom, each with a brick shell. Player
+// spawns (0,10)/(12,2) and mid-line powerup cells (6,2)/(6,10) kept clear.
+// prettier-ignore
+const VS_LAYOUT: number[][] = [
+  [0, 0, 0, 0, 0, 1, 3, 1, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+  [0, 2, 0, 1, 0, 0, 0, 0, 0, 1, 0, 2, 0],
+  [0, 0, 0, 1, 0, 4, 0, 4, 0, 1, 0, 0, 0],
+  [0, 1, 1, 0, 0, 2, 0, 2, 0, 0, 1, 1, 0],
+  [0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0],
+  [2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2],
+  [0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0],
+  [0, 1, 1, 0, 0, 2, 0, 2, 0, 0, 1, 1, 0],
+  [0, 0, 0, 1, 0, 4, 0, 4, 0, 1, 0, 0, 0],
+  [0, 2, 0, 1, 0, 0, 0, 0, 0, 1, 0, 2, 0],
+  [0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0],
+  [0, 0, 0, 0, 0, 1, 3, 1, 0, 0, 0, 0, 0],
+];
+
 // R4: hand-curated safe EMPTY cells per layout for endless variants
 // (data-model §25 — never spawn cells / ring / player spawn / corridors).
 // prettier-ignore
@@ -175,6 +195,27 @@ export function retryLevel(world: World): void {
   }
   loadLevel(world, world.level);
   world.state = GameState.PLAYING;
+}
+
+// --- R8: versus mode (consensus §3.21) ---
+
+/**
+ * R8 §3.21: set up a versus round — load the VS arena, place P1 (bottom) /
+ * P2 (top), no NPCs (enemyTotal=0), clear field/powerups/bullets.
+ * G4 骨架桩：实现于 impl 阶段填充。
+ */
+export function setupVersus(world: World): void {
+  void world; // stub
+  void VS_LAYOUT;
+}
+
+/**
+ * R8 §3.21: VERSUS_ROUND → next round. Both sides revive at full lives, the
+ * arena/powerups reset; round wins (versusWins) are preserved across rounds.
+ * G4 骨架桩：实现于 impl 阶段填充。
+ */
+export function advanceVersusRound(world: World): void {
+  void world; // stub
 }
 
 // --- R3: endless mode (consensus §3.13, data-model §19) ---

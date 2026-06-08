@@ -25,6 +25,13 @@ export function dropFromCarrier(world: World, pos: Vec): void {
   world.powerups.push({ type, pos: { ...pos } });
 }
 
+/** R8 §3.21: VERSUS has no carriers — neutral powerups (shield/double-fire,
+ *  no bomb) respawn on a timer at mid-line cells. G4 骨架桩：impl 阶段填充。 */
+export function spawnNeutralPowerup(world: World, dtMs: number): void {
+  void world; // stub
+  void dtMs;
+}
+
 /**
  * Pickup pass (runs BEFORE combat each step — risk §15: bomb kills must
  * exclude enemies from same-frame bullet scoring). Pickup is player-only

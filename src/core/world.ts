@@ -61,6 +61,14 @@ export interface World {
   runPickupTypes: PowerupType[];
   /** R4: lives snapshot at level load (NO_DEATH_LEVEL). */
   levelStartLives: number;
+  /** R8 VERSUS: round wins per side (best-of-3, §3.21). */
+  versusWins: Record<1 | 2, number>;
+  /** R8 VERSUS: winner of the last settled round (interlude display); null = none. */
+  versusRoundWinner: 1 | 2 | null;
+  /** R8 VERSUS: match winner once a side reaches VS_WINS_NEEDED; null = ongoing. */
+  versusMatchWinner: 1 | 2 | null;
+  /** R8 VERSUS: ms until the next neutral powerup spawn (§3.21). */
+  versusPowerupCooldownMs: number;
 }
 
 /** Player spawn cells: P1 (12,2) / P2 (12,10) — data-model §11/§31. */
@@ -84,6 +92,7 @@ export function createPlayer(id: 1 | 2 = 1): PlayerTank {
     doubleFire: false,
     score: 0,
     levelStartLives: PLAYER_LIVES,
+    kills: 0,
   };
 }
 
@@ -115,5 +124,9 @@ export function createWorld(): World {
     gameCompleteWallMs: 0,
     runPickupTypes: [],
     levelStartLives: PLAYER_LIVES,
+    versusWins: { 1: 0, 2: 0 },
+    versusRoundWinner: null,
+    versusMatchWinner: null,
+    versusPowerupCooldownMs: 0,
   };
 }
