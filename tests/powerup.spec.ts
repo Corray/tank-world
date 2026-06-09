@@ -25,17 +25,17 @@ describe('T-PWR-1 carrier death drops the cycle powerup', () => {
     expect(world.powerups[0].pos).toEqual(enemy.pos);
   });
 
-  it('drop cycle: shield → double-fire → bomb → shield', () => {
+  // 基线修订 2026-06-09（共识 v9 §3.23）：DROP_CYCLE 3→4 cycle（加 STAR）——
+  // 原断言「→ bomb → shield」反转为「→ bomb → star → shield(回绕)」。
+  it('drop cycle: shield → double-fire → bomb → star → shield (4-cycle wrap)', () => {
     const world = makeWorld();
     const pos = cellCenter(6, 6);
-    dropFromCarrier(world, pos);
-    dropFromCarrier(world, pos);
-    dropFromCarrier(world, pos);
-    dropFromCarrier(world, pos);
+    for (let i = 0; i < 5; i++) dropFromCarrier(world, pos);
     expect(world.powerups.map((p) => p.type)).toEqual([
       PowerupType.SHIELD,
       PowerupType.DOUBLE_FIRE,
       PowerupType.BOMB,
+      PowerupType.STAR,
       PowerupType.SHIELD,
     ]);
   });

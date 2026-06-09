@@ -2,6 +2,7 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
+| v4 | 2026-06-09 | R10 升级：PlayerTank.level + STAR 道具；firePlayerBullet 按 level→弹速/cap/破钢；map.breakSteel；level 重置点矩阵（4 归 L1 + loadLevel 持久）|
 | v3 | 2026-06-09 | R9 MELEE：isPvP 助手统一 PvP 判定；judge/C17 经 isPvP 扩 MELEE；judgeVersus 复用（零改）；setupMelee=setupVersus+NPC 池；NPC 中立出生点 |
 | v2 | 2026-06-08 | R8 VERSUS：judge 增 judgeVersus 分叉；双基地建模；C17 友军火力反转；VS 入口与中立道具 |
 | v1 | 2026-06-05 | 初建（F-PROC-e0e8 补缺；spec-to-code-flow §6 伴生产物） |
@@ -36,7 +37,8 @@ updatePlayers → updatePowerups(先于 combat) → trySpawnEnemy → updateEnem
 | 冰面惯性 | combat/combat.ts | translate/refreshSlide/applySlide |
 | 状态机转换 | core/game.ts + core/update.ts judge | data-model §10/§20 |
 | 关卡/无尽配置 | level/level.ts | LEVELS / endlessConfig / VARIANT_SLOTS |
-| 道具效果 | powerup/powerup.ts | applyEffect(归拾取者) |
+| 道具效果 | powerup/powerup.ts | applyEffect(归拾取者)；STAR→升级 |
+| 坦克升级 | combat.ts firePlayerBullet（level→弹速/cap/breaksSteel）+ map.breakSteel(L4 破钢) | level 重置点矩阵见 player.damagePlayer/level.retryLevel·setupVersus(=L1)/loadLevel(持久) |
 | 成就触发 | achievements/achievements.ts | on* 钩子（COOP 全 gate） |
 | 音效配方 | audio/audio.ts | RECIPES（dispatch 可测层） |
 | 存档档位 | storage/storage.ts + constants KEY_* | 五档 + muted |
