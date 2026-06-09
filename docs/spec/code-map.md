@@ -2,6 +2,7 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
+| v3 | 2026-06-09 | R9 MELEE：isPvP 助手统一 PvP 判定；judge/C17 经 isPvP 扩 MELEE；judgeVersus 复用（零改）；setupMelee=setupVersus+NPC 池；NPC 中立出生点 |
 | v2 | 2026-06-08 | R8 VERSUS：judge 增 judgeVersus 分叉；双基地建模；C17 友军火力反转；VS 入口与中立道具 |
 | v1 | 2026-06-05 | 初建（F-PROC-e0e8 补缺；spec-to-code-flow §6 伴生产物） |
 
@@ -15,7 +16,7 @@ index.html → src/main.ts
   ├─ Keyboard.attach(window)          input/input.ts  ← 双通道映射 + blur 兜底；2=COOP / 3=VERSUS
   └─ GameLoop.start()                 core/game.ts    ← rAF + 固定时间步 advance()
 
-模式入口：startGame(SOLO) / startCoop(2) / startVersus(3) → core/game.ts；VS 经 level.setupVersus 装载竞技场
+模式入口：startGame(SOLO) / startCoop(2) / startVersus(3) / startMelee(4) → core/game.ts；VS/MELEE 经 level.setupVersus/setupMelee 装载竞技场（MELEE=VS+NPC 池）
 ```
 
 ## 每帧主链（core/update.ts updateWorld）
@@ -40,9 +41,11 @@ updatePlayers → updatePowerups(先于 combat) → trySpawnEnemy → updateEnem
 | 音效配方 | audio/audio.ts | RECIPES（dispatch 可测层） |
 | 存档档位 | storage/storage.ts + constants KEY_* | 五档 + muted |
 | 双人键位 | input/input.ts | SOLO_P1/COOP_P1/COOP_P2 映射表（VS 复用 COOP 双键位）|
-| VS 胜负/回合 | core/update.ts judgeVersus + level.ts advanceVersusRound | 双条件胜负/best-of-3；双基地 = map.versusBaseDown |
-| VS 友军火力 | combat/combat.ts | C17 VERSUS 分支（playerId≠target.id 互伤）|
-| VS 道具来源 | powerup/powerup.ts spawnNeutralPowerup | 中立点定时刷新（去炸弹）|
+| VS/MELEE 胜负/回合 | core/update.ts judgeVersus + level.ts advanceVersusRound | 双条件胜负/best-of-3；双基地=map.versusBaseDown；judge 路由经 isPvP（VS+MELEE 共用）|
+| PvP 模式判定 | core/types.ts isPvP(mode) | =VERSUS\|\|MELEE；C17 + judge 路由的单一锚 |
+| VS/MELEE 友军火力 | combat/combat.ts | C17 经 isPvP 分支（playerId≠target.id 互伤）|
+| VS 道具来源 | powerup/powerup.ts spawnNeutralPowerup | 中立点定时刷新（仅 VS）|
+| MELEE NPC | enemy/enemy.ts trySpawnEnemy + level.ts setupMelee | enemyTotal=12 + 中立出生点 (6,1)/(6,11)；道具走 NPC 携带者掉落 |
 
 ## 跨模块事件钩子（隐式依赖，改动须同步检查）
 
