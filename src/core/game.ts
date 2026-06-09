@@ -3,7 +3,7 @@
 import { STEP_MS } from './constants';
 import { GameState, GameMode } from './types';
 import { createWorld, createPlayer, type World } from './world';
-import { setupVersus } from '../level/level';
+import { setupVersus, setupMelee } from '../level/level';
 
 export type UpdateFn = (world: World, dtMs: number) => void;
 export type RenderFn = (world: World) => void;
@@ -27,6 +27,15 @@ export function startVersus(world: World): void {
   world.mode = GameMode.VERSUS;
   world.players.push(createPlayer(2));
   setupVersus(world);
+  world.state = GameState.PLAYING;
+}
+
+/** R9 §3.22: READY + key "4" → NPC melee (VERSUS + NPC third party). */
+export function startMelee(world: World): void {
+  if (world.state !== GameState.READY) return;
+  world.mode = GameMode.MELEE;
+  world.players.push(createPlayer(2));
+  setupMelee(world);
   world.state = GameState.PLAYING;
 }
 

@@ -128,3 +128,17 @@ export const VS_POWERUP_CELLS: ReadonlyArray<readonly [number, number]> = [
   [6, 2],
   [6, 10],
 ];
+
+// --- R9 additions (consensus §3.22, MELEE) ---
+
+/** MELEE NPC pool per round (fewer than levels — two players out-gun them). */
+export const MELEE_NPC_TOTAL = 12;
+/** MELEE NPC spawn interval, ms (between L1/L2). */
+export const MELEE_SPAWN_INTERVAL_MS = 2500;
+/** MELEE NPC enemy mix per round (BASIC/FAST/ARMORED), totals MELEE_NPC_TOTAL. */
+export const MELEE_NPC_COUNTS = { BASIC: 5, FAST: 4, ARMORED: 3 } as const;
+/** MELEE NPC spawn cells: neutral side points in the VS arena (empty, equidistant). */
+export const MELEE_SPAWN_CELLS: ReadonlyArray<{ row: number; col: number }> = [
+  { row: 6, col: 1 },
+  { row: 6, col: 11 },
+];

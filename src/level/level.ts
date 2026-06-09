@@ -237,8 +237,17 @@ export function setupVersus(world: World): void {
 }
 
 /**
+ * R9 §3.22: set up a MELEE round — VERSUS arena + players, plus an NPC pool
+ * (enemyTotal>0, neutral spawn cells). G4 骨架桩：实现于 impl 阶段填充。
+ */
+export function setupMelee(world: World): void {
+  void world; // stub
+}
+
+/**
  * R8 §3.21: VERSUS_ROUND → next round. Both sides revive at full lives, the
  * arena/powerups reset; round wins (versusWins) are preserved across rounds.
+ * R9: dispatches to setupMelee for MELEE (NPC pool reset).
  */
 export function advanceVersusRound(world: World): void {
   if (world.state !== GameState.VERSUS_ROUND) return;
