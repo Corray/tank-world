@@ -142,3 +142,10 @@ export const MELEE_SPAWN_CELLS: ReadonlyArray<{ row: number; col: number }> = [
   { row: 6, col: 1 },
   { row: 6, col: 11 },
 ];
+
+// --- R10 additions (consensus §3.23, tank upgrade) ---
+
+/** Max tank upgrade level (star caps here). */
+export const MAX_TANK_LEVEL = 4;
+/** L2+ player bullet speed (×1.5 of base — consensus §3.23 default). */
+export const PLAYER_BULLET_FAST_SPEED = BULLET_SPEED * 1.5;

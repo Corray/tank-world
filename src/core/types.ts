@@ -43,6 +43,8 @@ export enum PowerupType {
   SHIELD = 'SHIELD',
   DOUBLE_FIRE = 'DOUBLE_FIRE',
   BOMB = 'BOMB',
+  /** R10: star — raises the picker's tank level (consensus §3.23). */
+  STAR = 'STAR',
 }
 
 export enum Terrain {
@@ -123,6 +125,8 @@ export interface PlayerTank extends Tank {
   levelStartLives: number;
   /** R8: VERSUS frags — times this player downed the opponent (HUD only, §3.21). */
   kills: number;
+  /** R10: tank upgrade level 1..4 (star powerup; resets to 1 on death, §3.23). */
+  level: 1 | 2 | 3 | 4;
 }
 
 export interface EnemyTank extends Tank {
