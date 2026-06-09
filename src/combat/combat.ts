@@ -7,6 +7,7 @@ import {
   TANK_SIZE,
   BULLET_SIZE,
   BULLET_SPEED,
+  PLAYER_BULLET_FAST_SPEED,
   PLAYER_BULLETS_BASE,
   PLAYER_BULLETS_DOUBLE,
   ICE_DECAY,
@@ -119,13 +120,20 @@ export function applySlide(world: World, tank: Tank, dtMs: number): void {
 // Firing
 // ---------------------------------------------------------------------------
 
-function spawnBullet(world: World, shooter: Tank, owner: BulletOwner, playerId?: 1 | 2): void {
+function spawnBullet(
+  world: World,
+  shooter: Tank,
+  owner: BulletOwner,
+  playerId?: 1 | 2,
+  speed: number = BULLET_SPEED,
+  breaksSteel: boolean = false,
+): void {
   const vec = DIR_VEC[shooter.dir];
   const pos: Vec = {
     x: shooter.pos.x + vec.x * MUZZLE_OFFSET,
     y: shooter.pos.y + vec.y * MUZZLE_OFFSET,
   };
-  world.bullets.push({ pos, dir: shooter.dir, speed: BULLET_SPEED, owner, playerId });
+  world.bullets.push({ pos, dir: shooter.dir, speed, owner, playerId, breaksSteel });
 }
 
 /**
@@ -135,12 +143,16 @@ function spawnBullet(world: World, shooter: Tank, owner: BulletOwner, playerId?:
  */
 export function firePlayerBullet(world: World, player: PlayerTank): boolean {
   if (!player.alive) return false;
-  const cap = player.doubleFire ? PLAYER_BULLETS_DOUBLE : PLAYER_BULLETS_BASE;
+  // R10 §3.23: L3+ raises the cap to 2 (doubleFire shares it, no stacking past 2).
+  const cap =
+    player.level >= 3 || player.doubleFire ? PLAYER_BULLETS_DOUBLE : PLAYER_BULLETS_BASE;
   const onScreen = world.bullets.filter(
     (b) => b.owner === BulletOwner.PLAYER && b.playerId === player.id,
   ).length;
   if (onScreen >= cap) return false;
-  spawnBullet(world, player, BulletOwner.PLAYER, player.id);
+  // R10: L2+ faster bullets; L4 bullets break steel.
+  const speed = player.level >= 2 ? PLAYER_BULLET_FAST_SPEED : BULLET_SPEED;
+  spawnBullet(world, player, BulletOwner.PLAYER, player.id, speed, player.level >= 4);
   playSound(SoundEvent.FIRE); // player shots only — enemy fire would spam (impl note)
   return true;
 }
@@ -181,6 +193,13 @@ function advanceBullet(world: World, b: Bullet, dtMs: number): boolean {
     const col = Math.floor(b.pos.x / CELL);
     const terrain = world.map.terrainAt(row, col);
     if (terrain === Terrain.STEEL) {
+      // R10 §3.23: L4 player bullets destroy steel; all others are blocked (AC-2).
+      if (b.breaksSteel) {
+        world.map.breakSteel(row, col);
+        spawnSpark(world, b.pos);
+        playSound(SoundEvent.HIT_BRICK);
+        return false;
+      }
       spawnSpark(world, b.pos); // C2
       playSound(SoundEvent.HIT_STEEL);
       return false;

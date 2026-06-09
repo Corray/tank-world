@@ -258,6 +258,13 @@ function drawPlayer(ctx: CanvasRenderingContext2D, world: World, p: PlayerTank):
       TANK_SIZE + 4,
     );
   }
+  // R10 §3.23: upgrade pips — one gold mark per level above L1.
+  if (p.level > 1) {
+    ctx.fillStyle = '#ffd700';
+    for (let i = 0; i < p.level - 1; i++) {
+      ctx.fillRect(p.pos.x - TANK_SIZE / 2 + i * 5, p.pos.y - TANK_SIZE / 2 - 5, 3, 3);
+    }
+  }
 }
 
 function drawBullets(ctx: CanvasRenderingContext2D, world: World): void {

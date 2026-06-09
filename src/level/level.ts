@@ -199,6 +199,7 @@ export function retryLevel(world: World): void {
     p.doubleFire = false;
     p.alive = true;
     p.score = 0; // fix #13（PM 决策 a）：重试清零个人分，维持 sum(个人) ≤ Total 不变量
+    p.level = 1; // R10 §3.23：败北重试 = 全新开局，升级清零
   }
   loadLevel(world, world.level);
   world.state = GameState.PLAYING;
@@ -235,6 +236,7 @@ export function setupVersus(world: World): void {
     p.doubleFire = false;
     p.score = 0;
     p.kills = 0;
+    p.level = 1; // R10 §3.23：每局新坦克，升级清零（覆盖 MELEE via setupMelee）
     p.slide = null;
   }
 }

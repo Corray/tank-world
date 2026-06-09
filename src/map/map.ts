@@ -148,6 +148,11 @@ export class GameMap {
     if (row !== undefined) this.destroyedBaseRows.add(row);
   }
 
+  /** R10 §3.23: a L4 tank bullet destroys a steel cell (→ EMPTY). */
+  breakSteel(row: number, col: number): void {
+    if (this.terrainAt(row, col) === Terrain.STEEL) this.grid[row][col] = Terrain.EMPTY;
+  }
+
   /** R8: whether the base cell in `row` has fallen; falls back to the single
    *  PvE flag when no per-row record exists (zero PvE regression). */
   baseDestroyedAt(row: number): boolean {

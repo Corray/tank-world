@@ -46,6 +46,7 @@ export function damagePlayer(world: World, player: PlayerTank): void {
   playSound(SoundEvent.PLAYER_DOWN);
   player.lives -= 1;
   player.doubleFire = false; // R2: double fire is lost on death (AC-18)
+  player.level = 1; // R10 §3.23: tank upgrade lost on death (resets to L1)
   player.shieldUntil = 0;
   player.slide = null; // R4: respawn never carries momentum (T-TER-6)
   if (player.lives > 0) {

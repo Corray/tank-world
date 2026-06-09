@@ -4,18 +4,19 @@
 import { PowerupType } from '../core/types';
 import type { Vec, PlayerTank } from '../core/types';
 import type { World } from '../core/world';
-import { TANK_SIZE, SHIELD_MS, CELL, VS_POWERUP_INTERVAL_MS, VS_POWERUP_CELLS } from '../core/constants';
+import { TANK_SIZE, SHIELD_MS, CELL, VS_POWERUP_INTERVAL_MS, VS_POWERUP_CELLS, MAX_TANK_LEVEL } from '../core/constants';
 import { playSound, SoundEvent } from '../audio/audio';
 import { onPickup } from '../achievements/achievements';
 
 /** Pickup box edge for a dropped powerup, px (module-local by usage scope). */
 export const POWERUP_SIZE = 24;
 
-/** Fixed drop cycle: shield → double-fire → bomb (consensus §3.8, not random). */
+/** Fixed drop cycle: shield → double-fire → bomb → star (R10 §3.23, 4-cycle). */
 export const DROP_CYCLE: readonly PowerupType[] = [
   PowerupType.SHIELD,
   PowerupType.DOUBLE_FIRE,
   PowerupType.BOMB,
+  PowerupType.STAR,
 ];
 
 /** A carrier died: drop the next powerup in the cycle at its death position. */
@@ -25,8 +26,12 @@ export function dropFromCarrier(world: World, pos: Vec): void {
   world.powerups.push({ type, pos: { ...pos } });
 }
 
-/** R8 §3.21: VERSUS neutral drop cycle — shield/double-fire only, NO bomb. */
-const VS_DROP_CYCLE: readonly PowerupType[] = [PowerupType.SHIELD, PowerupType.DOUBLE_FIRE];
+/** R8 §3.21 / R10 §3.23: VERSUS neutral cycle — shield/double-fire/star, NO bomb. */
+const VS_DROP_CYCLE: readonly PowerupType[] = [
+  PowerupType.SHIELD,
+  PowerupType.DOUBLE_FIRE,
+  PowerupType.STAR,
+];
 
 /**
  * R8 §3.21: VERSUS has no carriers — neutral powerups respawn on a timer at
@@ -80,6 +85,10 @@ function applyEffect(world: World, type: PowerupType, picker: PlayerTank): void 
     case PowerupType.BOMB:
       // Field wipe, no scoring, no drops from bombed carriers (consensus AC-19).
       for (const e of world.enemies) e.alive = false;
+      break;
+    case PowerupType.STAR:
+      // R10: raise tank level, capped at MAX_TANK_LEVEL (§3.23).
+      picker.level = Math.min(MAX_TANK_LEVEL, picker.level + 1) as 1 | 2 | 3 | 4;
       break;
   }
 }

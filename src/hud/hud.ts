@@ -32,12 +32,12 @@ export function renderHud(el: HTMLElement, world: World): void {
     coop || arena
       ? world.players
           .map(
-            // VERSUS shows frags (no NPCs); MELEE/COOP show score (NPC points).
+            // R10: show tank LV; VERSUS shows frags (no NPCs), MELEE/COOP show score.
             (p) =>
-              `<div>P${p.id}&nbsp;&nbsp;♥${p.lives}&nbsp;&nbsp;${versus ? `⚔${p.kills}` : p.score}</div>`,
+              `<div>P${p.id}&nbsp;&nbsp;♥${p.lives}&nbsp;&nbsp;LV${p.level}&nbsp;&nbsp;${versus ? `⚔${p.kills}` : p.score}</div>`,
           )
           .join('')
-      : `<div>LIVES&nbsp;&nbsp;${world.players[0].lives}</div>`;
+      : `<div>LIVES&nbsp;&nbsp;${world.players[0].lives}&nbsp;&nbsp;LV${world.players[0].level}</div>`;
   const topLine = arena
     ? `<div>VS&nbsp;&nbsp;P1&nbsp;${w[1]}&nbsp;:&nbsp;${w[2]}&nbsp;P2${melee ? '&nbsp;MELEE' : ''}</div>`
     : `<div>LEVEL&nbsp;&nbsp;${levelLabel}${coop ? '&nbsp;CO-OP' : ''}</div>`;
