@@ -56,6 +56,8 @@ export class Keyboard {
   onCoop: () => void = () => {};
   /** R8: READY + "3" → versus (consensus §3.21). */
   onVersus: () => void = () => {};
+  /** R9: READY + "4" → NPC melee (consensus §3.22). */
+  onMelee: () => void = () => {};
 
   attach(target: Window): void {
     target.addEventListener('keydown', (e) => {
@@ -73,6 +75,8 @@ export class Keyboard {
         this.onCoop();
       } else if (e.code === 'Digit3') {
         this.onVersus();
+      } else if (e.code === 'Digit4') {
+        this.onMelee();
       }
     });
     target.addEventListener('keyup', (e) => {

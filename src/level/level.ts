@@ -1,7 +1,7 @@
 // Level module (R2): three-level configs, spawn sequence generation,
 // level progression / retry with layered scoring (consensus §3.7, data-model §11).
 
-import { EnemyType, Direction, GameState, Terrain } from '../core/types';
+import { EnemyType, Direction, GameState, GameMode, Terrain } from '../core/types';
 import {
   INVINCIBLE_MS,
   PLAYER_LIVES,
@@ -18,6 +18,9 @@ import {
   VS_SPAWN_P1,
   VS_SPAWN_P2,
   VS_POWERUP_INTERVAL_MS,
+  MELEE_NPC_TOTAL,
+  MELEE_NPC_COUNTS,
+  MELEE_SPAWN_INTERVAL_MS,
 } from '../core/constants';
 import { GameMap } from '../map/map';
 import { onLevelLoaded } from '../achievements/achievements';
@@ -237,11 +240,16 @@ export function setupVersus(world: World): void {
 }
 
 /**
- * R9 §3.22: set up a MELEE round — VERSUS arena + players, plus an NPC pool
- * (enemyTotal>0, neutral spawn cells). G4 骨架桩：实现于 impl 阶段填充。
+ * R9 §3.22: set up a MELEE round = VERSUS arena + players, plus an NPC pool
+ * (enemyTotal>0, neutral spawn cells via enemy.trySpawnEnemy mode branch).
+ * Reuses setupVersus for arena/players, then layers the NPC config.
  */
 export function setupMelee(world: World): void {
-  void world; // stub
+  setupVersus(world); // arena + players + clear field (enemyTotal=0)
+  world.enemyTotal = MELEE_NPC_TOTAL;
+  world.spawnSequence = generateSpawnSequence(MELEE_NPC_COUNTS);
+  world.spawnIntervalMs = MELEE_SPAWN_INTERVAL_MS;
+  world.spawnCooldownMs = 0; // first NPC spawns promptly
 }
 
 /**
@@ -251,7 +259,8 @@ export function setupMelee(world: World): void {
  */
 export function advanceVersusRound(world: World): void {
   if (world.state !== GameState.VERSUS_ROUND) return;
-  setupVersus(world);
+  if (world.mode === GameMode.MELEE) setupMelee(world);
+  else setupVersus(world);
   world.state = GameState.PLAYING;
 }
 

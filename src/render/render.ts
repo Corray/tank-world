@@ -286,7 +286,7 @@ export function overlayLines(world: World): string[] | null {
     [GameState.READY]: [
       'TANK WORLD',
       'Press any move/fire key to start',
-      'Press 2 for CO-OP   Press 3 for VERSUS',
+      'Press 2 CO-OP / 3 VERSUS / 4 MELEE',
       `Achievements: ${unlockedCount()}/${ACHIEVEMENT_COUNT}`,
     ],
     [GameState.PAUSED]: ['PAUSED', 'Press P to resume'],

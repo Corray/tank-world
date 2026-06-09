@@ -1,6 +1,6 @@
 // Enemy module: spawn scheduler + the three AI variants (data-model §6).
 
-import { EnemyType, Direction } from '../core/types';
+import { EnemyType, Direction, GameMode } from '../core/types';
 import type { EnemyTank, Vec } from '../core/types';
 import type { World } from '../core/world';
 import {
@@ -14,6 +14,7 @@ import {
   ENEMY_FIRE_INTERVAL_MS,
   CARRIER_POSITIONS,
   AI_BIAS_PROBABILITY,
+  MELEE_SPAWN_CELLS,
 } from '../core/constants';
 import { moveTank, fireEnemyBullet, tankAreaFree } from '../combat/combat';
 
@@ -53,7 +54,10 @@ export function trySpawnEnemy(world: World, dtMs: number): void {
   if (world.spawnedCount >= world.enemyTotal) return;
   if (world.enemies.filter((e) => e.alive).length >= ENEMY_CONCURRENT) return;
 
-  const cell = SPAWN_CELLS[world.spawnCursor];
+  // R9 §3.22: MELEE spawns NPCs from neutral side cells (top row is P2's
+  // side + base in the VS arena); other modes use the top-row cells.
+  const cells = world.mode === GameMode.MELEE ? MELEE_SPAWN_CELLS : SPAWN_CELLS;
+  const cell = cells[world.spawnCursor % cells.length];
   const pos: Vec = { x: cell.col * CELL + CELL / 2, y: cell.row * CELL + CELL / 2 };
   if (!tankAreaFree(world, pos.x, pos.y)) return; // occupied → retry next tick
 
@@ -62,7 +66,7 @@ export function trySpawnEnemy(world: World, dtMs: number): void {
   enemy.carrier = CARRIER_POSITIONS.includes(world.spawnedCount + 1);
   world.enemies.push(enemy);
   world.spawnedCount += 1;
-  world.spawnCursor = (world.spawnCursor + 1) % SPAWN_CELLS.length;
+  world.spawnCursor = (world.spawnCursor + 1) % cells.length;
   world.spawnCooldownMs = world.spawnIntervalMs;
 }
 
