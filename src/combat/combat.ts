@@ -19,7 +19,7 @@ import { onEnemyKilled, onBrickDestroyed } from '../achievements/achievements';
 
 /** Explosion primary colors (enemy vs player — consensus §3.11). */
 const EXPLOSION_COLOR_ENEMY = '#ff7043';
-import { Terrain, BulletOwner, GameMode, DIR_VEC } from '../core/types';
+import { Terrain, BulletOwner, isPvP, DIR_VEC } from '../core/types';
 import type { World } from '../core/world';
 import type { Bullet, EnemyTank, PlayerTank, Tank, Direction, Vec } from '../core/types';
 import { damagePlayer } from '../player/player';
@@ -220,9 +220,10 @@ function advanceBullet(world: World, b: Bullet, dtMs: number): boolean {
         }
         return false;
       }
-      // R8 §3.21 (C17 reversed in VERSUS): a player bullet damages the OPPOSING
-      // player; own bullets still pass through. SOLO/COOP keep full pass-through.
-      if (world.mode === GameMode.VERSUS) {
+      // R8 §3.21 / R9 §3.22 (C17 reversed in PvP modes): a player bullet damages
+      // the OPPOSING player; own bullets still pass through. SOLO/COOP keep full
+      // pass-through.
+      if (isPvP(world.mode)) {
         const foe = world.players.find(
           (p) => p.alive && p.id !== b.playerId && bulletHitsTank(b, p),
         );

@@ -1,7 +1,7 @@
 // Per-frame pipeline (architecture §3.2):
 // input → player → enemies → combat → judge. Render/HUD happen outside.
 
-import { GameState, GameMode } from './types';
+import { GameState, GameMode, isPvP } from './types';
 import type { World } from './world';
 import type { InputState } from '../input/input';
 import { updatePlayers } from '../player/player';
@@ -69,8 +69,9 @@ export function judgeVersus(world: World): void {
  */
 export function judge(world: World): void {
   if (world.state !== GameState.PLAYING) return;
-  // R8 §3.21: VERSUS has its own win logic (no PvE clear path here).
-  if (world.mode === GameMode.VERSUS) {
+  // R8 §3.21 / R9 §3.22: PvP modes (VERSUS, MELEE) share arena win logic
+  // (dual-condition base/lives, best-of-3) — no PvE clear path here.
+  if (isPvP(world.mode)) {
     judgeVersus(world);
     return;
   }

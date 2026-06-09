@@ -25,18 +25,21 @@ export function renderHud(el: HTMLElement, world: World): void {
     world.level > LEVEL_COUNT ? `${world.level}/&infin;` : `${world.level}/${LEVEL_COUNT}`;
   const coop = world.mode === GameMode.COOP;
   const versus = world.mode === GameMode.VERSUS;
+  const melee = world.mode === GameMode.MELEE;
+  const arena = versus || melee; // R9: PvP-family modes share the VS round HUD
   const w = world.versusWins;
   const playerRows =
-    coop || versus
+    coop || arena
       ? world.players
           .map(
+            // VERSUS shows frags (no NPCs); MELEE/COOP show score (NPC points).
             (p) =>
               `<div>P${p.id}&nbsp;&nbsp;♥${p.lives}&nbsp;&nbsp;${versus ? `⚔${p.kills}` : p.score}</div>`,
           )
           .join('')
       : `<div>LIVES&nbsp;&nbsp;${world.players[0].lives}</div>`;
-  const topLine = versus
-    ? `<div>VS&nbsp;&nbsp;P1&nbsp;${w[1]}&nbsp;:&nbsp;${w[2]}&nbsp;P2</div>`
+  const topLine = arena
+    ? `<div>VS&nbsp;&nbsp;P1&nbsp;${w[1]}&nbsp;:&nbsp;${w[2]}&nbsp;P2${melee ? '&nbsp;MELEE' : ''}</div>`
     : `<div>LEVEL&nbsp;&nbsp;${levelLabel}${coop ? '&nbsp;CO-OP' : ''}</div>`;
   el.innerHTML = [
     topLine,
@@ -49,8 +52,8 @@ export function renderHud(el: HTMLElement, world: World): void {
     `<div style="font-size:11px;color:#aaa">ACH&nbsp;&nbsp;${unlockedCount()}/${ACHIEVEMENT_COUNT}</div>`,
     `<div style="font-size:10px;line-height:1.5">${achievementRows()}</div>`,
     `<hr/>`,
-    // fix #7 family: key help follows the mode (co-op/versus bindings differ, AC-39).
-    coop || versus
+    // fix #7 family: key help follows the mode (co-op/versus/melee split bindings, AC-39).
+    coop || arena
       ? `<div style="font-size:11px;color:#888">P1: WASD+J<br/>P2: Arrows+Enter<br/>Pause: P &nbsp; Restart: R<br/>Sound: M (${isMuted() ? 'muted' : 'on'})</div>`
       : `<div style="font-size:11px;color:#888">Move: WASD / Arrows<br/>Fire: Space / J<br/>Pause: P &nbsp; Restart: R<br/>Sound: M (${isMuted() ? 'muted' : 'on'})</div>`,
   ].join('');

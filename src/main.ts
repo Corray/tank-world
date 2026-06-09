@@ -1,6 +1,6 @@
 // Entry point: wire modules together and start the loop (architecture §2).
 
-import { GameLoop, startGame, startCoop, startVersus, togglePause, restartToReady } from './core/game';
+import { GameLoop, startGame, startCoop, startVersus, startMelee, togglePause, restartToReady } from './core/game';
 import { advanceLevel, retryLevel, enterEndless, advanceVersusRound } from './level/level';
 import { toggleMute } from './audio/audio';
 import { createWorld } from './core/world';
@@ -43,6 +43,7 @@ keyboard.onPause = () => togglePause(loop.world);
 keyboard.onMute = () => toggleMute();
 keyboard.onCoop = () => startCoop(loop.world); // READY + "2" (AC-38)
 keyboard.onVersus = () => startVersus(loop.world); // READY + "3" (AC-52)
+keyboard.onMelee = () => startMelee(loop.world); // READY + "4" (AC-60)
 keyboard.onRestart = () => {
   if (loop.world.state === GameState.DEFEAT) {
     retryLevel(loop.world); // R2: retry current level (AC-15)

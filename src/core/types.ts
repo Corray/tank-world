@@ -82,6 +82,13 @@ export enum GameMode {
   COOP = 'COOP',
   /** R8: local 2-player versus — adversarial, first opposing alignment (§3.21). */
   VERSUS = 'VERSUS',
+  /** R9: NPC melee — VERSUS + NPC third party (PvE + PvP at once, §3.22). */
+  MELEE = 'MELEE',
+}
+
+/** R9: PvP-family modes (friendly fire reversed + arena win logic) — §3.22. */
+export function isPvP(mode: GameMode): boolean {
+  return mode === GameMode.VERSUS || mode === GameMode.MELEE;
 }
 
 export interface Vec {
