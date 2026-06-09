@@ -2,6 +2,7 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
+| v5 | 2026-06-09 | R11 Boss：EnemyType.BOSS（穷举映射 3 处同补）；level.isBossLevel + loadLevel 注入 BOSS 末位；enemy 阶段狂暴 AI；render Boss HP 条；死即 fieldClear（零新胜负）|
 | v4 | 2026-06-09 | R10 升级：PlayerTank.level + STAR 道具；firePlayerBullet 按 level→弹速/cap/破钢；map.breakSteel；level 重置点矩阵（4 归 L1 + loadLevel 持久）|
 | v3 | 2026-06-09 | R9 MELEE：isPvP 助手统一 PvP 判定；judge/C17 经 isPvP 扩 MELEE；judgeVersus 复用（零改）；setupMelee=setupVersus+NPC 池；NPC 中立出生点 |
 | v2 | 2026-06-08 | R8 VERSUS：judge 增 judgeVersus 分叉；双基地建模；C17 友军火力反转；VS 入口与中立道具 |
@@ -37,6 +38,7 @@ updatePlayers → updatePowerups(先于 combat) → trySpawnEnemy → updateEnem
 | 冰面惯性 | combat/combat.ts | translate/refreshSlide/applySlide |
 | 状态机转换 | core/game.ts + core/update.ts judge | data-model §10/§20 |
 | 关卡/无尽配置 | level/level.ts | LEVELS / endlessConfig / VARIANT_SLOTS |
+| Boss 战 | level.ts isBossLevel + loadLevel 注入末位 / enemy.ts updateEnemies BOSS 分支(fireBossSpread) / render drawBossHp | EnemyType.BOSS + ENEMY_HP/SCORE.BOSS；死即 fieldClear（零新胜负）；仅 PvE（注入只在 loadLevel）|
 | 道具效果 | powerup/powerup.ts | applyEffect(归拾取者)；STAR→升级 |
 | 坦克升级 | combat.ts firePlayerBullet（level→弹速/cap/breaksSteel）+ map.breakSteel(L4 破钢) | level 重置点矩阵见 player.damagePlayer/level.retryLevel·setupVersus(=L1)/loadLevel(持久) |
 | 成就触发 | achievements/achievements.ts | on* 钩子（COOP 全 gate） |
