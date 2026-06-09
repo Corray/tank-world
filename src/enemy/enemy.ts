@@ -15,6 +15,9 @@ import {
   CARRIER_POSITIONS,
   AI_BIAS_PROBABILITY,
   MELEE_SPAWN_CELLS,
+  BOSS_HP,
+  BOSS_FIRE_MS,
+  BOSS_FIRE_RAGE_MS,
 } from '../core/constants';
 import { moveTank, fireEnemyBullet, tankAreaFree } from '../combat/combat';
 
@@ -83,10 +86,35 @@ export function updateEnemies(world: World, dtMs: number): void {
       e.ai.turnMs = ENEMY_TURN_INTERVAL_MS;
     }
     if (e.ai.fireMs <= 0) {
-      fireEnemyBullet(world, e);
-      e.ai.fireMs = ENEMY_FIRE_INTERVAL_MS;
+      if (e.type === EnemyType.BOSS) {
+        // R11 §3.24: rage (HP ≤ 50%) → three-way spread + faster fire.
+        if (e.hp <= BOSS_HP / 2) {
+          fireBossSpread(world, e);
+          e.ai.fireMs = BOSS_FIRE_RAGE_MS;
+        } else {
+          fireEnemyBullet(world, e);
+          e.ai.fireMs = BOSS_FIRE_MS;
+        }
+      } else {
+        fireEnemyBullet(world, e);
+        e.ai.fireMs = ENEMY_FIRE_INTERVAL_MS;
+      }
     }
   }
+}
+
+/** R11 §3.24: boss three-way spread — forward + the two perpendicular directions. */
+function fireBossSpread(world: World, boss: EnemyTank): void {
+  const perp =
+    boss.dir === Direction.UP || boss.dir === Direction.DOWN
+      ? [Direction.LEFT, Direction.RIGHT]
+      : [Direction.UP, Direction.DOWN];
+  const saved = boss.dir;
+  for (const d of [saved, ...perp]) {
+    boss.dir = d;
+    fireEnemyBullet(world, boss);
+  }
+  boss.dir = saved;
 }
 
 const DIRECTIONS: readonly Direction[] = [
