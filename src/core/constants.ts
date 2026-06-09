@@ -40,10 +40,10 @@ export const LOGIC_HZ = 60;
 /** Fixed logic timestep, ms. */
 export const STEP_MS = 1000 / LOGIC_HZ;
 
-/** Enemy hit points by type: BASIC / FAST / ARMORED (data-model §3). */
-export const ENEMY_HP = { BASIC: 1, FAST: 1, ARMORED: 3 } as const;
-/** Score awarded per destroyed enemy by type (consensus §3.3). */
-export const ENEMY_SCORE = { BASIC: 100, FAST: 200, ARMORED: 400 } as const;
+/** Enemy hit points by type (data-model §3; R11 §3.24 adds BOSS). */
+export const ENEMY_HP = { BASIC: 1, FAST: 1, ARMORED: 3, BOSS: 10 } as const;
+/** Score awarded per destroyed enemy by type (consensus §3.3; R11 BOSS). */
+export const ENEMY_SCORE = { BASIC: 100, FAST: 200, ARMORED: 400, BOSS: 1000 } as const;
 
 /** Enemy AI: ms between direction re-rolls. */
 export const ENEMY_TURN_INTERVAL_MS = 1500;
@@ -149,3 +149,14 @@ export const MELEE_SPAWN_CELLS: ReadonlyArray<{ row: number; col: number }> = [
 export const MAX_TANK_LEVEL = 4;
 /** L2+ player bullet speed (×1.5 of base — consensus §3.23 default). */
 export const PLAYER_BULLET_FAST_SPEED = BULLET_SPEED * 1.5;
+
+// --- R11 additions (consensus §3.24, Boss) ---
+
+/** Boss HP / score (reference the by-type tables — single source). */
+export const BOSS_HP = ENEMY_HP.BOSS;
+export const BOSS_SCORE = ENEMY_SCORE.BOSS;
+/** Boss fire interval: normal phase / rage phase (HP ≤ 50%), ms. */
+export const BOSS_FIRE_MS = 1000;
+export const BOSS_FIRE_RAGE_MS = 500;
+/** Endless boss milestone: a boss every N endless levels (L8/L13/... at 5). */
+export const BOSS_ENDLESS_EVERY = 5;

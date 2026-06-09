@@ -148,6 +148,15 @@ export function generateSpawnSequence(counts: LevelConfig['enemyCounts']): Enemy
  * (banking is judge's job); doubleFire untouched (AC-18: survives level clear,
  * retryLevel clears it explicitly on the death path).
  */
+/**
+ * R11 §3.24: whether a level ends with a Boss — campaign L3 终点 or endless
+ * milestone (every BOSS_ENDLESS_EVERY levels). G4 骨架桩：impl 阶段填充。
+ */
+export function isBossLevel(level: number): boolean {
+  void level; // stub
+  return false;
+}
+
 export function loadLevel(world: World, level: number): void {
   const cfg = level <= LEVELS.length ? LEVELS[level - 1] : endlessConfig(level);
   world.level = level;
