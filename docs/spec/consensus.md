@@ -2,6 +2,7 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
+| v10 | 2026-06-09 | R11 范围并入（Boss 战，PvE 高潮，F24）；新增 §3.24 与 AC-76~80；决议：两者触发（战役 L3 终点+无尽每 5 关）/ 阶段狂暴（HP≤50% 三向弹幕+加速）/ 仅 PvE / 仅高分（不加第 9 成就）|
 | v9 | 2026-06-09 | R10 范围并入（坦克升级系统·星星，横向机制，F23）；新增 §3.23 与 AC-68~75；决议：经典四级（L2快弹/L3二发/L4破钢）/ 死亡回 L1（双目的）/ doubleFire 独立不叠加 / 全模式启用 / STAR 入掉落循环 |
 | v8 | 2026-06-09 | R9 范围并入（NPC 混战 VS，强化对战，F22）；§2.2 混战移出范围外（取代标注）；新增 §3.22 与 AC-60~67；决议：强化对战·双基地（沿用 R8 双条件胜负，NPC 作 hazard）/ NPC 携带者复活（三道具全开）/ best-of-3 / 比分 display-only |
 | v7 | 2026-06-08 | R8 范围并入（双人对战 VS，独立 epic，F21）；§2.2 VS 移出范围外（取代标注）；新增 §3.21 与 AC-52~59；决议：双条件胜负（毁基地或清命数）/ 纯 PvP 无 NPC / 护盾+双发去炸弹 / best-of-3 / VS 不写存档 |
@@ -54,6 +55,7 @@
 | F21 | 双人对战 VS（R8） | 纯 PvP 对称竞技场 + 友军火力反转 + 双条件胜负 + best-of-3，见 §3.21 |
 | F22 | NPC 混战 VS（R9） | 强化对战——R8 双基地双条件胜负叠 NPC 第三方 hazard + 携带者道具 + 比分 display，见 §3.22 |
 | F23 | 坦克升级·星星（R10） | 拾星升级 L1→L4（快弹/二发/破钢）、死亡回 L1、全模式启用、doubleFire 独立不叠加，见 §3.23 |
+| F24 | Boss 战（R11） | 战役终点+无尽里程碑出 Boss（多 HP+HP 条+阶段狂暴），作末位敌人死即过关，仅 PvE，见 §3.24 |
 
 ### 2.2 范围外（Out of Scope，MVP 不做）
 
@@ -346,6 +348,21 @@
 - **HUD**：显示当前 `LV{n}`/`★`（P1）；坦克外观随级微变（render，P1）。
 - **方法载体**：G3 产出「模式分叉清单 v5」，重置点矩阵全覆盖，判据沿用 v4 两子类（新分支 grep 决策点 / 复用涌现声明）（AC-75）。
 
+### 3.24 Boss 战（R11 / F24）
+
+PvE 高潮——首个**单体高威胁 + 阶段行为**敌人。复用现有多 HP 命中（ARMORED）+ fieldClear 过关，零新胜负逻辑。
+
+- **BOSS 敌人**：`EnemyType` 增 `BOSS`；高 HP〔默认 10〕、高分〔默认 1000〕、同 TANK_SIZE（以 HP/行为/HP 条辨识，不改碰撞盒）。
+  - **穷举映射全扫**（dogfood 增量 7 教训）：`ENEMY_HP`/`ENEMY_SCORE` 加 BOSS 项；render `COLOR.enemy` 加 BOSS 色（否则 `Record<EnemyType>` 穷举编译错）。
+- **触发点（OPEN-R11-1 决议=两者）**：`isBossLevel(level)` = 战役 **L3 终点** 或 无尽里程碑〔默认每 5 关：L8/L13/...〕。loadLevel 在 boss 关把 BOSS **append 到 spawnSequence 末尾** + enemyTotal+1 → Boss 是该关最后出生的敌人。
+- **仅 PvE（OPEN-R11-3 决议）**：boss 注入只在 loadLevel（solo/coop/endless）；VS（enemyTotal=0）/ MELEE（setupMelee 自管 spawn）天然无 boss。
+- **阶段狂暴（OPEN-R11-2 决议）**：
+  - 常态（HP > 50%）：单发，射击间隔〔默认 1000ms〕。
+  - **狂暴（HP ≤ 50%）**：**三向弹幕**（面向 + 两垂直方向同时发）+ **加速**〔默认 500ms〕。
+  - 移动沿用 ARMORED 偏好最近存活玩家（§3.9）。
+- **HP 条**：存活 Boss 头顶绘 HP 条（hp/BOSS_HP）。
+- **死亡即清场（OPEN-R11-4=仅高分）**：Boss 死亡 → 计 BOSS_SCORE 高分（per-player 归属，复用 C5）→ 作末位敌人触发 **fieldClear 过关**。**奖励仅高分**——不加第 9 成就（ACHIEVEMENT_COUNT 维持 8，避免既有成就测试回归）；CENTURION 自然计 boss 击杀。
+
 ## 4. 非功能约束
 
 | # | 约束 |
@@ -435,6 +452,11 @@
 | AC-73 | 升级在 solo/coop/endless/VS/MELEE 全生效；死亡回 L1 抑制 PvP 滚雪球 |
 | AC-74 | 重置点矩阵：level 在 createPlayer/damagePlayer/retryLevel/setupVersus(含MELEE)=L1；loadLevel 持久（跨关保留）|
 | AC-75 | G3 产物「模式分叉清单 v5」重置点全覆盖；行数=逻辑写入点数（沿用 v4 两子类判据）|
+| AC-76 | BOSS 在 L3 战役终点 + 无尽每 5 关出现，作 spawnSequence 末位敌人；仅 PvE（VS/MELEE 无 boss）|
+| AC-77 | Boss 多 HP 需多次命中、高分；存活 Boss 头顶 HP 条按 hp/BOSS_HP 渲染 |
+| AC-78 | Boss 阶段狂暴：HP≤50% 三向弹幕 + 加速射击；>50% 单发 |
+| AC-79 | Boss 死亡 = 该关 fieldClear 过关；击破计 BOSS_SCORE 高分（per-player）|
+| AC-80 | 新 EnemyType.BOSS 不破坏 ENEMY_HP/SCORE/render 穷举映射（增量 7 教训自查）；既有敌人/关卡测试零回归 |
 
 ## 6. 待确认项（已全部收敛 — 2026-06-04 评审）
 
