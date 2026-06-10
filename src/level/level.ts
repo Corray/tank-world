@@ -21,6 +21,8 @@ import {
   MELEE_NPC_TOTAL,
   MELEE_NPC_COUNTS,
   MELEE_SPAWN_INTERVAL_MS,
+  LEVEL_COUNT,
+  BOSS_ENDLESS_EVERY,
 } from '../core/constants';
 import { GameMap } from '../map/map';
 import { onLevelLoaded } from '../achievements/achievements';
@@ -148,6 +150,16 @@ export function generateSpawnSequence(counts: LevelConfig['enemyCounts']): Enemy
  * (banking is judge's job); doubleFire untouched (AC-18: survives level clear,
  * retryLevel clears it explicitly on the death path).
  */
+/**
+ * R11 §3.24: whether a level ends with a Boss — campaign L3 终点 or endless
+ * milestone (every BOSS_ENDLESS_EVERY levels). G4 骨架桩：impl 阶段填充。
+ */
+export function isBossLevel(level: number): boolean {
+  if (level === LEVEL_COUNT) return true; // campaign climax (L3)
+  // endless milestone: every BOSS_ENDLESS_EVERY levels past the campaign (L8/L13/...)
+  return level > LEVEL_COUNT && (level - LEVEL_COUNT) % BOSS_ENDLESS_EVERY === 0;
+}
+
 export function loadLevel(world: World, level: number): void {
   const cfg = level <= LEVELS.length ? LEVELS[level - 1] : endlessConfig(level);
   world.level = level;
@@ -162,6 +174,12 @@ export function loadLevel(world: World, level: number): void {
   world.spawnSequence = generateSpawnSequence(cfg.enemyCounts);
   world.enemyTotal = cfg.enemyCounts.BASIC + cfg.enemyCounts.FAST + cfg.enemyCounts.ARMORED;
   world.spawnIntervalMs = cfg.spawnIntervalMs;
+  // R11 §3.24: on boss levels, the BOSS is appended as the LAST enemy to spawn —
+  // killing it triggers the existing fieldClear (no new win logic).
+  if (isBossLevel(level)) {
+    world.spawnSequence.push(EnemyType.BOSS);
+    world.enemyTotal += 1;
+  }
 
   // R5: reset EVERY player (positions/invincibility); lives carry per player.
   for (const p of world.players) {

@@ -64,6 +64,8 @@ export enum EnemyType {
   BASIC = 'BASIC',
   FAST = 'FAST',
   ARMORED = 'ARMORED',
+  /** R11: boss — high HP, phase rage, appears as the level's last enemy (§3.24). */
+  BOSS = 'BOSS',
 }
 
 export enum Direction {
