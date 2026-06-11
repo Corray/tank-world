@@ -2,6 +2,7 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
+| v7 | 2026-06-11 | R13 波次：GameMode.WAVE + WAVE_BREAK/OVER 状态；judgeWave 前拦（平行 judgeVersus）；advance 增 WAVE_BREAK 倒计时分支（首个自动间奏）；level.waveConfig/applyWave/setupWave/startNextWave；第七八档；main twoLane 改 players.length 判定 |
 | v6 | 2026-06-11 | R12 道具三件：PowerupType +SHOVEL/FREEZE/LIFE（7-cycle）；map.fortifyCells/restoreBrickCells；world.freezeUntil(全局)+shovelUntil(per-base)；enemy 冻结门控；update 接 updateShovel；重置点清零（loadLevel/setupVersus）|
 | v5 | 2026-06-09 | R11 Boss：EnemyType.BOSS（穷举映射 3 处同补）；level.isBossLevel + loadLevel 注入 BOSS 末位；enemy 阶段狂暴 AI；render Boss HP 条；死即 fieldClear（零新胜负）|
 | v4 | 2026-06-09 | R10 升级：PlayerTank.level + STAR 道具；firePlayerBullet 按 level→弹速/cap/破钢；map.breakSteel；level 重置点矩阵（4 归 L1 + loadLevel 持久）|
@@ -48,6 +49,7 @@ updatePlayers → updatePowerups(先于 combat) → trySpawnEnemy → updateEnem
 | 存档档位 | storage/storage.ts + constants KEY_* | 五档 + muted |
 | 双人键位 | input/input.ts | SOLO_P1/COOP_P1/COOP_P2 映射表（VS 复用 COOP 双键位）|
 | VS/MELEE 胜负/回合 | core/update.ts judgeVersus + level.ts advanceVersusRound | 双条件胜负/best-of-3；双基地=map.versusBaseDown；judge 路由经 isPvP（VS+MELEE 共用）|
+| 波次防御 | update.ts judgeWave（mode===WAVE 前拦）+ game.ts advance WAVE_BREAK 分支 + level.ts waveConfig/applyWave/startNextWave | 同图连续（startNextWave 不经 loadLevel）；曲线常量 WAVE_*；档位按 players.length 分流第七八档 |
 | PvP 模式判定 | core/types.ts isPvP(mode) | =VERSUS\|\|MELEE；C17 + judge 路由的单一锚 |
 | VS/MELEE 友军火力 | combat/combat.ts | C17 经 isPvP 分支（playerId≠target.id 互伤）|
 | VS 道具来源 | powerup/powerup.ts spawnNeutralPowerup | 中立点定时刷新（仅 VS）|
