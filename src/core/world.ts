@@ -73,6 +73,10 @@ export interface World {
   freezeUntil: number;
   /** R12 §3.25: per-side shovel fortify deadline (game clock, ms); 0 = inactive. */
   shovelUntil: Record<1 | 2, number>;
+  /** R13 §3.26: current wave (1-based) — meaningful in WAVE mode only. */
+  wave: number;
+  /** R13 §3.26: WAVE_BREAK countdown remainder, ms (advance-layer, not clock). */
+  waveBreakMs: number;
 }
 
 /** Player spawn cells: P1 (12,2) / P2 (12,10) — data-model §11/§31. */
@@ -135,5 +139,7 @@ export function createWorld(): World {
     versusPowerupCooldownMs: 0,
     freezeUntil: 0,
     shovelUntil: { 1: 0, 2: 0 },
+    wave: 1,
+    waveBreakMs: 0,
   };
 }

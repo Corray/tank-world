@@ -291,6 +291,25 @@ export function advanceVersusRound(world: World): void {
   world.state = GameState.PLAYING;
 }
 
+// --- R13: wave defense (consensus §3.26) ---
+
+/** R13 §3.26: wave size / mix / pace curve（G4 骨架桩：impl 阶段填充）. */
+export function waveConfig(_wave: number): LevelConfig {
+  return LEVELS[0];
+}
+
+/** R13 §3.26: every WAVE_BOSS_EVERY waves end with a boss（G4 骨架桩）. */
+export function isBossWave(_wave: number): boolean {
+  return false;
+}
+
+/** R13 §3.26: refill spawn fields for wave k — map/powerups/players untouched
+ *  (same-map continuity §3.26)（G4 骨架桩：impl 阶段填充）. */
+export function applyWave(_world: World, _wave: number): void {}
+
+/** R13 §3.26: WAVE_BREAK ends → next wave on the SAME battlefield（G4 骨架桩）. */
+export function startNextWave(_world: World): void {}
+
 // --- R3: endless mode (consensus §3.13, data-model §19) ---
 
 /**

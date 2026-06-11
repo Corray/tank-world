@@ -6,6 +6,8 @@ import {
   KEY_BEST_LEVEL,
   KEY_BEST_ENDLESS,
   KEY_BEST_COOP,
+  KEY_BEST_WAVE,
+  KEY_BEST_COOP_WAVE,
   KEY_MUTED,
 } from '../core/constants';
 
@@ -88,4 +90,23 @@ export function setMutedPref(muted: boolean): void {
   } catch {
     // degrade silently
   }
+}
+
+// R13: buckets seven / eight — waves cleared (data-model: consensus §3.26).
+
+export function getBestWave(): number {
+  return read(KEY_BEST_WAVE);
+}
+
+/** Submit a solo wave run (WAVE_OVER settlement only): waves cleared. */
+export function submitWave(waves: number): void {
+  writeIfHigher(KEY_BEST_WAVE, waves);
+}
+
+export function getBestCoopWave(): number {
+  return read(KEY_BEST_COOP_WAVE);
+}
+
+export function submitCoopWave(waves: number): void {
+  writeIfHigher(KEY_BEST_COOP_WAVE, waves);
 }

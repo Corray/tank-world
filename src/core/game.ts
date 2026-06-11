@@ -39,6 +39,9 @@ export function startMelee(world: World): void {
   world.state = GameState.PLAYING;
 }
 
+/** R13 §3.26: READY + key "5"/"6" → wave defense, solo or co-op（G4 骨架桩）. */
+export function startWave(_world: World, _coop: boolean): void {}
+
 export function togglePause(world: World): void {
   if (world.state === GameState.PLAYING) world.state = GameState.PAUSED;
   else if (world.state === GameState.PAUSED) world.state = GameState.PLAYING;
