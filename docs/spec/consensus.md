@@ -2,6 +2,7 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
+| v12 | 2026-06-11 | R13 范围并入（波次防御，PvE 第三循环，F26）；新增 §3.26 与 AC-88~95；决议：倒计时自动开波（按键可提前）/ 每 5 波 Boss 波 / solo+coop 第七八档分离 / 复用 L1 图；核心区隔=同图连续（跨波不重建图，四类状态累积） |
 | v11 | 2026-06-11 | R12 范围并入（道具补全·经典三件，F25）；新增 §3.25 与 AC-81~87；决议：FREEZE 仅冻 NPC / SHOVEL 到期全恢复为砖 / LIFE 无上限 / VS 中立池仅加 SHOVEL；§3.8 道具序列行补取代标注（R10 起即 4-cycle，标注漏打回补） |
 | v10 | 2026-06-09 | R11 范围并入（Boss 战，PvE 高潮，F24）；新增 §3.24 与 AC-76~80；决议：两者触发（战役 L3 终点+无尽每 5 关）/ 阶段狂暴（HP≤50% 三向弹幕+加速）/ 仅 PvE / 仅高分（不加第 9 成就）|
 | v9 | 2026-06-09 | R10 范围并入（坦克升级系统·星星，横向机制，F23）；新增 §3.23 与 AC-68~75；决议：经典四级（L2快弹/L3二发/L4破钢）/ 死亡回 L1（双目的）/ doubleFire 独立不叠加 / 全模式启用 / STAR 入掉落循环 |
@@ -58,6 +59,7 @@
 | F23 | 坦克升级·星星（R10） | 拾星升级 L1→L4（快弹/二发/破钢）、死亡回 L1、全模式启用、doubleFire 独立不叠加，见 §3.23 |
 | F24 | Boss 战（R11） | 战役终点+无尽里程碑出 Boss（多 HP+HP 条+阶段狂暴），作末位敌人死即过关，仅 PvE，见 §3.24 |
 | F25 | 道具补全·经典三件（R12） | 铲子（护圈变钢+到期回砖）/冻结（NPC 定身）/加命，掉落循环 4→7，VS 池仅加铲，见 §3.25 |
+| F26 | 波次防御（R13） | 同图连续守基生存：波次递增+5 波 Boss+倒计时自动开波，第七/八档 best-wave 分离，见 §3.26 |
 
 ### 2.2 范围外（Out of Scope，MVP 不做）
 
@@ -381,6 +383,19 @@ PvE 高潮——首个**单体高威胁 + 阶段行为**敌人。复用现有多
   - MELEE 走 NPC 携带者掉落，沿用 PvE 7-cycle（零改）。
 - **定时效果生命周期（核心约束）**：shovelUntil（per-base）/ freezeUntil（全局）在 loadLevel / retryLevel / setupVersus / setupMelee **全部清零**——不跨关不跨局。与 STAR 升级「loadLevel 故意持久」（§3.23）构成「持久 vs 重置」维度对照样本。
 
+### 3.26 波次防御（R13 / F26）
+
+PvE 第三循环——围绕基地的「守土」生存。**核心区隔 = 同图连续作战**（无尽是清关→换图→全重置的过关制；波次是一张图打到死，损耗跨波累积）。
+
+- **入口与状态**：`GameMode` 增 `WAVE`（PvE 族，isPvP 不含）；`GameState` 增 `WAVE_BREAK` / `WAVE_OVER`。READY 按 **5** 单人 / 按 **6** 双人（OPEN-R13-3 决议）。`setupWave` 装载 **L1 图**（OPEN-R13-4 决议：护圈现成、铲子修墙协同最强）、`wave=1` 灌注第一波。
+- **波次构成**〔默认公式〕：`waveConfig(k)`：total = 8+2k；armoredRatio = min(0.5, 0.15+0.03k)；FAST=(total−ARMORED)/2；间隔 = max(800, 2000−100k)ms。出生调度复用 trySpawnEnemy 零改。
+- **Boss 波（OPEN-R13-2 决议）**：`isBossWave(k) = k%5===0` → 该波末位注入 BOSS + total+1（复用 R11 全部 Boss 行为零改）。
+- **波清 → WAVE_BREAK → 自动开波（OPEN-R13-1 决议）**：波清（allSpawned && fieldClear）→ WAVE_BREAK 倒计时〔默认 5s〕→ 归零自动 `startNextWave`（wave+1 灌新波）；按任意动作键可提前。**advance 层新分支**：间歇期 clock 不动、updateWorld 不跑（实体全冻，AC-11 语义保持），仅倒计时递减。波清不走 LEVEL_CLEAR：不 bank 分（score 单字段累积）、不调 onLevelCleared/onLevelLoaded。
+- **同图连续（核心约束）**：跨波**不重建 GameMap、不清场上道具、不重置玩家**——地形损耗/护圈破口累积；STAR 升级、命数、doubleFire、定时效果（铲钢圈/冻结余窗）跨波保留（startNextWave 不经 loadLevel，涌现保留——与 §3.25 重置点矩阵的分叉新行）。
+- **失败结算与档位**：基地毁或全员命尽 → WAVE_OVER，结算**完整清掉的波数**（死于第 k 波=k−1）。第七档 `best-wave` / 第八档 `best-coop-wave`；**WAVE 不写既有六档**（#6 写入点门控镜像）。WAVE_OVER → R → 全新 READY。
+- **HUD/渲染**：WAVE 模式显示 `WAVE n`（替代 LEVEL n/3）+ 七/八档 BEST 行；overlay：WAVE_BREAK 倒计时 / WAVE_OVER 撑过波数。
+- **成就影响面**：关卡族钩子波次不调 → NO_DEATH_LEVEL/FULL_CLEAR/PURIST/CAMPAIGN/ENDLESS_8 天然不触发；kill/pickup/brick 族自然生效；ACHIEVEMENT_COUNT 维持 8。
+
 ## 4. 非功能约束
 
 | # | 约束 |
@@ -482,6 +497,14 @@ PvE 高潮——首个**单体高威胁 + 阶段行为**敌人。复用现有多
 | AC-85 | VS 中立池 3→4 仅加 SHOVEL（护盾/双发/星/铲）；FREEZE/LIFE 不出现在 VS |
 | AC-86 | 定时效果不跨关不跨局：shovelUntil/freezeUntil 在 loadLevel/retryLevel/setupVersus/setupMelee 全清零 |
 | AC-87 | COLLECTOR_TYPES 维持 3、ACHIEVEMENT_COUNT 维持 8，成就零回归；既有 249 测试零回归；G3 产出「模式分叉清单 v6」（道具×模式矩阵 + 定时效果重置点），基线修订全部在预判清单内 |
+| AC-88 | READY 按 5/6 进 WAVE（solo/coop）；L1 图装载；wave 从 1 起；isPvP 不含 WAVE |
+| AC-89 | waveConfig 强度递增（数量/构成/间隔三维）；每 5 波 Boss 波（末位 BOSS + total+1，复用 R11） |
+| AC-90 | 波清 → WAVE_BREAK 倒计时自动开下波（按键可提前）；间歇期 clock 不动/实体全冻（AC-11 语义） |
+| AC-91 | 同图连续：跨波不重建地图（地形损耗累积）；道具/升级/命数/定时效果跨波保留 |
+| AC-92 | 基地毁或全员命尽 → WAVE_OVER；结算完整清掉的波数（死于第 k 波=k−1） |
+| AC-93 | 第七/八档 best-wave/best-coop-wave 隔离写入；WAVE 不写既有六档（写入点门控） |
+| AC-94 | 关卡族成就（NO_DEATH_LEVEL/FULL_CLEAR/PURIST/CAMPAIGN/ENDLESS_8）波次不触发；kill/pickup/brick 族自然生效；ACHIEVEMENT_COUNT 维持 8 |
+| AC-95 | 既有 263 测试零回归；G3 产出「模式分叉清单 v7」（GameMode/GameState/档位写入点矩阵），基线修订全部在预判清单内 |
 
 ## 6. 待确认项（已全部收敛 — 2026-06-04 评审）
 

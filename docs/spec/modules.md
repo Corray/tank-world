@@ -2,6 +2,7 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
+| v11 | 2026-06-11 | R13 增量：无新模块；core（GameMode.WAVE + GameState WAVE_BREAK/WAVE_OVER + world.wave/waveBreakMs + GameLoop.advance 间歇倒计时分支 + judge WAVE 分叉：波清→BREAK/死亡→OVER+档位 + restartToReady 扩 WAVE_OVER）/level（setupWave/startNextWave/waveConfig/isBossWave）/storage（第七八档 best-wave/best-coop-wave）/input（Digit5/6 入口）/hud（WAVE n + 两档 BEST）/render（BREAK/OVER overlay）/main（接线）职责扩展；enemy/combat/map/powerup/achievements 零改（待 R13-G1/G2 确认） |
 | v10 | 2026-06-11 | R12 增量：无新模块；powerup（PowerupType 增 SHOVEL/FREEZE/LIFE + DROP_CYCLE 4→7 + VS 池 3→4 加铲 + applyEffect 三新分支）/map（护圈格变钢/回砖接口，仿 breakSteel）/core（shovelUntil per-base + freezeUntil 全局时钟 + loadLevel/retry/每局 setup 清零）/enemy（freezeUntil 门控：定身不移动不射击，含 Boss 与窗口内新出生）/player（lives+1）/render（三新道具图标）职责扩展；hud 命数显示零改（待 R12-G1/G2 确认） |
 | v9 | 2026-06-09 | R11 增量：无新模块；enemy（EnemyType.BOSS + 阶段狂暴 AI：常态单发/狂暴三向弹幕+加速 + ENEMY_HP/SCORE 加 BOSS）/level（isBossLevel + loadLevel 注入 BOSS 到 spawnSequence 末位）/render（Boss HP 条 + COLOR.enemy 加 BOSS 穷举项）职责扩展；死亡即清场复用 fieldClear，零新胜负逻辑（待 R11-G1/G2 确认） |
 | v8 | 2026-06-09 | R10 增量：无新模块；core（PlayerTank.level 字段 + 重置点矩阵：createPlayer/damagePlayer/retryLevel/setupVersus=L1，loadLevel 持久）/powerup（PowerupType.STAR + applyEffect 升级 + STAR 入掉落循环/VS 中立）/combat（firePlayerBullet level→弹速+cap、C2 L4 破钢门控）/map（breakSteel）/player（damagePlayer 死亡回 L1）/hud（LV 显示）/render（升级视觉 P1）职责扩展（待 R10-G1/G2 确认） |
