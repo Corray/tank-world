@@ -58,6 +58,9 @@ export class Keyboard {
   onVersus: () => void = () => {};
   /** R9: READY + "4" → NPC melee (consensus §3.22). */
   onMelee: () => void = () => {};
+  /** R13 §3.26: READY + "5" / "6" → wave defense (solo / co-op). */
+  onWave: () => void = () => {};
+  onCoopWave: () => void = () => {};
 
   attach(target: Window): void {
     target.addEventListener('keydown', (e) => {
@@ -77,6 +80,10 @@ export class Keyboard {
         this.onVersus();
       } else if (e.code === 'Digit4') {
         this.onMelee();
+      } else if (e.code === 'Digit5') {
+        this.onWave();
+      } else if (e.code === 'Digit6') {
+        this.onCoopWave();
       }
     });
     target.addEventListener('keyup', (e) => {

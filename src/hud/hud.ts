@@ -2,7 +2,7 @@
 // (AC-8, AC-20, AC-26, AC-28).
 
 import type { World } from '../core/world';
-import { getBestTotal, getBestLevel, getBestEndless, getBestCoop, getBestCoopEndless } from '../storage/storage';
+import { getBestTotal, getBestLevel, getBestEndless, getBestCoop, getBestCoopEndless, getBestWave, getBestCoopWave } from '../storage/storage';
 import { isMuted } from '../audio/audio';
 import { LEVEL_COUNT } from '../core/constants';
 import { GameMode } from '../core/types';
@@ -26,6 +26,7 @@ export function renderHud(el: HTMLElement, world: World): void {
   const coop = world.mode === GameMode.COOP;
   const versus = world.mode === GameMode.VERSUS;
   const melee = world.mode === GameMode.MELEE;
+  const wave = world.mode === GameMode.WAVE; // R13 §3.26
   const arena = versus || melee; // R9: PvP-family modes share the VS round HUD
   const w = world.versusWins;
   const playerRows =
@@ -40,14 +41,16 @@ export function renderHud(el: HTMLElement, world: World): void {
       : `<div>LIVES&nbsp;&nbsp;${world.players[0].lives}&nbsp;&nbsp;LV${world.players[0].level}</div>`;
   const topLine = arena
     ? `<div>VS&nbsp;&nbsp;P1&nbsp;${w[1]}&nbsp;:&nbsp;${w[2]}&nbsp;P2${melee ? '&nbsp;MELEE' : ''}</div>`
-    : `<div>LEVEL&nbsp;&nbsp;${levelLabel}${coop ? '&nbsp;CO-OP' : ''}</div>`;
+    : wave
+      ? `<div>WAVE&nbsp;&nbsp;${world.wave}${world.players.length > 1 ? '&nbsp;CO-OP' : ''}</div>`
+      : `<div>LEVEL&nbsp;&nbsp;${levelLabel}${coop ? '&nbsp;CO-OP' : ''}</div>`;
   el.innerHTML = [
     topLine,
     `<div>SCORE&nbsp;&nbsp;${world.bankedScore + world.score}</div>`,
     playerRows,
     `<div>ENEMY&nbsp;&nbsp;${enemiesRemaining(world)}</div>`,
     `<hr/>`,
-    `<div style="font-size:11px;color:#aaa">BEST TOTAL&nbsp;&nbsp;${getBestTotal()}<br/>BEST LEVEL&nbsp;&nbsp;${getBestLevel()}<br/>BEST ENDLESS&nbsp;&nbsp;${getBestEndless()}<br/>BEST CO-OP&nbsp;&nbsp;${getBestCoop()}<br/>BEST CO-OP&infin;&nbsp;&nbsp;${getBestCoopEndless()}</div>`,
+    `<div style="font-size:11px;color:#aaa">BEST TOTAL&nbsp;&nbsp;${getBestTotal()}<br/>BEST LEVEL&nbsp;&nbsp;${getBestLevel()}<br/>BEST ENDLESS&nbsp;&nbsp;${getBestEndless()}<br/>BEST CO-OP&nbsp;&nbsp;${getBestCoop()}<br/>BEST CO-OP&infin;&nbsp;&nbsp;${getBestCoopEndless()}<br/>BEST WAVE&nbsp;&nbsp;${getBestWave()}<br/>BEST CO-OP WAVE&nbsp;&nbsp;${getBestCoopWave()}</div>`,
     `<hr/>`,
     `<div style="font-size:11px;color:#aaa">ACH&nbsp;&nbsp;${unlockedCount()}/${ACHIEVEMENT_COUNT}</div>`,
     `<div style="font-size:10px;line-height:1.5">${achievementRows()}</div>`,

@@ -3,7 +3,7 @@
 import { STEP_MS } from './constants';
 import { GameState, GameMode } from './types';
 import { createWorld, createPlayer, type World } from './world';
-import { setupVersus, setupMelee } from '../level/level';
+import { setupVersus, setupMelee, setupWave, startNextWave } from '../level/level';
 
 export type UpdateFn = (world: World, dtMs: number) => void;
 export type RenderFn = (world: World) => void;
@@ -39,6 +39,15 @@ export function startMelee(world: World): void {
   world.state = GameState.PLAYING;
 }
 
+/** R13 §3.26: READY + key "5"/"6" → wave defense, solo or co-op. */
+export function startWave(world: World, coop: boolean): void {
+  if (world.state !== GameState.READY) return;
+  world.mode = GameMode.WAVE;
+  if (coop) world.players.push(createPlayer(2));
+  setupWave(world);
+  world.state = GameState.PLAYING;
+}
+
 export function togglePause(world: World): void {
   if (world.state === GameState.PLAYING) world.state = GameState.PAUSED;
   else if (world.state === GameState.PAUSED) world.state = GameState.PLAYING;
@@ -53,7 +62,8 @@ export function restartToReady(world: World): World {
   if (
     world.state === GameState.GAME_COMPLETE ||
     world.state === GameState.ENDLESS_OVER ||
-    world.state === GameState.VERSUS_OVER // R8 §3.21: match over → fresh run (READY)
+    world.state === GameState.VERSUS_OVER || // R8 §3.21: match over → fresh run (READY)
+    world.state === GameState.WAVE_OVER // R13 §3.26: wave run settled → fresh run
   ) {
     return createWorld(); // full reset: scores, lives, map sub-blocks, spawn counters
   }
@@ -82,6 +92,11 @@ export class GameLoop {
       if (this.world.state === GameState.PLAYING) {
         this.world.clock += STEP_MS;
         this.update(this.world, STEP_MS);
+      } else if (this.world.state === GameState.WAVE_BREAK) {
+        // R13 §3.26: the only auto-advancing interlude — the clock stays
+        // frozen (AC-11 semantics hold), only the countdown runs.
+        this.world.waveBreakMs -= STEP_MS;
+        if (this.world.waveBreakMs <= 0) startNextWave(this.world);
       }
       this.accumulator -= STEP_MS;
     }

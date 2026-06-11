@@ -175,3 +175,24 @@ export const BASE_RING: Record<1 | 2, ReadonlyArray<readonly [number, number]>> 
   1: [[11, 5], [11, 6], [11, 7], [12, 5], [12, 7]],
   2: [[0, 5], [0, 7], [1, 5], [1, 6], [1, 7]],
 };
+
+// --- R13 additions (consensus §3.26, wave defense) ---
+
+/** Between-wave countdown, ms (auto-starts the next wave; key skips). */
+export const WAVE_BREAK_MS = 5_000;
+/** Wave size curve: total = WAVE_TOTAL_BASE + WAVE_TOTAL_STEP * wave. */
+export const WAVE_TOTAL_BASE = 8;
+export const WAVE_TOTAL_STEP = 2;
+/** Armored share curve: min(CAP, BASE + STEP * wave). */
+export const WAVE_ARMOR_BASE = 0.15;
+export const WAVE_ARMOR_STEP = 0.03;
+export const WAVE_ARMOR_CAP = 0.5;
+/** Spawn interval curve: max(MIN, BASE - STEP * wave), ms. */
+export const WAVE_INTERVAL_BASE_MS = 2000;
+export const WAVE_INTERVAL_STEP_MS = 100;
+export const WAVE_INTERVAL_MIN_MS = 800;
+/** A boss wave every N waves (wave % N === 0), reusing the R11 boss. */
+export const WAVE_BOSS_EVERY = 5;
+/** Storage buckets seven / eight (waves cleared, solo / co-op). */
+export const KEY_BEST_WAVE = 'tank-world.best-wave';
+export const KEY_BEST_COOP_WAVE = 'tank-world.best-coop-wave';

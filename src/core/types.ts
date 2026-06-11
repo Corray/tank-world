@@ -15,6 +15,10 @@ export enum GameState {
   VERSUS_ROUND = 'VERSUS_ROUND',
   /** R8: VERSUS match settled (best-of-3 reached) — winner screen, R for a new match. */
   VERSUS_OVER = 'VERSUS_OVER',
+  /** R13 §3.26: wave cleared — auto-countdown interlude, entities frozen. */
+  WAVE_BREAK = 'WAVE_BREAK',
+  /** R13 §3.26: wave run ended — settlement screen (waves cleared), R restarts. */
+  WAVE_OVER = 'WAVE_OVER',
 }
 
 /** R3: visual effect kinds (consensus §3.11) — pure visuals, no collision. */
@@ -94,6 +98,8 @@ export enum GameMode {
   VERSUS = 'VERSUS',
   /** R9: NPC melee — VERSUS + NPC third party (PvE + PvP at once, §3.22). */
   MELEE = 'MELEE',
+  /** R13 §3.26: wave defense — same-map survival, PvE family (NOT PvP). */
+  WAVE = 'WAVE',
 }
 
 /** R9: PvP-family modes (friendly fire reversed + arena win logic) — §3.22. */
