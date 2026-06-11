@@ -23,6 +23,15 @@ import {
   MELEE_SPAWN_INTERVAL_MS,
   LEVEL_COUNT,
   BOSS_ENDLESS_EVERY,
+  WAVE_TOTAL_BASE,
+  WAVE_TOTAL_STEP,
+  WAVE_ARMOR_BASE,
+  WAVE_ARMOR_STEP,
+  WAVE_ARMOR_CAP,
+  WAVE_INTERVAL_BASE_MS,
+  WAVE_INTERVAL_STEP_MS,
+  WAVE_INTERVAL_MIN_MS,
+  WAVE_BOSS_EVERY,
 } from '../core/constants';
 import { GameMap } from '../map/map';
 import { onLevelLoaded } from '../achievements/achievements';
@@ -293,22 +302,58 @@ export function advanceVersusRound(world: World): void {
 
 // --- R13: wave defense (consensus §3.26) ---
 
-/** R13 §3.26: wave size / mix / pace curve（G4 骨架桩：impl 阶段填充）. */
-export function waveConfig(_wave: number): LevelConfig {
-  return LEVELS[0];
+/** R13 §3.26: wave size / mix / pace curve — fought on the L1 battlefield. */
+export function waveConfig(wave: number): LevelConfig {
+  const total = WAVE_TOTAL_BASE + WAVE_TOTAL_STEP * wave;
+  const armoredRatio = Math.min(WAVE_ARMOR_CAP, WAVE_ARMOR_BASE + WAVE_ARMOR_STEP * wave);
+  const ARMORED = Math.round(total * armoredRatio);
+  const FAST = Math.round((total - ARMORED) / 2);
+  const BASIC = total - ARMORED - FAST;
+  const spawnIntervalMs = Math.max(
+    WAVE_INTERVAL_MIN_MS,
+    WAVE_INTERVAL_BASE_MS - WAVE_INTERVAL_STEP_MS * wave,
+  );
+  return { layout: LEVELS[0].layout, enemyCounts: { BASIC, FAST, ARMORED }, spawnIntervalMs };
 }
 
-/** R13 §3.26: every WAVE_BOSS_EVERY waves end with a boss（G4 骨架桩）. */
-export function isBossWave(_wave: number): boolean {
-  return false;
+/** R13 §3.26: every WAVE_BOSS_EVERY waves end with a boss (reuses R11). */
+export function isBossWave(wave: number): boolean {
+  return wave > 0 && wave % WAVE_BOSS_EVERY === 0;
 }
 
-/** R13 §3.26: refill spawn fields for wave k — map/powerups/players untouched
- *  (same-map continuity §3.26)（G4 骨架桩：impl 阶段填充）. */
-export function applyWave(_world: World, _wave: number): void {}
+/**
+ * R13 §3.26: refill the spawn fields for wave k. Map, field powerups, players
+ * and the score stay UNTOUCHED — same-map continuity is the mode's core.
+ */
+export function applyWave(world: World, wave: number): void {
+  const cfg = waveConfig(wave);
+  world.spawnSequence = generateSpawnSequence(cfg.enemyCounts);
+  world.enemyTotal =
+    cfg.enemyCounts.BASIC + cfg.enemyCounts.FAST + cfg.enemyCounts.ARMORED;
+  world.spawnIntervalMs = cfg.spawnIntervalMs;
+  world.spawnedCount = 0;
+  world.spawnCursor = 0;
+  world.spawnCooldownMs = 0;
+  if (isBossWave(wave)) {
+    world.spawnSequence.push(EnemyType.BOSS);
+    world.enemyTotal += 1;
+  }
+}
 
-/** R13 §3.26: WAVE_BREAK ends → next wave on the SAME battlefield（G4 骨架桩）. */
-export function startNextWave(_world: World): void {}
+/** R13 §3.26: enter wave mode — L1 battlefield via loadLevel, then wave 1. */
+export function setupWave(world: World): void {
+  loadLevel(world, 1); // map / players / field reset reused (startup only)
+  world.wave = 1;
+  applyWave(world, 1);
+}
+
+/** R13 §3.26: WAVE_BREAK ends → next wave on the SAME battlefield. */
+export function startNextWave(world: World): void {
+  if (world.state !== GameState.WAVE_BREAK) return;
+  world.wave += 1;
+  applyWave(world, world.wave);
+  world.state = GameState.PLAYING;
+}
 
 // --- R3: endless mode (consensus §3.13, data-model §19) ---
 

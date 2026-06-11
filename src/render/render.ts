@@ -311,6 +311,7 @@ export function overlayLines(world: World): string[] | null {
       'TANK WORLD',
       'Press any move/fire key to start',
       'Press 2 CO-OP / 3 VERSUS / 4 MELEE',
+      'Press 5 WAVE / 6 CO-OP WAVE',
       `Achievements: ${unlockedCount()}/${ACHIEVEMENT_COUNT}`,
     ],
     [GameState.PAUSED]: ['PAUSED', 'Press P to resume'],
@@ -339,6 +340,17 @@ export function overlayLines(world: World): string[] | null {
       `P${world.versusMatchWinner} WINS!`,
       `Final   P1 ${vw[1]} : ${vw[2]} P2`,
       'Press R for a new match',
+    ],
+    // R13 §3.26: wave-defense interlude + settlement.
+    [GameState.WAVE_BREAK]: [
+      `WAVE ${world.wave} CLEARED!`,
+      `Score: ${total}`,
+      `Next wave in ${Math.ceil(world.waveBreakMs / 1000)}s — any key to skip`,
+    ],
+    [GameState.WAVE_OVER]: [
+      'WAVE OVER',
+      `Survived ${world.wave - 1} wave${world.wave - 1 === 1 ? '' : 's'}   Score: ${total}`,
+      'Press R for a new run',
     ],
   };
   return messages[world.state] ?? null;

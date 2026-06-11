@@ -10,9 +10,9 @@ import { updateCombat } from '../combat/combat';
 import { updatePowerups, spawnNeutralPowerup, updateShovel } from '../powerup/powerup';
 import { updateEffects } from '../effects/effects';
 import { playSound, SoundEvent } from '../audio/audio';
-import { submitLevelScore, submitTotal, submitEndless, submitCoop, submitCoopEndless } from '../storage/storage';
+import { submitLevelScore, submitTotal, submitEndless, submitCoop, submitCoopEndless, submitWave, submitCoopWave } from '../storage/storage';
 import { onLevelCleared } from '../achievements/achievements';
-import { LEVEL_COUNT, VS_WINS_NEEDED } from './constants';
+import { LEVEL_COUNT, VS_WINS_NEEDED, WAVE_BREAK_MS } from './constants';
 
 /**
  * Per-step pipeline. `inputs` accepts a single InputState (v1~v4 compat,
@@ -64,6 +64,32 @@ export function judgeVersus(world: World): void {
 }
 
 /**
+ * R13 §3.26: WAVE judgement — death settles waves CLEARED (wave − 1) into
+ * bucket seven/eight; a cleared wave enters the WAVE_BREAK countdown. Never
+ * banks score, never calls onLevelCleared, never touches the six legacy
+ * buckets (AC-93/94).
+ */
+export function judgeWave(world: World): void {
+  const allPlayersDead = world.players.every((p) => !p.alive && p.lives <= 0);
+  if (world.map.baseDestroyed || allPlayersDead) {
+    world.state = GameState.WAVE_OVER;
+    const cleared = world.wave - 1;
+    if (world.players.length > 1) submitCoopWave(cleared);
+    else submitWave(cleared);
+    playSound(SoundEvent.DEFEAT);
+    return;
+  }
+  const allSpawned = world.spawnedCount >= world.enemyTotal;
+  const fieldClear = world.enemies.every((e) => !e.alive);
+  if (allSpawned && fieldClear) {
+    world.state = GameState.WAVE_BREAK;
+    world.waveBreakMs = WAVE_BREAK_MS;
+    world.bullets = []; // calm battlefield during the frozen interlude
+    playSound(SoundEvent.LEVEL_CLEAR);
+  }
+}
+
+/**
  * Judgement (data-model §10/§20). Single exit per step; death conditions win
  * over clear if both fire in the same frame (T-SM-4). Death routes by level:
  * L1~3 → DEFEAT (retryable), L4+ → ENDLESS_OVER (settles best-endless).
@@ -74,6 +100,12 @@ export function judge(world: World): void {
   // (dual-condition base/lives, best-of-3) — no PvE clear path here.
   if (isPvP(world.mode)) {
     judgeVersus(world);
+    return;
+  }
+  // R13 §3.26: wave defense forks BEFORE the campaign/endless paths — its
+  // clear goes to WAVE_BREAK (not LEVEL_CLEAR) and its death to WAVE_OVER.
+  if (world.mode === GameMode.WAVE) {
+    judgeWave(world);
     return;
   }
   // R5 §31: defeat when the base falls OR every player is out of lives.

@@ -166,11 +166,15 @@ describe('T-WAV-6 WAVE_BREAK countdown auto-starts the next wave (advance layer)
       (w, dt) => updateWorld(w, dt, IDLE_INPUT),
       () => {},
     );
+    // 骨架修正 2026-06-11（断言语义不变）：advance 有 250ms tab-switch clamp
+    // （game.ts），单次大跨度调用会被钳——改为逐步推进（与 rAF 真实驱动一致）。
     const clockBefore = world.clock;
-    loop.advance(WAVE_BREAK_MS - STEP_MS);
+    for (let t = 0; t + STEP_MS < WAVE_BREAK_MS - STEP_MS; t += STEP_MS) {
+      loop.advance(STEP_MS);
+    }
     expect(world.state).toBe(GameState.WAVE_BREAK); // still counting
     expect(world.clock).toBe(clockBefore); // AC-11 freeze holds
-    loop.advance(STEP_MS * 2);
+    for (let i = 0; i < 4; i++) loop.advance(STEP_MS);
     expect(loop.world.state).toBe(GameState.PLAYING);
     expect(loop.world.wave).toBe(2);
   });
