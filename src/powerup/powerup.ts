@@ -1,22 +1,39 @@
 // Powerup module (R2): carrier drops, pickup detection (C13), three effects
 // (consensus §3.8, data-model §12).
 
-import { PowerupType } from '../core/types';
+import { PowerupType, isPvP } from '../core/types';
 import type { Vec, PlayerTank } from '../core/types';
 import type { World } from '../core/world';
-import { TANK_SIZE, SHIELD_MS, CELL, VS_POWERUP_INTERVAL_MS, VS_POWERUP_CELLS, MAX_TANK_LEVEL } from '../core/constants';
+import {
+  TANK_SIZE,
+  SHIELD_MS,
+  CELL,
+  VS_POWERUP_INTERVAL_MS,
+  VS_POWERUP_CELLS,
+  MAX_TANK_LEVEL,
+  SHOVEL_MS,
+  FREEZE_MS,
+  BASE_RING,
+} from '../core/constants';
 import { playSound, SoundEvent } from '../audio/audio';
 import { onPickup } from '../achievements/achievements';
 
 /** Pickup box edge for a dropped powerup, px (module-local by usage scope). */
 export const POWERUP_SIZE = 24;
 
-/** Fixed drop cycle: shield → double-fire → bomb → star (R10 §3.23, 4-cycle). */
+/**
+ * Fixed drop cycle (R12 §3.25, 7-cycle): the legacy 4-prefix is preserved and
+ * the trio is appended — shield → double-fire → bomb → star → shovel →
+ * freeze → life.
+ */
 export const DROP_CYCLE: readonly PowerupType[] = [
   PowerupType.SHIELD,
   PowerupType.DOUBLE_FIRE,
   PowerupType.BOMB,
   PowerupType.STAR,
+  PowerupType.SHOVEL,
+  PowerupType.FREEZE,
+  PowerupType.LIFE,
 ];
 
 /** A carrier died: drop the next powerup in the cycle at its death position. */
@@ -26,11 +43,16 @@ export function dropFromCarrier(world: World, pos: Vec): void {
   world.powerups.push({ type, pos: { ...pos } });
 }
 
-/** R8 §3.21 / R10 §3.23: VERSUS neutral cycle — shield/double-fire/star, NO bomb. */
+/**
+ * R8 §3.21 / R10 §3.23 / R12 §3.25: VERSUS neutral cycle — shield/double-fire/
+ * star/shovel. NO bomb (R8), NO freeze (no NPC target), NO life (drags
+ * best-of-3 pacing).
+ */
 const VS_DROP_CYCLE: readonly PowerupType[] = [
   PowerupType.SHIELD,
   PowerupType.DOUBLE_FIRE,
   PowerupType.STAR,
+  PowerupType.SHOVEL,
 ];
 
 /**
@@ -73,6 +95,20 @@ export function updatePowerups(world: World): void {
   });
 }
 
+/**
+ * R12 §3.25: expire per-side shovel fortification — past the deadline the
+ * whole ring is restored to FRESH brick (even cells destroyed before pickup,
+ * classic repair behaviour), then the side's clock clears.
+ */
+export function updateShovel(world: World): void {
+  for (const side of [1, 2] as const) {
+    if (world.shovelUntil[side] > 0 && world.clock >= world.shovelUntil[side]) {
+      world.map.restoreBrickCells(BASE_RING[side]);
+      world.shovelUntil[side] = 0;
+    }
+  }
+}
+
 function applyEffect(world: World, type: PowerupType, picker: PlayerTank): void {
   switch (type) {
     case PowerupType.SHIELD:
@@ -89,6 +125,22 @@ function applyEffect(world: World, type: PowerupType, picker: PlayerTank): void 
     case PowerupType.STAR:
       // R10: raise tank level, capped at MAX_TANK_LEVEL (§3.23).
       picker.level = Math.min(MAX_TANK_LEVEL, picker.level + 1) as 1 | 2 | 3 | 4;
+      break;
+    case PowerupType.SHOVEL: {
+      // R12 §3.25: fortify the picker's base ring — PvE/COOP share the bottom
+      // base (side 1); PvP sides own their bases. Re-pickup refreshes.
+      const side = isPvP(world.mode) ? picker.id : 1;
+      world.map.fortifyCells(BASE_RING[side]);
+      world.shovelUntil[side] = world.clock + SHOVEL_MS;
+      break;
+    }
+    case PowerupType.FREEZE:
+      // R12 §3.25: global clock — NPCs spawned inside the window freeze too.
+      world.freezeUntil = world.clock + FREEZE_MS;
+      break;
+    case PowerupType.LIFE:
+      // R12 §3.25: +1 life to the picker, uncapped (7-cycle paces the supply).
+      picker.lives += 1;
       break;
   }
 }

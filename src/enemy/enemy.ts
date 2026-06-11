@@ -75,6 +75,9 @@ export function trySpawnEnemy(world: World, dtMs: number): void {
 
 /** Per-step AI for all alive enemies: roam (re-roll on block/timer) + periodic fire. */
 export function updateEnemies(world: World, dtMs: number): void {
+  // R12 §3.25: freeze gate — a global clock immobilizes every NPC (movement,
+  // fire AND ai timers), so NPCs spawned inside the window are frozen too.
+  if (world.clock < world.freezeUntil) return;
   for (const e of world.enemies) {
     if (!e.alive) continue;
     e.ai.turnMs -= dtMs;

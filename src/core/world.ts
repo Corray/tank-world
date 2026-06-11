@@ -69,6 +69,10 @@ export interface World {
   versusMatchWinner: 1 | 2 | null;
   /** R8 VERSUS: ms until the next neutral powerup spawn (§3.21). */
   versusPowerupCooldownMs: number;
+  /** R12 §3.25: NPC freeze deadline (game clock, ms); 0 = inactive. */
+  freezeUntil: number;
+  /** R12 §3.25: per-side shovel fortify deadline (game clock, ms); 0 = inactive. */
+  shovelUntil: Record<1 | 2, number>;
 }
 
 /** Player spawn cells: P1 (12,2) / P2 (12,10) — data-model §11/§31. */
@@ -129,5 +133,7 @@ export function createWorld(): World {
     versusRoundWinner: null,
     versusMatchWinner: null,
     versusPowerupCooldownMs: 0,
+    freezeUntil: 0,
+    shovelUntil: { 1: 0, 2: 0 },
   };
 }

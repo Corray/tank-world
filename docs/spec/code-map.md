@@ -2,6 +2,7 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
+| v6 | 2026-06-11 | R12 道具三件：PowerupType +SHOVEL/FREEZE/LIFE（7-cycle）；map.fortifyCells/restoreBrickCells；world.freezeUntil(全局)+shovelUntil(per-base)；enemy 冻结门控；update 接 updateShovel；重置点清零（loadLevel/setupVersus）|
 | v5 | 2026-06-09 | R11 Boss：EnemyType.BOSS（穷举映射 3 处同补）；level.isBossLevel + loadLevel 注入 BOSS 末位；enemy 阶段狂暴 AI；render Boss HP 条；死即 fieldClear（零新胜负）|
 | v4 | 2026-06-09 | R10 升级：PlayerTank.level + STAR 道具；firePlayerBullet 按 level→弹速/cap/破钢；map.breakSteel；level 重置点矩阵（4 归 L1 + loadLevel 持久）|
 | v3 | 2026-06-09 | R9 MELEE：isPvP 助手统一 PvP 判定；judge/C17 经 isPvP 扩 MELEE；judgeVersus 复用（零改）；setupMelee=setupVersus+NPC 池；NPC 中立出生点 |
@@ -39,7 +40,8 @@ updatePlayers → updatePowerups(先于 combat) → trySpawnEnemy → updateEnem
 | 状态机转换 | core/game.ts + core/update.ts judge | data-model §10/§20 |
 | 关卡/无尽配置 | level/level.ts | LEVELS / endlessConfig / VARIANT_SLOTS |
 | Boss 战 | level.ts isBossLevel + loadLevel 注入末位 / enemy.ts updateEnemies BOSS 分支(fireBossSpread) / render drawBossHp | EnemyType.BOSS + ENEMY_HP/SCORE.BOSS；死即 fieldClear（零新胜负）；仅 PvE（注入只在 loadLevel）|
-| 道具效果 | powerup/powerup.ts | applyEffect(归拾取者)；STAR→升级 |
+| 道具效果 | powerup/powerup.ts | applyEffect(归拾取者)；STAR→升级；SHOVEL→fortify(isPvP?picker.id:1)；FREEZE→freezeUntil；LIFE→lives+1 |
+| 铲子/冻结生命周期 | powerup.ts updateShovel + enemy.ts 冻结门控（updateEnemies 首行） | 时钟：world.shovelUntil(per-base)/freezeUntil(全局)；重置点 loadLevel/setupVersus 清零；护圈格位=constants BASE_RING |
 | 坦克升级 | combat.ts firePlayerBullet（level→弹速/cap/breaksSteel）+ map.breakSteel(L4 破钢) | level 重置点矩阵见 player.damagePlayer/level.retryLevel·setupVersus(=L1)/loadLevel(持久) |
 | 成就触发 | achievements/achievements.ts | on* 钩子（COOP 全 gate） |
 | 音效配方 | audio/audio.ts | RECIPES（dispatch 可测层） |

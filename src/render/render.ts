@@ -103,6 +103,9 @@ function drawPowerups(ctx: CanvasRenderingContext2D, world: World): void {
     [PowerupType.DOUBLE_FIRE]: 'F',
     [PowerupType.BOMB]: 'B',
     [PowerupType.STAR]: '★',
+    [PowerupType.SHOVEL]: '⛏',
+    [PowerupType.FREEZE]: '❄',
+    [PowerupType.LIFE]: '♥',
   };
   for (const pu of world.powerups) {
     const half = POWERUP_SIZE / 2;

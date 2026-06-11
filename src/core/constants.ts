@@ -160,3 +160,18 @@ export const BOSS_FIRE_MS = 1000;
 export const BOSS_FIRE_RAGE_MS = 500;
 /** Endless boss milestone: a boss every N endless levels (L8/L13/... at 5). */
 export const BOSS_ENDLESS_EVERY = 5;
+
+// --- R12 additions (consensus §3.25, powerup trio) ---
+
+/** Shovel: base-ring fortify window, ms (expiry restores fresh brick). */
+export const SHOVEL_MS = 15_000;
+/** Freeze: NPC immobilize window, ms (re-pickup refreshes). */
+export const FREEZE_MS = 8_000;
+/**
+ * Inner base ring cells per side — 1 = bottom base (PvE + VS P1), 2 = top
+ * base (VS/MELEE P2). Same cells across all PvE layouts and the VS arena.
+ */
+export const BASE_RING: Record<1 | 2, ReadonlyArray<readonly [number, number]>> = {
+  1: [[11, 5], [11, 6], [11, 7], [12, 5], [12, 7]],
+  2: [[0, 5], [0, 7], [1, 5], [1, 6], [1, 7]],
+};
