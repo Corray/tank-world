@@ -7,7 +7,7 @@ import type { InputState } from '../input/input';
 import { updatePlayers } from '../player/player';
 import { updateEnemies, trySpawnEnemy } from '../enemy/enemy';
 import { updateCombat } from '../combat/combat';
-import { updatePowerups, spawnNeutralPowerup } from '../powerup/powerup';
+import { updatePowerups, spawnNeutralPowerup, updateShovel } from '../powerup/powerup';
 import { updateEffects } from '../effects/effects';
 import { playSound, SoundEvent } from '../audio/audio';
 import { submitLevelScore, submitTotal, submitEndless, submitCoop, submitCoopEndless } from '../storage/storage';
@@ -25,6 +25,7 @@ export function updateWorld(
 ): void {
   updatePlayers(world, dtMs, Array.isArray(inputs) ? inputs : [inputs]);
   updatePowerups(world); // before combat: bomb kills exclude same-frame scoring (risk §15)
+  updateShovel(world); // R12 §3.25: per-side fortify expiry → ring back to brick
   if (world.mode === GameMode.VERSUS) spawnNeutralPowerup(world, dtMs); // §3.21 neutral source
   trySpawnEnemy(world, dtMs);
   updateEnemies(world, dtMs);

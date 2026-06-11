@@ -180,6 +180,10 @@ export function loadLevel(world: World, level: number): void {
     world.spawnSequence.push(EnemyType.BOSS);
     world.enemyTotal += 1;
   }
+  // R12 §3.25: timed effects never cross levels (fresh map carries no ring
+  // fortification — only the clocks need clearing).
+  world.freezeUntil = 0;
+  world.shovelUntil = { 1: 0, 2: 0 };
 
   // R5: reset EVERY player (positions/invincibility); lives carry per player.
   for (const p of world.players) {
@@ -242,6 +246,9 @@ export function setupVersus(world: World): void {
   world.spawnedCount = 0;
   world.spawnCooldownMs = 0;
   world.versusPowerupCooldownMs = VS_POWERUP_INTERVAL_MS;
+  // R12 §3.25: timed effects never cross rounds (fresh arena, clocks cleared).
+  world.freezeUntil = 0;
+  world.shovelUntil = { 1: 0, 2: 0 };
   for (const p of world.players) {
     const [r, c] = VS_SPAWNS[p.id];
     p.spawnPos = { x: c * CELL + CELL / 2, y: r * CELL + CELL / 2 };
