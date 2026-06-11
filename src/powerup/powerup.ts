@@ -73,6 +73,9 @@ export function updatePowerups(world: World): void {
   });
 }
 
+/** R12 §3.25: expire per-side shovel fortification (G4 骨架桩：impl 阶段填充). */
+export function updateShovel(_world: World): void {}
+
 function applyEffect(world: World, type: PowerupType, picker: PlayerTank): void {
   switch (type) {
     case PowerupType.SHIELD:

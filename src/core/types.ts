@@ -45,6 +45,12 @@ export enum PowerupType {
   BOMB = 'BOMB',
   /** R10: star — raises the picker's tank level (consensus §3.23). */
   STAR = 'STAR',
+  /** R12 §3.25: shovel — fortify the picker's base ring to steel, timed. */
+  SHOVEL = 'SHOVEL',
+  /** R12 §3.25: freeze — immobilize all NPCs for a window (global clock). */
+  FREEZE = 'FREEZE',
+  /** R12 §3.25: life — +1 life to the picker, uncapped. */
+  LIFE = 'LIFE',
 }
 
 export enum Terrain {

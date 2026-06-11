@@ -153,6 +153,12 @@ export class GameMap {
     if (this.terrainAt(row, col) === Terrain.STEEL) this.grid[row][col] = Terrain.EMPTY;
   }
 
+  /** R12 §3.25: shovel — fortify ring cells to steel (G4 骨架桩：impl 阶段填充). */
+  fortifyCells(_cells: ReadonlyArray<readonly [number, number]>): void {}
+
+  /** R12 §3.25: shovel expiry — restore ring cells to fresh brick (G4 骨架桩). */
+  restoreBrickCells(_cells: ReadonlyArray<readonly [number, number]>): void {}
+
   /** R8: whether the base cell in `row` has fallen; falls back to the single
    *  PvE flag when no per-row record exists (zero PvE regression). */
   baseDestroyedAt(row: number): boolean {
