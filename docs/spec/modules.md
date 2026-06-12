@@ -2,6 +2,7 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
+| v13 | 2026-06-12 | R15 增量：无新模块；types（EnemyType.SUMMONER + isBossType 锚）/constants（SUMMONER HP/SCORE/SUMMON_MS/RAGE + BOSS_HP 10→8）/enemy（SUMMONER 召唤 AI：周期召唤 BASIC+同屏上限+狂暴加速）/level（bossTypeFor 注入选型，loadLevel/applyWave 两处）/render（COLOR.enemy.SUMMONER + HP 条经 isBossType）职责扩展；combat/judge/powerup/storage 零改（召唤兵 fieldClear 涌现）（待 R15-G1/G2 确认） |
 | v12 | 2026-06-12 | audit R14 fix 轮：覆盖性自检段扩展至 F1~F26 / AC-1~95（F-SPEC-39bc / F-ARCH-2016）；combat 依赖列修正（map → 实际六依赖 + combat↔player 运行时互依标注，F-ARCH-608f）；依赖图补 judge 路由与环标注 |
 | v11 | 2026-06-11 | R13 增量：无新模块；core（GameMode.WAVE + GameState WAVE_BREAK/WAVE_OVER + world.wave/waveBreakMs + GameLoop.advance 间歇倒计时分支 + judge WAVE 分叉：波清→BREAK/死亡→OVER+档位 + restartToReady 扩 WAVE_OVER）/level（setupWave/startNextWave/waveConfig/isBossWave）/storage（第七八档 best-wave/best-coop-wave）/input（Digit5/6 入口）/hud（WAVE n + 两档 BEST）/render（BREAK/OVER overlay）/main（接线）职责扩展；enemy/combat/map/powerup/achievements 零改（待 R13-G1/G2 确认） |
 | v10 | 2026-06-11 | R12 增量：无新模块；powerup（PowerupType 增 SHOVEL/FREEZE/LIFE + DROP_CYCLE 4→7 + VS 池 3→4 加铲 + applyEffect 三新分支）/map（护圈格变钢/回砖接口，仿 breakSteel）/core（shovelUntil per-base + freezeUntil 全局时钟 + loadLevel/retry/每局 setup 清零）/enemy（freezeUntil 门控：定身不移动不射击，含 Boss 与窗口内新出生）/player（lives+1）/render（三新道具图标）职责扩展；hud 命数显示零改（待 R12-G1/G2 确认） |

@@ -2,6 +2,7 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
+| v14 | 2026-06-12 | R15 范围并入（Boss 扩展·召唤型 SUMMONER + 里程碑轮换，F27）；新增 §3.27 与 AC-96~101；决议：+1 SUMMONER / 按序交替（奇 BOSS 偶 SUMMONER，战役恒 BOSS）/ 召唤兵须清完（fieldClear 涌现）/ HP 调参搭车（BOSS 10→8） |
 | v13 | 2026-06-12 | audit R14 取代标注族回补 ×8（§3.1/§3.3/§3.6/§3.7/§3.8/§3.9/§3.10/§3.13 + §2.1 F9 + AC-2/AC-3）+ §3.4 键位总表 + §3.5 PvP 弹×弹声明（按实现回写：互不相消），refs F-SPEC-20260611 |
 | v12 | 2026-06-11 | R13 范围并入（波次防御，PvE 第三循环，F26）；新增 §3.26 与 AC-88~95；决议：倒计时自动开波（按键可提前）/ 每 5 波 Boss 波 / solo+coop 第七八档分离 / 复用 L1 图；核心区隔=同图连续（跨波不重建图，四类状态累积） |
 | v11 | 2026-06-11 | R12 范围并入（道具补全·经典三件，F25）；新增 §3.25 与 AC-81~87；决议：FREEZE 仅冻 NPC / SHOVEL 到期全恢复为砖 / LIFE 无上限 / VS 中立池仅加 SHOVEL；§3.8 道具序列行补取代标注（R10 起即 4-cycle，标注漏打回补） |
@@ -61,6 +62,7 @@
 | F24 | Boss 战（R11） | 战役终点+无尽里程碑出 Boss（多 HP+HP 条+阶段狂暴），作末位敌人死即过关，仅 PvE，见 §3.24 |
 | F25 | 道具补全·经典三件（R12） | 铲子（护圈变钢+到期回砖）/冻结（NPC 定身）/加命，掉落循环 4→7，VS 池仅加铲，见 §3.25 |
 | F26 | 波次防御（R13） | 同图连续守基生存：波次递增+5 波 Boss+倒计时自动开波，第七/八档 best-wave 分离，见 §3.26 |
+| F27 | Boss 扩展·SUMMONER（R15） | 召唤型 Boss（周期召唤小弟+须清完）+ 里程碑按序交替 + BOSS_HP 调参 10→8，见 §3.27 |
 
 ### 2.2 范围外（Out of Scope，MVP 不做）
 
@@ -412,6 +414,15 @@ PvE 第三循环——围绕基地的「守土」生存。**核心区隔 = 同�
 - **HUD/渲染**：WAVE 模式显示 `WAVE n`（替代 LEVEL n/3）+ 七/八档 BEST 行；overlay：WAVE_BREAK 倒计时 / WAVE_OVER 撑过波数。
 - **成就影响面**：关卡族钩子波次不调 → NO_DEATH_LEVEL/FULL_CLEAR/PURIST/CAMPAIGN/ENDLESS_8 天然不触发；kill/pickup/brick 族自然生效；ACHIEVEMENT_COUNT 维持 8。
 
+### 3.27 Boss 扩展·召唤型 SUMMONER（R15 / F27）
+
+Boss 谱系扩展：BOSS=火力型（三向弹幕），SUMMONER=消耗型（增援）——「斩首 vs 清兵」战术抉择。
+
+- **SUMMONER 敌型**：`EnemyType` 增 `SUMMONER`，HP **6**〔默认〕/ 分 **800**〔默认〕/ 基准速度 / 同 TANK_SIZE。穷举映射全扫（ENEMY_HP/SCORE/COLOR.enemy，家族第四证）。新锚 `isBossType(t)=BOSS||SUMMONER`（HP 条 + Boss 系 AI 路由共用）。
+- **召唤机制（OPEN-R15-3 决议=须清完）**：每 `SUMMON_MS`〔默认 4s〕在自身邻近空位召唤 1 个 BASIC；同屏存活 ≥ ENEMY_CONCURRENT 跳过；召唤兵**不计 spawnedCount/enemyTotal** → fieldClear 天然要求清完（零新胜负逻辑）；SUMMONER 死即停止召唤。狂暴（HP≤50%）= 召唤加速〔默认 2s〕，不三向弹幕（与 BOSS 差异化）；常规射击单发周期不变。R12 FREEZE 全局门控天然冻住召唤计时（涌现）。
+- **里程碑轮换（OPEN-R15-2 决议=按序交替）**：`bossTypeFor(idx)`——奇 BOSS / 偶 SUMMONER（确定性无随机）。战役 L3 恒 BOSS；无尽 L8=1/L13=2/…；波次 wave5=1/wave10=2/…。注入处（loadLevel/applyWave）由定值改选型。
+- **HP 调参搭车（OPEN-R15-4 决议）**：`BOSS_HP` 10→**8**（R11 僵持体验债）；T-BOSS-* 断言全经常量引用，预判零基线修订。
+
 ## 4. 非功能约束
 
 | # | 约束 |
@@ -521,6 +532,12 @@ PvE 第三循环——围绕基地的「守土」生存。**核心区隔 = 同�
 | AC-93 | 第七/八档 best-wave/best-coop-wave 隔离写入；WAVE 不写既有六档（写入点门控） |
 | AC-94 | 关卡族成就（NO_DEATH_LEVEL/FULL_CLEAR/PURIST/CAMPAIGN/ENDLESS_8）波次不触发；kill/pickup/brick 族自然生效；ACHIEVEMENT_COUNT 维持 8 |
 | AC-95 | 既有 263 测试零回归；G3 产出「模式分叉清单 v7」（GameMode/GameState/档位写入点矩阵），基线修订全部在预判清单内 |
+| AC-96 | EnemyType 增 SUMMONER（HP 6/分 800）；穷举映射全扫零编译错；BOSS_HP 调参 10→8 |
+| AC-97 | 里程碑轮换确定性：战役 L3 恒 BOSS；无尽/波次里程碑奇 BOSS/偶 SUMMONER |
+| AC-98 | 召唤：每 SUMMON_MS 召唤 1 BASIC 于邻近空位；同屏 ≥ ENEMY_CONCURRENT 跳过；召唤兵不计 spawnedCount/enemyTotal |
+| AC-99 | 清场语义：召唤兵计入 fieldClear 须清完；SUMMONER 死即停止召唤；零新胜负逻辑 |
+| AC-100 | SUMMONER 狂暴 HP≤50% 召唤加速；无三向弹幕（与 BOSS 差异化）；FREEZE 冻住召唤计时（涌现） |
+| AC-101 | 既有 277 测试零回归（T-BOSS-* 常量引用跟随 HP 调参）；G3 产出「分叉清单 v8」（EnemyType 扩展影响面+数值断言族），基线修订全部在预判清单内 |
 
 ## 6. 待确认项（已全部收敛 — 2026-06-04 评审）
 
