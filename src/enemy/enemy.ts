@@ -18,6 +18,9 @@ import {
   BOSS_HP,
   BOSS_FIRE_MS,
   BOSS_FIRE_RAGE_MS,
+  SUMMONER_HP,
+  SUMMON_MS,
+  SUMMON_RAGE_MS,
 } from '../core/constants';
 import { moveTank, fireEnemyBullet, tankAreaFree } from '../combat/combat';
 
@@ -41,7 +44,12 @@ export function createEnemy(type: EnemyType, pos: Vec): EnemyTank {
     type,
     hp: ENEMY_HP[type],
     score: ENEMY_SCORE[type],
-    ai: { turnMs: ENEMY_TURN_INTERVAL_MS, fireMs: ENEMY_FIRE_INTERVAL_MS },
+    ai: {
+      turnMs: ENEMY_TURN_INTERVAL_MS,
+      fireMs: ENEMY_FIRE_INTERVAL_MS,
+      // R15 §3.27: summoners carry a reinforcement clock.
+      ...(type === EnemyType.SUMMONER ? { summonMs: SUMMON_MS } : {}),
+    },
     carrier: false,
   };
 }
@@ -88,6 +96,15 @@ export function updateEnemies(world: World, dtMs: number): void {
       e.dir = decideDirection(world, e);
       e.ai.turnMs = ENEMY_TURN_INTERVAL_MS;
     }
+    // R15 §3.27: summoner reinforcement — counts toward fieldClear but never
+    // touches spawnedCount/enemyTotal (zero new win logic, same as R11).
+    if (e.type === EnemyType.SUMMONER && e.ai.summonMs !== undefined) {
+      e.ai.summonMs -= dtMs;
+      if (e.ai.summonMs <= 0) {
+        trySummon(world, e);
+        e.ai.summonMs = e.hp <= SUMMONER_HP / 2 ? SUMMON_RAGE_MS : SUMMON_MS;
+      }
+    }
     if (e.ai.fireMs <= 0) {
       if (e.type === EnemyType.BOSS) {
         // R11 §3.24: rage (HP ≤ 50%) → three-way spread + faster fire.
@@ -118,6 +135,22 @@ function fireBossSpread(world: World, boss: EnemyTank): void {
     fireEnemyBullet(world, boss);
   }
   boss.dir = saved;
+}
+
+/** R15 §3.27: call in one BASIC on a free neighbouring cell (concurrent cap). */
+function trySummon(world: World, summoner: EnemyTank): void {
+  if (world.enemies.filter((x) => x.alive).length >= ENEMY_CONCURRENT) return;
+  const offsets = [
+    [0, -CELL], [0, CELL], [-CELL, 0], [CELL, 0],
+    [0, -2 * CELL], [0, 2 * CELL], [-2 * CELL, 0], [2 * CELL, 0],
+  ] as const;
+  for (const [dx, dy] of offsets) {
+    const pos: Vec = { x: summoner.pos.x + dx, y: summoner.pos.y + dy };
+    if (tankAreaFree(world, pos.x, pos.y)) {
+      world.enemies.push(createEnemy(EnemyType.BASIC, pos));
+      return;
+    }
+  }
 }
 
 const DIRECTIONS: readonly Direction[] = [

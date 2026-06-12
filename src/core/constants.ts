@@ -41,7 +41,7 @@ export const LOGIC_HZ = 60;
 export const STEP_MS = 1000 / LOGIC_HZ;
 
 /** Enemy hit points by type (data-model §3; R11 §3.24 adds BOSS). */
-export const ENEMY_HP = { BASIC: 1, FAST: 1, ARMORED: 3, BOSS: 10, SUMMONER: 6 } as const;
+export const ENEMY_HP = { BASIC: 1, FAST: 1, ARMORED: 3, BOSS: 8, SUMMONER: 6 } as const; // R15: BOSS 10→8 (R11 stalemate debt)
 /** Score awarded per destroyed enemy by type (consensus §3.3; R11 BOSS). */
 export const ENEMY_SCORE = { BASIC: 100, FAST: 200, ARMORED: 400, BOSS: 1000, SUMMONER: 800 } as const;
 

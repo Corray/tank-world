@@ -186,7 +186,10 @@ export function loadLevel(world: World, level: number): void {
   // R11 §3.24: on boss levels, the BOSS is appended as the LAST enemy to spawn —
   // killing it triggers the existing fieldClear (no new win logic).
   if (isBossLevel(level)) {
-    world.spawnSequence.push(EnemyType.BOSS);
+    // R15 §3.27: campaign climax is always the classic BOSS (index 1); endless
+    // milestones rotate by their own series (L8=1 BOSS, L13=2 SUMMONER, ...).
+    const idx = level === LEVEL_COUNT ? 1 : (level - LEVEL_COUNT) / BOSS_ENDLESS_EVERY;
+    world.spawnSequence.push(bossTypeFor(idx));
     world.enemyTotal += 1;
   }
   // R12 §3.25: timed effects never cross levels (fresh map carries no ring
@@ -322,9 +325,9 @@ export function isBossWave(wave: number): boolean {
 }
 
 /** R15 §3.27: milestone boss rotation — odd index → BOSS, even → SUMMONER
- *  (campaign L3 is always index 1)（G4 骨架桩：impl 阶段填充）. */
-export function bossTypeFor(_milestoneIdx: number): EnemyType {
-  return EnemyType.BOSS;
+ *  (deterministic; campaign L3 is always index 1). */
+export function bossTypeFor(milestoneIdx: number): EnemyType {
+  return milestoneIdx % 2 === 1 ? EnemyType.BOSS : EnemyType.SUMMONER;
 }
 
 /**
@@ -341,7 +344,7 @@ export function applyWave(world: World, wave: number): void {
   world.spawnCursor = 0;
   world.spawnCooldownMs = 0;
   if (isBossWave(wave)) {
-    world.spawnSequence.push(EnemyType.BOSS);
+    world.spawnSequence.push(bossTypeFor(wave / WAVE_BOSS_EVERY)); // R15 rotation
     world.enemyTotal += 1;
   }
 }
