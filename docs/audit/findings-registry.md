@@ -8,34 +8,34 @@
 
 | 编号 | 严重度 | 分类 | 摘要 | 报告 | 状态 |
 |------|--------|------|------|------|------|
-| F-SPEC-20260611-509b | HIGH | 偏差 | README R6 后停更：五轮/v5/四档/3 道具，模式列表缺 VS/MELEE/WAVE（#15 教训复发） | 2026-06-11-spec.md | proposed |
-| F-SPEC-20260611-c7ae | MEDIUM | 偏差（取代漏标家族） | consensus §3.3「三类型/总数10/顶部出生/随机AI」被 §3.24/§3.7/§3.22/§3.9 取代无标注（含 AC-3） | 2026-06-11-spec.md | proposed |
-| F-SPEC-20260611-2c1c | MEDIUM | 偏差（取代漏标家族） | consensus §3.1「钢墙不可破坏」+ AC-2 被 R10 L4 破钢部分取代无标注 | 2026-06-11-spec.md | proposed |
-| F-SPEC-20260611-0886 | MEDIUM | 偏差（取代漏标家族） | consensus §3.6「胜利=10 辆全灭」停留 MVP 语境，未指向各模式胜负分叉 | 2026-06-11-spec.md | proposed |
-| F-SPEC-20260611-9f8f | MEDIUM | 偏差（取代漏标家族） | consensus §3.7/§3.13 敌人总数未反映 R11 boss 关 enemyTotal+1 | 2026-06-11-spec.md | proposed |
-| F-SPEC-20260611-6fe4 | MEDIUM | 偏差（取代漏标家族） | consensus §3.10「两档最高分」已扩为八档无标注 | 2026-06-11-spec.md | proposed |
-| F-SPEC-20260611-f506 | MEDIUM | 偏差（取代漏标家族） | consensus §3.8 道具表 3 行 + §2.1 F9「三种」未指引 7 类道具面（序列行已标、表未标） | 2026-06-11-spec.md | proposed |
-| F-SPEC-20260611-0fb1 | LOW | 缺失 | consensus §3.4 操作总表未汇集 R3~R13 新键位（M/R/2/3/4/5/6/Enter） | 2026-06-11-spec.md | proposed |
-| F-SPEC-20260611-85b4 | LOW | 偏差（取代漏标·轻微） | consensus §3.9 ARMORED「朝向玩家」未标 2P 后「最近存活玩家」语义 | 2026-06-11-spec.md | proposed |
-| F-SPEC-20260611-2625 | LOW | 风险 | PvP 玩家弹×玩家弹相消/穿透行为共识全文未声明，需按实现回写 | 2026-06-11-spec.md | proposed |
-| F-SPEC-20260611-39bc | LOW | 缺失 | modules.md 覆盖性自检段停更于 v1.1（仅 F1~F6/AC-1~11） | 2026-06-11-spec.md | proposed |
-| F-ARCH-20260611-e75d | MEDIUM | 偏差（复发） | architecture.md 停更 v2：R7~R13 七轮欠账（状态机 7→11 态/管线缺步骤/五模式零提及）；F-ARCH-4c50 同模式复发，根治=补维护约定 | 2026-06-11-architecture.md | proposed |
-| F-ARCH-20260611-608f | MEDIUM | 风险 | combat↔player 运行时值导入循环依赖，无文档标注；modules combat 依赖列仅写 map 实际六依赖 | 2026-06-11-architecture.md | proposed |
-| F-ARCH-20260611-dd56 | MEDIUM | 缺失 | ADR 缺口：R8 judgeVersus/isPvP 家族抽象 + R13 advance WAVE_BREAK 分支（修订 AC-11 冻结原则）均达 LMP §四 触发，docs/adr 仅 ADR-001 | 2026-06-11-architecture.md | proposed |
-| F-ARCH-20260611-291d | LOW | 偏差 | code-map v7 查找表「五档+muted」与自身 v7 变更行「第七八档」内部不一致 | 2026-06-11-architecture.md | proposed |
-| F-ARCH-20260611-2016 | LOW | 偏差 | modules.md 自检段停更 + 模块依赖图 R6 后七轮未更新 | 2026-06-11-architecture.md | proposed |
-| F-ARCH-20260611-5d32 | LOW | 偏差 | update.ts 头注释引用 v1 旧管线（缺 powerups/shovel/effects） | 2026-06-11-architecture.md | proposed |
-| F-DM-20260611-36e1 | HIGH | 缺失/停更 | data-model 停更于 R7：R8~R13 六轮契约增量全缺失（约 30 常量+3 GameMode+4 GameState+5 PowerupType+EnemyType.BOSS+World 7 字段+2 档位） | 2026-06-11-data-model.md | proposed |
-| F-DM-20260611-da4f | MEDIUM | 缺失 | GameState 4 新值（VERSUS_ROUND/OVER、WAVE_BREAK/OVER）无状态机文档，非法转换断言断档 | 2026-06-11-data-model.md | proposed |
-| F-DM-20260611-3bd0 | MEDIUM | 偏差（取代漏标家族复发） | data-model 3 处被取代无标注：§29 player 别名（已移除）/§30 C17 穿透（isPvP 已反转）/§31 分叉清单无前向指针 | 2026-06-11-data-model.md | proposed |
-| F-DM-20260611-4241 | LOW | 偏差 | data-model 版本表止于 v5 且「待 R5-G3 确认」未回写 | 2026-06-11-data-model.md | proposed |
-| F-DM-20260611-64a0 | LOW | 偏差 | §3 实体表 v1 命名漂移残留（aiState vs ai{turnMs,fireMs} 等） | 2026-06-11-data-model.md | proposed |
-| F-DM-20260611-be71 | LOW | 缺失 | BULLET_SIZE/ENEMY_TURN_INTERVAL_MS 未入常量表（v1/R2 遗留） | 2026-06-11-data-model.md | proposed |
-| F-DM-20260611-6226 | LOW | 改进建议 | 存档档位无统一清单：10 key 散落五节，档位序数仅存代码注释 | 2026-06-11-data-model.md | proposed |
-| F-PROC-20260611-999d | MEDIUM | 风险 | CI Actions Node20 弃用未处理（2026-06-16 强制 Node24，硬时限 5 天），CI 为唯一 required check+部署管道 | 2026-06-11-behavior.md | proposed |
-| F-PROC-20260611-514f | MEDIUM | 偏差（停更复发） | 门面文档停更复发（6fd2 同家族）：CLAUDE.md active 段六轮/PR#1~10（实际 13 轮/PR#23）；README 键位缺 3/4/5/6 | 2026-06-11-behavior.md | proposed |
-| F-PROC-20260611-a872 | LOW | 偏差 | test-plan/INDEX.md R13 行「待 PR 合入」未回写（PR #23 已合入） | 2026-06-11-behavior.md | proposed |
-| F-PROC-20260611-6ac3 | LOW | 改进建议 | R13 骨架修正混入 feat commit——建议骨架修正独立 commit 保持 diff 审计边界 | 2026-06-11-behavior.md | proposed |
+| F-SPEC-20260611-509b | HIGH | 偏差 | README R6 后停更：五轮/v5/四档/3 道具，模式列表缺 VS/MELEE/WAVE（#15 教训复发） | 2026-06-11-spec.md | resolved（R14-fix 直修，commit 见 git log） |
+| F-SPEC-20260611-c7ae | MEDIUM | 偏差（取代漏标家族） | consensus §3.3「三类型/总数10/顶部出生/随机AI」被 §3.24/§3.7/§3.22/§3.9 取代无标注（含 AC-3） | 2026-06-11-spec.md | resolved（R14-fix 直修，commit 见 git log） |
+| F-SPEC-20260611-2c1c | MEDIUM | 偏差（取代漏标家族） | consensus §3.1「钢墙不可破坏」+ AC-2 被 R10 L4 破钢部分取代无标注 | 2026-06-11-spec.md | resolved（R14-fix 直修，commit 见 git log） |
+| F-SPEC-20260611-0886 | MEDIUM | 偏差（取代漏标家族） | consensus §3.6「胜利=10 辆全灭」停留 MVP 语境，未指向各模式胜负分叉 | 2026-06-11-spec.md | resolved（R14-fix 直修，commit 见 git log） |
+| F-SPEC-20260611-9f8f | MEDIUM | 偏差（取代漏标家族） | consensus §3.7/§3.13 敌人总数未反映 R11 boss 关 enemyTotal+1 | 2026-06-11-spec.md | resolved（R14-fix 直修，commit 见 git log） |
+| F-SPEC-20260611-6fe4 | MEDIUM | 偏差（取代漏标家族） | consensus §3.10「两档最高分」已扩为八档无标注 | 2026-06-11-spec.md | resolved（R14-fix 直修，commit 见 git log） |
+| F-SPEC-20260611-f506 | MEDIUM | 偏差（取代漏标家族） | consensus §3.8 道具表 3 行 + §2.1 F9「三种」未指引 7 类道具面（序列行已标、表未标） | 2026-06-11-spec.md | resolved（R14-fix 直修，commit 见 git log） |
+| F-SPEC-20260611-0fb1 | LOW | 缺失 | consensus §3.4 操作总表未汇集 R3~R13 新键位（M/R/2/3/4/5/6/Enter） | 2026-06-11-spec.md | resolved（R14-fix 直修，commit 见 git log） |
+| F-SPEC-20260611-85b4 | LOW | 偏差（取代漏标·轻微） | consensus §3.9 ARMORED「朝向玩家」未标 2P 后「最近存活玩家」语义 | 2026-06-11-spec.md | resolved（R14-fix 直修，commit 见 git log） |
+| F-SPEC-20260611-2625 | LOW | 风险 | PvP 玩家弹×玩家弹相消/穿透行为共识全文未声明，需按实现回写 | 2026-06-11-spec.md | resolved（R14-fix 直修，commit 见 git log） |
+| F-SPEC-20260611-39bc | LOW | 缺失 | modules.md 覆盖性自检段停更于 v1.1（仅 F1~F6/AC-1~11） | 2026-06-11-spec.md | resolved（R14-fix 直修，commit 见 git log） |
+| F-ARCH-20260611-e75d | MEDIUM | 偏差（复发） | architecture.md 停更 v2：R7~R13 七轮欠账（状态机 7→11 态/管线缺步骤/五模式零提及）；F-ARCH-4c50 同模式复发，根治=补维护约定 | 2026-06-11-architecture.md | resolved（R14-fix 直修，commit 见 git log） |
+| F-ARCH-20260611-608f | MEDIUM | 风险 | combat↔player 运行时值导入循环依赖，无文档标注；modules combat 依赖列仅写 map 实际六依赖 | 2026-06-11-architecture.md | resolved（文档化：architecture v3 §3.5 + modules 依赖列；代码重构 deferred 待独立 ADR） |
+| F-ARCH-20260611-dd56 | MEDIUM | 缺失 | ADR 缺口：R8 judgeVersus/isPvP 家族抽象 + R13 advance WAVE_BREAK 分支（修订 AC-11 冻结原则）均达 LMP §四 触发，docs/adr 仅 ADR-001 | 2026-06-11-architecture.md | resolved（ADR-002/ADR-003 回溯落档） |
+| F-ARCH-20260611-291d | LOW | 偏差 | code-map v7 查找表「五档+muted」与自身 v7 变更行「第七八档」内部不一致 | 2026-06-11-architecture.md | resolved（R14-fix 直修，commit 见 git log） |
+| F-ARCH-20260611-2016 | LOW | 偏差 | modules.md 自检段停更 + 模块依赖图 R6 后七轮未更新 | 2026-06-11-architecture.md | resolved（R14-fix 直修，commit 见 git log） |
+| F-ARCH-20260611-5d32 | LOW | 偏差 | update.ts 头注释引用 v1 旧管线（缺 powerups/shovel/effects） | 2026-06-11-architecture.md | deferred（src 注释改动待下一触 src 的 PR 顺带修，不单开 PR） |
+| F-DM-20260611-36e1 | HIGH | 缺失/停更 | data-model 停更于 R7：R8~R13 六轮契约增量全缺失（约 30 常量+3 GameMode+4 GameState+5 PowerupType+EnemyType.BOSS+World 7 字段+2 档位） | 2026-06-11-data-model.md | resolved（R14-fix 直修，commit 见 git log） |
+| F-DM-20260611-da4f | MEDIUM | 缺失 | GameState 4 新值（VERSUS_ROUND/OVER、WAVE_BREAK/OVER）无状态机文档，非法转换断言断档 | 2026-06-11-data-model.md | resolved（R14-fix 直修，commit 见 git log） |
+| F-DM-20260611-3bd0 | MEDIUM | 偏差（取代漏标家族复发） | data-model 3 处被取代无标注：§29 player 别名（已移除）/§30 C17 穿透（isPvP 已反转）/§31 分叉清单无前向指针 | 2026-06-11-data-model.md | resolved（R14-fix 直修，commit 见 git log） |
+| F-DM-20260611-4241 | LOW | 偏差 | data-model 版本表止于 v5 且「待 R5-G3 确认」未回写 | 2026-06-11-data-model.md | resolved（R14-fix 直修，commit 见 git log） |
+| F-DM-20260611-64a0 | LOW | 偏差 | §3 实体表 v1 命名漂移残留（aiState vs ai{turnMs,fireMs} 等） | 2026-06-11-data-model.md | resolved（R14-fix 直修，commit 见 git log） |
+| F-DM-20260611-be71 | LOW | 缺失 | BULLET_SIZE/ENEMY_TURN_INTERVAL_MS 未入常量表（v1/R2 遗留） | 2026-06-11-data-model.md | resolved（R14-fix 直修，commit 见 git log） |
+| F-DM-20260611-6226 | LOW | 改进建议 | 存档档位无统一清单：10 key 散落五节，档位序数仅存代码注释 | 2026-06-11-data-model.md | resolved（R14-fix 直修，commit 见 git log） |
+| F-PROC-20260611-999d | MEDIUM | 风险 | CI Actions Node20 弃用未处理（2026-06-16 强制 Node24，硬时限 5 天），CI 为唯一 required check+部署管道 | 2026-06-11-behavior.md | resolved（chore PR #24 merge dc4ea00，Node24 实测绿） |
+| F-PROC-20260611-514f | MEDIUM | 偏差（停更复发） | 门面文档停更复发（6fd2 同家族）：CLAUDE.md active 段六轮/PR#1~10（实际 13 轮/PR#23）；README 键位缺 3/4/5/6 | 2026-06-11-behavior.md | resolved（R14-fix 直修，commit 见 git log） |
+| F-PROC-20260611-a872 | LOW | 偏差 | test-plan/INDEX.md R13 行「待 PR 合入」未回写（PR #23 已合入） | 2026-06-11-behavior.md | resolved（R14-fix 直修，commit 见 git log） |
+| F-PROC-20260611-6ac3 | LOW | 改进建议 | R13 骨架修正混入 feat commit——建议骨架修正独立 commit 保持 diff 审计边界 | 2026-06-11-behavior.md | resolved（PP-20260612-3a82 落档，下轮起执行） |
 
 ## 条目（2026-06-05 首轮全量审查）
 

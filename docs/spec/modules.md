@@ -2,6 +2,7 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
+| v12 | 2026-06-12 | audit R14 fix 轮：覆盖性自检段扩展至 F1~F26 / AC-1~95（F-SPEC-39bc / F-ARCH-2016）；combat 依赖列修正（map → 实际六依赖 + combat↔player 运行时互依标注，F-ARCH-608f）；依赖图补 judge 路由与环标注 |
 | v11 | 2026-06-11 | R13 增量：无新模块；core（GameMode.WAVE + GameState WAVE_BREAK/WAVE_OVER + world.wave/waveBreakMs + GameLoop.advance 间歇倒计时分支 + judge WAVE 分叉：波清→BREAK/死亡→OVER+档位 + restartToReady 扩 WAVE_OVER）/level（setupWave/startNextWave/waveConfig/isBossWave）/storage（第七八档 best-wave/best-coop-wave）/input（Digit5/6 入口）/hud（WAVE n + 两档 BEST）/render（BREAK/OVER overlay）/main（接线）职责扩展；enemy/combat/map/powerup/achievements 零改（待 R13-G1/G2 确认） |
 | v10 | 2026-06-11 | R12 增量：无新模块；powerup（PowerupType 增 SHOVEL/FREEZE/LIFE + DROP_CYCLE 4→7 + VS 池 3→4 加铲 + applyEffect 三新分支）/map（护圈格变钢/回砖接口，仿 breakSteel）/core（shovelUntil per-base + freezeUntil 全局时钟 + loadLevel/retry/每局 setup 清零）/enemy（freezeUntil 门控：定身不移动不射击，含 Boss 与窗口内新出生）/player（lives+1）/render（三新道具图标）职责扩展；hud 命数显示零改（待 R12-G1/G2 确认） |
 | v9 | 2026-06-09 | R11 增量：无新模块；enemy（EnemyType.BOSS + 阶段狂暴 AI：常态单发/狂暴三向弹幕+加速 + ENEMY_HP/SCORE 加 BOSS）/level（isBossLevel + loadLevel 注入 BOSS 到 spawnSequence 末位）/render（Boss HP 条 + COLOR.enemy 加 BOSS 穷举项）职责扩展；死亡即清场复用 fieldClear，零新胜负逻辑（待 R11-G1/G2 确认） |
@@ -15,7 +16,7 @@
 | v1.1 | 2026-06-04 | G1 通过；map 补 1/4 子块粒度职责，combat 补子弹相消（AC-12） |
 | v1 | 2026-06-04 | 初版（从共识文档 v1.1 拆解，待 G1 确认） |
 
-> **定位：** 需求到架构的桥梁。每个模块可独立描述职责边界；共识文档的每个能力（F1~F6）都有模块承接。
+> **定位：** 需求到架构的桥梁。每个模块可独立描述职责边界；共识文档的每个能力（F1~F26）都有模块承接。
 
 ---
 
@@ -27,7 +28,7 @@
 | **map**（地图地形） | 地图数据（13×13 格，砖墙含 1/4 子块状态）、地形枚举（砖/钢/空/基地）、格子/子块查询与破坏接口 | §3.1 / F1 / AC-2,6 | — |
 | **player**（玩家坦克） | 玩家实体：移动意图、射击意图、命数、重生与无敌计时 | §3.2, §3.4 / F2 / AC-1,5 | input, map, combat |
 | **enemy**（敌人系统） | 出生调度器（总量/同屏/出生点轮转）+ 3 类敌人 AI（巡逻、射击决策） | §3.3 / F3 / AC-3,4 | map, combat |
-| **combat**（子弹与碰撞） | 子弹实体生命周期；碰撞判定矩阵（子弹×墙/坦克/基地/边界/敌我子弹相消、坦克×坦克/墙）；伤害结算 | F4 / §3.5 / AC-1,2,5,6,12 | map |
+| **combat**（子弹与碰撞） | 子弹实体生命周期；碰撞判定矩阵（子弹×墙/坦克/基地/边界/敌我子弹相消、坦克×坦克/墙）；伤害结算 | F4 / §3.5 / AC-1,2,5,6,12 | map, player, powerup, effects, audio, achievements——与 player 存在运行时值导入互依（F-ARCH-608f 已知技术债，重构待 ADR） |
 | **hud**（界面与计分） | 得分累计、HUD 渲染（分/命/敌余量）、胜负画面、重新开始 | §3.5 / F6 / AC-7,8 | core |
 | **input**（输入） | 键盘事件 → 语义指令（方向/射击/暂停/重开），双键位支持 | §3.4 / AC-1,11 | — |
 | **render**（渲染） | Canvas 程序化绘制：地形、坦克、子弹、特效（爆炸/无敌闪烁）；R2 增：道具/携带者闪烁/过关与全通画面 | N5 / AC-9,14,16,17 | 各实体只读状态 |
@@ -50,19 +51,48 @@
 
 **R4 既有模块职责扩展**：map（Terrain 增 BUSH/WATER/ICE + 变体确定性生成）、combat（C14 坦克×河阻挡、冰面惯性运动模型）、level（L1~L3 改版图 + 无尽变体接入 + 成就钩子）、render（草渲染在坦克上层、新地形贴图、TOAST 横幅）、hud（成就进度 n/8 + 明细）、effects（EffectKind 增 TOAST）。
 
-## 覆盖性自检
+## 覆盖性自检（v12 全量，对应共识 v12 §2.1 F1~F26）
 
-- F1→map / F2→player / F3→enemy / F4→combat / F5→core / F6→hud ✅ 无能力悬空
-- AC-1~11 每条至少 1 个模块承接（见表中 AC 列）✅
+| 能力 | 承接模块 |
+|------|---------|
+| F1 地图 | map |
+| F2 玩家坦克 | player |
+| F3 敌方坦克 | enemy |
+| F4 子弹与碰撞 | combat |
+| F5 胜负判定 | core |
+| F6 HUD 与计分 | hud |
+| F7 难度平衡 | enemy（威胁分层）+ level/map（双层砖圈） |
+| F8 关卡系统 | level |
+| F9 道具系统 | powerup |
+| F10 最高分存档 | storage |
+| F11 打击感特效 | effects |
+| F12 程序化音效 | audio |
+| F13 无尽模式 | level + storage（best-endless）+ core（ENDLESS_OVER） |
+| F14 扩展地形 | map + combat（冰面惯性 / 河阻挡） |
+| F15 无尽地形变体 | map + level |
+| F16 成就系统 | achievements |
+| F17 本地双人合作 | core（players[]）+ input（双键位）+ combat / player |
+| F18 CI 与发布 | .github/workflows（非运行时模块） |
+| F19 2P 无尽 | level + storage（best-coop-endless） |
+| F20 2P 成就 | achievements（团队语义） |
+| F21 双人对战 VS | core（VERSUS / judgeVersus）+ combat（C17 反转）+ level（setupVersus）+ input / hud |
+| F22 NPC 混战 VS | core（MELEE / isPvP 路由）+ level（setupMelee）+ enemy（中立出生）+ combat / input / hud |
+| F23 坦克升级·星星 | powerup（STAR）+ combat（弹速 / cap / 破钢门控）+ player（死亡回 L1）+ map（breakSteel） |
+| F24 Boss 战 | enemy（BOSS + 阶段狂暴 AI）+ level（末位注入）+ render（HP 条） |
+| F25 道具补全·经典三件 | powerup（SHOVEL/FREEZE/LIFE）+ map（护圈变钢 / 回砖）+ core（双时钟）+ enemy（冻结门控）+ player（lives+1） |
+| F26 波次防御 | core（WAVE 状态机 / judgeWave / advance 倒计时）+ level（waveConfig / startNextWave）+ storage（第七八档）+ input（Digit5/6）+ hud / render |
+
+- F1~F26 ✅ 无能力悬空；AC-1~95 每条至少 1 个模块承接（AC-1~11 见模块表 AC 列；AC-12~95 的承接映射随各轮版本增量行与 test-plan INDEX 维护）✅
 - input / render 为支撑模块，不对应业务能力，服务所有实体 ✅
 
 ## 模块间依赖图
 
 ```
-input(双通道) → core(管线) → {players[], enemy, powerup, combat, level} → map
+input(双通道+模式键 2/3/4/5/6) → core(管线 + judge 路由：PvE / judgeVersus[VS·MELEE] / judgeWave[WAVE]) → {players[], enemy, powerup, combat, level} → map
                        ↓                                    ↘ achievements / storage / audio（事件钩子）
+              combat ↔ player（运行时值导入互依：damagePlayer ↔ moveTank/applySlide/firePlayerBullet，F-ARCH-608f）
               effects（纯视觉，无回边）
                        ↓
               render / hud（只读全量状态）
 ```
-<!-- v1 依赖图已被上图取代（F-ARCH-4c50）；v2~v5 模块以增量表记录，图于 R6 重绘 -->
+<!-- v1 依赖图已被上图取代（F-ARCH-4c50）；v2~v5 模块以增量表记录，图于 R6 重绘；2026-06-12 fix 轮补 judge 路由（VS/MELEE/WAVE）与 combat↔player 环标注（F-ARCH-2016/608f） -->

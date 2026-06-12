@@ -113,12 +113,12 @@ standard_path: /Users/chat/backend-ai-workflow/agent-dev-standard
 ## 项目特定 context（PM 维护）
 
 ### 业务定位
-- 经典坦克大战（Battle City 风格）：3 关 + 无尽模式、本地双人合作、6 地形、3 道具、8 成就；在线可玩 https://corray.github.io/tank-world/
+- 经典坦克大战（Battle City 风格）：六模式（1P 战役+无尽 / CO-OP / VERSUS / MELEE / WAVE / CO-OP WAVE）、6 地形、7 道具、Boss 战、8 成就；在线可玩 https://corray.github.io/tank-world/
 - **同时为 agent-dev-standard 流程实验场**（共识 v5 §1 定位裁定）：人工体验验证不在验收范围
 
 ### 当前 active 阶段
-- 六轮迭代完成（MVP/R2~R5 功能轮 + QA 修复轮 + R6 审计轮），PR #1~#10 全合入
-- 代码地图见 `docs/spec/code-map.md`；R7 候选池：2P 无尽与成就（绑定写入点级粒度条件）、扩展玩法
+- 十三轮迭代完成（MVP/R2~R5 功能轮 + QA 修复轮 + R6 审计轮 + R7~R13 功能轮）+ R14 第二轮全量审计，PR #1~#24 全合入；两轮审计 = R6 / R14
+- 代码地图见 `docs/spec/code-map.md`（v7）；R15 候选池：Boss 扩展、战役新关卡、调参轮
 
 ### 项目特殊约束（如有）
 - TBD
@@ -136,7 +136,7 @@ standard_path: /Users/chat/backend-ai-workflow/agent-dev-standard
 - [x] 建 GitHub remote → 回填 `issue_repo` → 同步 24 labels（2026-06-04 完成，origin = git@github.com:Corray/tank-world.git）
 - [x] package.json / 构建工具定型 → 回填 `compile_cmd` + 技术栈字段（2026-06-04 G2 拍板，ADR-001；npm 工程在实现阶段初始化）
 - [x] 第一个需求启动走 spec-to-code-flow（2026-06-04：共识 v1.2 + 模块清单 + 架构均评审通过，G1/G2 已过）
-- [ ] 跑过 1-2 个需求后 `/install audit` 补装审查 skill + audit-rotation-plan
+- [x] 跑过 1-2 个需求后 `/install audit` 补装审查 skill（已装 .claude/skills/audit，R6/R14 两轮实跑；rotation-plan 以「玩法轮间隔穿插审计轮」节奏替代）
 
 ---
 

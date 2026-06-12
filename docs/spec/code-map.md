@@ -46,7 +46,7 @@ updatePlayers → updatePowerups(先于 combat) → trySpawnEnemy → updateEnem
 | 坦克升级 | combat.ts firePlayerBullet（level→弹速/cap/breaksSteel）+ map.breakSteel(L4 破钢) | level 重置点矩阵见 player.damagePlayer/level.retryLevel·setupVersus(=L1)/loadLevel(持久) |
 | 成就触发 | achievements/achievements.ts | on* 钩子（COOP 全 gate） |
 | 音效配方 | audio/audio.ts | RECIPES（dispatch 可测层） |
-| 存档档位 | storage/storage.ts + constants KEY_* | 五档 + muted |
+| 存档档位 | storage/storage.ts + constants KEY_* | 七档（solo×4 + coop×3，KEY_BEST_* ×7）+ muted，共 8 key（见 storage.ts） |
 | 双人键位 | input/input.ts | SOLO_P1/COOP_P1/COOP_P2 映射表（VS 复用 COOP 双键位）|
 | VS/MELEE 胜负/回合 | core/update.ts judgeVersus + level.ts advanceVersusRound | 双条件胜负/best-of-3；双基地=map.versusBaseDown；judge 路由经 isPvP（VS+MELEE 共用）|
 | 波次防御 | update.ts judgeWave（mode===WAVE 前拦）+ game.ts advance WAVE_BREAK 分支 + level.ts waveConfig/applyWave/startNextWave | 同图连续（startNextWave 不经 loadLevel）；曲线常量 WAVE_*；档位按 players.length 分流第七八档 |

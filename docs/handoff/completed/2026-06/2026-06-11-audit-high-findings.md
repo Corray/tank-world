@@ -8,7 +8,7 @@ related:
   - docs/audit/2026-06-11-data-model.md
   - docs/audit/findings-registry.md
 kind: fix-dispatch（HIGH 例外独立 handoff）
-status: pending
+status: completed
 ---
 
 # Audit 第二轮 HIGH 发现 ×2 + 时限项 ×1
@@ -39,3 +39,12 @@ checkout@v4/setup-node@v4/upload-pages-artifact@v3 + node-version:20 → GitHub 
 | A-3 | gh run（chore PR 后） | CI 在 Node24 下 test+deploy 双绿 |
 
 其余 25 条 MEDIUM/LOW 已在 findings-registry（proposed），按正常 /fix 节奏消化，不需等本 handoff。
+
+---
+
+## 完成记录（2026-06-12 by fix 轮）
+
+- H1 README：整体重写（52 行，六模式/键位/八档/7 道具/CI 徽标验证真实）✓
+- H2 data-model：v6 补全 §39~45（六轮增量+状态机 4 新值+八档清单，常量逐值核对）✓
+- 时限项 CI：chore PR #24 merge dc4ea00，Node24 实测 test 绿 ✓
+- 验证场景 A-1/A-2 通过；A-3 通过（PR #24 CI）
