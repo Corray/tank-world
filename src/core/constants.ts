@@ -41,9 +41,9 @@ export const LOGIC_HZ = 60;
 export const STEP_MS = 1000 / LOGIC_HZ;
 
 /** Enemy hit points by type (data-model §3; R11 §3.24 adds BOSS). */
-export const ENEMY_HP = { BASIC: 1, FAST: 1, ARMORED: 3, BOSS: 10 } as const;
+export const ENEMY_HP = { BASIC: 1, FAST: 1, ARMORED: 3, BOSS: 10, SUMMONER: 6 } as const;
 /** Score awarded per destroyed enemy by type (consensus §3.3; R11 BOSS). */
-export const ENEMY_SCORE = { BASIC: 100, FAST: 200, ARMORED: 400, BOSS: 1000 } as const;
+export const ENEMY_SCORE = { BASIC: 100, FAST: 200, ARMORED: 400, BOSS: 1000, SUMMONER: 800 } as const;
 
 /** Enemy AI: ms between direction re-rolls. */
 export const ENEMY_TURN_INTERVAL_MS = 1500;
@@ -196,3 +196,11 @@ export const WAVE_BOSS_EVERY = 5;
 /** Storage buckets seven / eight (waves cleared, solo / co-op). */
 export const KEY_BEST_WAVE = 'tank-world.best-wave';
 export const KEY_BEST_COOP_WAVE = 'tank-world.best-coop-wave';
+
+// --- R15 additions (consensus §3.27, summoner boss) ---
+
+/** Summoner: ms between reinforcement calls — normal / rage (HP ≤ 50%). */
+export const SUMMON_MS = 4_000;
+export const SUMMON_RAGE_MS = 2_000;
+export const SUMMONER_HP = ENEMY_HP.SUMMONER;
+export const SUMMONER_SCORE = ENEMY_SCORE.SUMMONER;

@@ -321,6 +321,12 @@ export function isBossWave(wave: number): boolean {
   return wave > 0 && wave % WAVE_BOSS_EVERY === 0;
 }
 
+/** R15 §3.27: milestone boss rotation — odd index → BOSS, even → SUMMONER
+ *  (campaign L3 is always index 1)（G4 骨架桩：impl 阶段填充）. */
+export function bossTypeFor(_milestoneIdx: number): EnemyType {
+  return EnemyType.BOSS;
+}
+
 /**
  * R13 §3.26: refill the spawn fields for wave k. Map, field powerups, players
  * and the score stay UNTOUCHED — same-map continuity is the mode's core.

@@ -16,7 +16,7 @@ const COLOR = {
   base: '#ffd700',
   player: '#4caf50',
   player2: '#7986cb',
-  enemy: { BASIC: '#bdbdbd', FAST: '#42a5f5', ARMORED: '#ef5350', BOSS: '#ab47bc' },
+  enemy: { BASIC: '#bdbdbd', FAST: '#42a5f5', ARMORED: '#ef5350', BOSS: '#ab47bc', SUMMONER: '#ff7043' },
   bulletPlayer: '#ffffff',
   bulletEnemy: '#ff9800',
   overlayBg: 'rgba(0, 0, 0, 0.65)',
