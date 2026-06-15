@@ -2,6 +2,7 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
+| v15 | 2026-06-15 | R16 范围并入（GUARDIAN 第三 Boss·防御型，F28）；新增 §3.28 与 AC-102~105；决议：GUARDIAN 高 HP 12 慢速 0.6× / 周期自我护盾免疫子弹（狂暴缩周期）/ 三循环轮换 [BOSS,SUMMONER,GUARDIAN] |
 | v14 | 2026-06-12 | R15 范围并入（Boss 扩展·召唤型 SUMMONER + 里程碑轮换，F27）；新增 §3.27 与 AC-96~101；决议：+1 SUMMONER / 按序交替（奇 BOSS 偶 SUMMONER，战役恒 BOSS）/ 召唤兵须清完（fieldClear 涌现）/ HP 调参搭车（BOSS 10→8） |
 | v13 | 2026-06-12 | audit R14 取代标注族回补 ×8（§3.1/§3.3/§3.6/§3.7/§3.8/§3.9/§3.10/§3.13 + §2.1 F9 + AC-2/AC-3）+ §3.4 键位总表 + §3.5 PvP 弹×弹声明（按实现回写：互不相消），refs F-SPEC-20260611 |
 | v12 | 2026-06-11 | R13 范围并入（波次防御，PvE 第三循环，F26）；新增 §3.26 与 AC-88~95；决议：倒计时自动开波（按键可提前）/ 每 5 波 Boss 波 / solo+coop 第七八档分离 / 复用 L1 图；核心区隔=同图连续（跨波不重建图，四类状态累积） |
@@ -63,6 +64,7 @@
 | F25 | 道具补全·经典三件（R12） | 铲子（护圈变钢+到期回砖）/冻结（NPC 定身）/加命，掉落循环 4→7，VS 池仅加铲，见 §3.25 |
 | F26 | 波次防御（R13） | 同图连续守基生存：波次递增+5 波 Boss+倒计时自动开波，第七/八档 best-wave 分离，见 §3.26 |
 | F27 | Boss 扩展·SUMMONER（R15） | 召唤型 Boss（周期召唤小弟+须清完）+ 里程碑按序交替 + BOSS_HP 调参 10→8，见 §3.27 |
+| F28 | GUARDIAN 第三 Boss（R16） | 防御型 Boss（高 HP 慢速+周期自我护盾免疫子弹）+ 三循环轮换，见 §3.28 |
 
 ### 2.2 范围外（Out of Scope，MVP 不做）
 
@@ -423,6 +425,14 @@ Boss 谱系扩展：BOSS=火力型（三向弹幕），SUMMONER=消耗型（增�
 - **里程碑轮换（OPEN-R15-2 决议=按序交替）**：`bossTypeFor(idx)`——奇 BOSS / 偶 SUMMONER（确定性无随机）。战役 L3 恒 BOSS；无尽 L8=1/L13=2/…；波次 wave5=1/wave10=2/…。注入处（loadLevel/applyWave）由定值改选型。
 - **HP 调参搭车（OPEN-R15-4 决议）**：`BOSS_HP` 10→**8**（R11 僵持体验债）；T-BOSS-* 断言全经常量引用，预判零基线修订。
 
+### 3.28 GUARDIAN 第三 Boss·防御型（R16 / F28）
+
+Boss 谱系第三维度——防御型肉盾，迫使持续输出。BOSS=火力（弹幕）/ SUMMONER=消耗（增援）/ GUARDIAN=防御（护盾）。
+
+- **GUARDIAN 敌型**：`EnemyType` 增 `GUARDIAN`，HP **12**〔默认〕/ 分 **1200**〔默认〕/ **慢速 0.6×**基准 / 同 TANK_SIZE。穷举全扫（ENEMY_HP/SCORE/COLOR.enemy）。`isBossType` 扩至三类。
+- **周期自我护盾（OPEN-R16-2 决议）**：每 `GUARD_CYCLE_MS`〔默认 5s〕开盾，持续 `GUARD_ACTIVE_MS`〔默认 2s〕；护盾期免疫玩家子弹（combat C5 扣血前判 `guardUntil`，子弹消失不扣血）。**狂暴（HP≤50%）**：周期缩至 `GUARD_RAGE_CYCLE_MS`〔默认 3s〕（与 BOSS 弹幕/SUMMONER 召唤差异化）。常规射击单发周期，不弹幕不召唤。
+- **三循环轮换（OPEN-R16-3 决议）**：`bossTypeFor(idx)=[BOSS,SUMMONER,GUARDIAN][(idx-1)%3]`。战役 L3 恒 BOSS（idx1）；无尽 L18 首见 GUARDIAN；波次 wave15 首见。
+
 ## 4. 非功能约束
 
 | # | 约束 |
@@ -538,6 +548,10 @@ Boss 谱系扩展：BOSS=火力型（三向弹幕），SUMMONER=消耗型（增�
 | AC-99 | 清场语义：召唤兵计入 fieldClear 须清完；SUMMONER 死即停止召唤；零新胜负逻辑 |
 | AC-100 | SUMMONER 狂暴 HP≤50% 召唤加速；无三向弹幕（与 BOSS 差异化）；FREEZE 冻住召唤计时（涌现） |
 | AC-101 | 既有 277 测试零回归（T-BOSS-* 常量引用跟随 HP 调参）；G3 产出「分叉清单 v8」（EnemyType 扩展影响面+数值断言族），基线修订全部在预判清单内 |
+| AC-102 | EnemyType 增 GUARDIAN（HP 12/分 1200/慢速 0.6×）；穷举映射全扫零编译错；isBossType 含三类 |
+| AC-103 | GUARDIAN 周期护盾：每 GUARD_CYCLE_MS 开盾 GUARD_ACTIVE_MS；护盾期玩家子弹免疫（不扣血、子弹消失） |
+| AC-104 | GUARDIAN 狂暴 HP≤50% 护盾周期缩至 GUARD_RAGE_CYCLE_MS；不弹幕不召唤（与 BOSS/SUMMONER 差异化） |
+| AC-105 | 三循环轮换 [BOSS,SUMMONER,GUARDIAN][(idx-1)%3]；既有 288 测试零回归（仅 T-SUM-2 bossTypeFor 内容断言修订，预判内）；G3 产出「分叉清单 v9」 |
 
 ## 6. 待确认项（已全部收敛 — 2026-06-04 评审）
 
