@@ -76,6 +76,13 @@ export enum EnemyType {
   ARMORED = 'ARMORED',
   /** R11: boss — high HP, phase rage, appears as the level's last enemy (§3.24). */
   BOSS = 'BOSS',
+  /** R15 §3.27: summoner boss — periodically calls in BASIC reinforcements. */
+  SUMMONER = 'SUMMONER',
+}
+
+/** R15 §3.27: boss-family types (HP bar + boss AI routing) — single anchor. */
+export function isBossType(type: EnemyType): boolean {
+  return type === EnemyType.BOSS || type === EnemyType.SUMMONER;
 }
 
 export enum Direction {
@@ -148,7 +155,7 @@ export interface EnemyTank extends Tank {
   hp: number;
   score: number;
   /** AI timers, ms remaining. */
-  ai: { turnMs: number; fireMs: number };
+  ai: { turnMs: number; fireMs: number; summonMs?: number };
   /** R2: carries a powerup; flickers and drops it on death (consensus §3.8). */
   carrier: boolean;
 }

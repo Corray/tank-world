@@ -2,6 +2,7 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
+| v8 | 2026-06-12 | R15 SUMMONER：EnemyType+isBossType 锚（types）；enemy.trySummon 召唤（不动 spawn 账目）；level.bossTypeFor 两注入点选型；render HP 条 per-type 分母；BOSS_HP 10→8 |
 | v7 | 2026-06-11 | R13 波次：GameMode.WAVE + WAVE_BREAK/OVER 状态；judgeWave 前拦（平行 judgeVersus）；advance 增 WAVE_BREAK 倒计时分支（首个自动间奏）；level.waveConfig/applyWave/setupWave/startNextWave；第七八档；main twoLane 改 players.length 判定 |
 | v6 | 2026-06-11 | R12 道具三件：PowerupType +SHOVEL/FREEZE/LIFE（7-cycle）；map.fortifyCells/restoreBrickCells；world.freezeUntil(全局)+shovelUntil(per-base)；enemy 冻结门控；update 接 updateShovel；重置点清零（loadLevel/setupVersus）|
 | v5 | 2026-06-09 | R11 Boss：EnemyType.BOSS（穷举映射 3 处同补）；level.isBossLevel + loadLevel 注入 BOSS 末位；enemy 阶段狂暴 AI；render Boss HP 条；死即 fieldClear（零新胜负）|
@@ -41,6 +42,7 @@ updatePlayers → updatePowerups(先于 combat) → trySpawnEnemy → updateEnem
 | 状态机转换 | core/game.ts + core/update.ts judge | data-model §10/§20 |
 | 关卡/无尽配置 | level/level.ts | LEVELS / endlessConfig / VARIANT_SLOTS |
 | Boss 战 | level.ts isBossLevel + loadLevel 注入末位 / enemy.ts updateEnemies BOSS 分支(fireBossSpread) / render drawBossHp | EnemyType.BOSS + ENEMY_HP/SCORE.BOSS；死即 fieldClear（零新胜负）；仅 PvE（注入只在 loadLevel）|
+| Boss 轮换/召唤 | level.ts bossTypeFor（奇 BOSS/偶 SUMMONER）+ enemy.ts trySummon | isBossType 锚（types）；召唤兵不计 spawnedCount/enemyTotal→fieldClear 涌现；同屏上限复用 ENEMY_CONCURRENT |
 | 道具效果 | powerup/powerup.ts | applyEffect(归拾取者)；STAR→升级；SHOVEL→fortify(isPvP?picker.id:1)；FREEZE→freezeUntil；LIFE→lives+1 |
 | 铲子/冻结生命周期 | powerup.ts updateShovel + enemy.ts 冻结门控（updateEnemies 首行） | 时钟：world.shovelUntil(per-base)/freezeUntil(全局)；重置点 loadLevel/setupVersus 清零；护圈格位=constants BASE_RING |
 | 坦克升级 | combat.ts firePlayerBullet（level→弹速/cap/breaksSteel）+ map.breakSteel(L4 破钢) | level 重置点矩阵见 player.damagePlayer/level.retryLevel·setupVersus(=L1)/loadLevel(持久) |

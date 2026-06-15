@@ -1,7 +1,7 @@
 // Render module: procedural Canvas drawing, read-only over world state (N5).
 
-import { GRID, CELL, SUB, FIELD, TANK_SIZE, BULLET_SIZE, BOSS_HP } from '../core/constants';
-import { GameState, Terrain, Direction, BulletOwner, PowerupType, EffectKind, EnemyType } from '../core/types';
+import { GRID, CELL, SUB, FIELD, TANK_SIZE, BULLET_SIZE, ENEMY_HP } from '../core/constants';
+import { GameState, Terrain, Direction, BulletOwner, PowerupType, EffectKind, EnemyType, isBossType } from '../core/types';
 import type { Tank, PlayerTank, EnemyTank } from '../core/types';
 import { SUB_TL, SUB_TR, SUB_BL } from '../map/map';
 import { POWERUP_SIZE } from '../powerup/powerup';
@@ -16,7 +16,7 @@ const COLOR = {
   base: '#ffd700',
   player: '#4caf50',
   player2: '#7986cb',
-  enemy: { BASIC: '#bdbdbd', FAST: '#42a5f5', ARMORED: '#ef5350', BOSS: '#ab47bc' },
+  enemy: { BASIC: '#bdbdbd', FAST: '#42a5f5', ARMORED: '#ef5350', BOSS: '#ab47bc', SUMMONER: '#ff7043' },
   bulletPlayer: '#ffffff',
   bulletEnemy: '#ff9800',
   overlayBg: 'rgba(0, 0, 0, 0.65)',
@@ -32,7 +32,7 @@ export function render(ctx: CanvasRenderingContext2D, world: World): void {
     // R2: carriers flicker between type color and gold (AC-16).
     const flicker = e.carrier && Math.floor(world.clock / 150) % 2 === 0;
     drawTank(ctx, e, flicker ? '#ffd700' : COLOR.enemy[e.type as EnemyType]);
-    if (e.type === EnemyType.BOSS) drawBossHp(ctx, e); // R11: boss HP bar
+    if (isBossType(e.type)) drawBossHp(ctx, e); // R11 boss / R15 summoner HP bar
   }
   for (const p of world.players) if (p.alive) drawPlayer(ctx, world, p);
   drawBullets(ctx, world);
@@ -241,12 +241,13 @@ function drawTank(ctx: CanvasRenderingContext2D, tank: Tank, color: string): voi
   }
 }
 
-/** R11 §3.24: boss HP bar above the tank (hp / BOSS_HP ratio). */
+/** R11 §3.24 / R15: boss-family HP bar (hp / per-type max). */
 function drawBossHp(ctx: CanvasRenderingContext2D, boss: EnemyTank): void {
   const w = TANK_SIZE;
   const x = boss.pos.x - w / 2;
   const y = boss.pos.y - TANK_SIZE / 2 - 7;
-  const ratio = Math.max(0, boss.hp / BOSS_HP);
+  // R15: per-type max HP — a summoner's bar drains against its own pool.
+  const ratio = Math.max(0, boss.hp / ENEMY_HP[boss.type]);
   ctx.fillStyle = '#311b3b';
   ctx.fillRect(x, y, w, 4);
   ctx.fillStyle = ratio > 0.5 ? '#ce93d8' : '#ff5252';
