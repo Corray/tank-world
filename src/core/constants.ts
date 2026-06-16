@@ -70,6 +70,8 @@ export const KEY_BEST_TOTAL = 'tank-world.best-total';
 export const KEY_BEST_LEVEL = 'tank-world.best-level';
 export const KEY_BEST_ENDLESS = 'tank-world.best-endless';
 export const KEY_MUTED = 'tank-world.muted';
+/** R21 §3.31: persisted difficulty tier. */
+export const KEY_DIFFICULTY = 'tank-world.difficulty';
 
 // --- R3 additions (consensus §3.11~3.13) ---
 

@@ -9,7 +9,9 @@ import {
   KEY_BEST_WAVE,
   KEY_BEST_COOP_WAVE,
   KEY_MUTED,
+  KEY_DIFFICULTY,
 } from '../core/constants';
+import { Difficulty } from '../core/types';
 
 function read(key: string): number {
   try {
@@ -109,4 +111,22 @@ export function getBestCoopWave(): number {
 
 export function submitCoopWave(waves: number): void {
   writeIfHigher(KEY_BEST_COOP_WAVE, waves);
+}
+
+// R21 §3.31: difficulty persistence — fail-silent (mirrors muted pref).
+export function getDifficulty(): Difficulty {
+  try {
+    const v = globalThis.localStorage?.getItem(KEY_DIFFICULTY);
+    return v === Difficulty.EASY || v === Difficulty.HARD ? v : Difficulty.NORMAL;
+  } catch {
+    return Difficulty.NORMAL;
+  }
+}
+
+export function setDifficulty(d: Difficulty): void {
+  try {
+    globalThis.localStorage?.setItem(KEY_DIFFICULTY, d);
+  } catch {
+    // degrade silently
+  }
 }

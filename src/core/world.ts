@@ -16,6 +16,7 @@ import {
 } from './types';
 import { GameMap } from '../map/map';
 import { LEVELS, generateSpawnSequence } from '../level/level';
+import { getDifficulty } from '../storage/storage';
 
 export interface World {
   state: GameState;
@@ -150,6 +151,6 @@ export function createWorld(): World {
     waveBreakMs: 0,
     comboCount: 0,
     comboUntil: 0,
-    difficulty: Difficulty.NORMAL,
+    difficulty: getDifficulty(), // R21 §3.31: restore persisted tier (fail-silent NORMAL)
   };
 }

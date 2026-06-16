@@ -2,6 +2,7 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
+| v14 | 2026-06-16 | R21 难度持久化：constants KEY_DIFFICULTY；storage getDifficulty/setDifficulty（fail-silent）；createWorld 读持久难度；cycleDifficulty 写入 |
 | v13 | 2026-06-16 | R20 无尽曲线接续：level.endlessConfig 难度基数派生 LEVELS 末关（去 18/2000 硬编码，修 R17 回落）；斜率不变 |
 | v12 | 2026-06-16 | R19 难度选择：types.Difficulty；world.difficulty；constants 因子表（NORMAL=1.0 锚）；enemy.trySpawnEnemy 缩放敌速+出生间隔；game.cycleDifficulty（READY-only）；input KeyT；hud DIFF |
 | v11 | 2026-06-16 | R18 连击计分：world.comboCount/comboUntil；combat C5 击杀连击倍率（首杀 ×1 封顶 ×2）；damagePlayer/loadLevel 重置；hud COMBO ×N；update 头注释收尾（5d32）|
