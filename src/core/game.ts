@@ -4,6 +4,7 @@ import { STEP_MS } from './constants';
 import { GameState, GameMode, Difficulty } from './types';
 import { createWorld, createPlayer, type World } from './world';
 import { setupVersus, setupMelee, setupWave, startNextWave } from '../level/level';
+import { setDifficulty } from '../storage/storage';
 
 export type UpdateFn = (world: World, dtMs: number) => void;
 export type RenderFn = (world: World) => void;
@@ -53,6 +54,7 @@ export function cycleDifficulty(world: World): void {
   if (world.state !== GameState.READY) return;
   const order = [Difficulty.EASY, Difficulty.NORMAL, Difficulty.HARD];
   world.difficulty = order[(order.indexOf(world.difficulty) + 1) % order.length];
+  setDifficulty(world.difficulty); // R21 §3.31: persist the choice
 }
 
 export function togglePause(world: World): void {

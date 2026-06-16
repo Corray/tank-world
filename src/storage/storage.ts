@@ -9,7 +9,9 @@ import {
   KEY_BEST_WAVE,
   KEY_BEST_COOP_WAVE,
   KEY_MUTED,
+  KEY_DIFFICULTY,
 } from '../core/constants';
+import { Difficulty } from '../core/types';
 
 function read(key: string): number {
   try {
@@ -110,3 +112,11 @@ export function getBestCoopWave(): number {
 export function submitCoopWave(waves: number): void {
   writeIfHigher(KEY_BEST_COOP_WAVE, waves);
 }
+
+// R21 §3.31: difficulty persistence (G4 桩：impl 阶段填充 fail-silent 读写).
+export function getDifficulty(): Difficulty {
+  void KEY_DIFFICULTY;
+  return Difficulty.NORMAL;
+}
+
+export function setDifficulty(_d: Difficulty): void {}
