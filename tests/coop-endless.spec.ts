@@ -56,7 +56,7 @@ describe('T-CE-1 co-op endless entry', () => {
     intoEndless(world);
     expect(world.level).toBe(6); // R17: 无尽起点 L4→L6
     expect(world.players).toHaveLength(2);
-    expect(world.enemyTotal).toBe(20);
+    expect(world.enemyTotal).toBe(28); // R20: 无尽 L6 接续 L5(26)+STEP=28（修回落）
     expect(world.mode).toBe(GameMode.COOP);
   });
 });
