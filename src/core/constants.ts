@@ -52,8 +52,8 @@ export const ENEMY_FIRE_INTERVAL_MS = 1800;
 
 // --- R2 additions (consensus §3.7~3.10) ---
 
-/** Number of levels in a run. */
-export const LEVEL_COUNT = 3;
+/** Number of levels in a run (R17: 3→5 campaign expansion). */
+export const LEVEL_COUNT = 5;
 /** 1-based spawn positions of powerup carriers within a level (consensus §3.8). */
 export const CARRIER_POSITIONS: readonly number[] = [4, 8, 12];
 /** Shield powerup duration, ms. */

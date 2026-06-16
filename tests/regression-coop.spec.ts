@@ -49,7 +49,7 @@ describe('issue #6 — COOP level settlement must not touch solo buckets (AC-43)
 // 注：此处为 R7 预判（2 处）的漏网第 3 处——断言强度扫描未覆盖 regression-* 测试族（方法盲区，入 dogfood）。
 describe('issue #7 — COOP GAME_COMPLETE endless hint (v6 reversal of AC-44)', () => {
   function complete(world: ReturnType<typeof createWorld>): void {
-    world.level = 3;
+    world.level = 5; // R17 基线修订（LEVEL_COUNT 3→5）：战役终点 L3→L5
     world.state = GameState.PLAYING;
     world.spawnedCount = world.enemyTotal;
     judge(world);

@@ -30,9 +30,9 @@ afterEach(() => {
   delete (globalThis as Record<string, unknown>).localStorage;
 });
 
-/** Drive a world to GAME_COMPLETE legitimately (L3 clear with 100 on the board). */
+/** Drive a world to GAME_COMPLETE legitimately (R17: L5 clear, LEVEL_COUNT 3→5). */
 function completeRun(world = createWorld()): typeof world {
-  loadLevel(world, 3);
+  loadLevel(world, 5);
   world.state = GameState.PLAYING;
   world.score = 100; // non-zero so best-total actually persists
   world.spawnedCount = world.enemyTotal;
@@ -42,12 +42,14 @@ function completeRun(world = createWorld()): typeof world {
 }
 
 describe('T-EN-1 endless config formula sampling', () => {
+  // R17 基线修订（LEVEL_COUNT 3→5）：endless 深度 k=level-LEVEL_COUNT，level 参数 +2
+  // 保持同 k → 同 total/interval（曲线不变，仅起点平移）。
   const cases: Array<[number, number, number]> = [
     // [level, expected total, expected interval]
-    [4, 20, 1900],
-    [7, 26, 1600],
-    [11, 34, ENDLESS_INTERVAL_MIN_MS], // interval floor
-    [23, 58, ENDLESS_INTERVAL_MIN_MS],
+    [6, 20, 1900], // k=1
+    [9, 26, 1600], // k=4
+    [13, 34, ENDLESS_INTERVAL_MIN_MS], // k=8, interval floor
+    [25, 58, ENDLESS_INTERVAL_MIN_MS], // k=20
   ];
   for (const [level, total, interval] of cases) {
     it(`L${level}: total ${total}, interval ${interval}`, () => {
@@ -58,9 +60,9 @@ describe('T-EN-1 endless config formula sampling', () => {
     });
   }
 
-  it('armored ratio grows and caps at 50% (L23)', () => {
-    const l4 = endlessConfig(4);
-    const l23 = endlessConfig(23);
+  it('armored ratio grows and caps at 50% (L25)', () => {
+    const l4 = endlessConfig(6); // k=1 (first endless)
+    const l23 = endlessConfig(25); // k=20
     const ratio = (c: typeof l4.enemyCounts) =>
       c.ARMORED / (c.BASIC + c.FAST + c.ARMORED);
     expect(ratio(l4.enemyCounts)).toBeGreaterThan(1 / 3);
@@ -80,23 +82,26 @@ describe('T-EN-2 endless map rotation L1→L2→L3 (skeleton signatures)', () =>
     return 0;
   }
 
-  it('L4/L5/L6/L7 rotate through skeletons 1/2/3/1', () => {
-    expect(skeletonOf(endlessConfig(4).layout)).toBe(1);
-    expect(skeletonOf(endlessConfig(5).layout)).toBe(2);
-    expect(skeletonOf(endlessConfig(6).layout)).toBe(3);
-    expect(skeletonOf(endlessConfig(7).layout)).toBe(1);
+  // R17 基线修订（LEVEL_COUNT 3→5）：无尽起点 L6，baseIdx=(level-6)%5（5-cycle）。
+  // L6/L7/L8→skel 1/2/3（L1/L2/L3 base）；L9/L10→L4/L5 base（skeletonOf 不识别，记 0）；
+  // L11 回绕 →skel 1。本测试覆盖可识别的 3 骨架 + 5-cycle 回绕。
+  it('L6/L7/L8 rotate through skeletons 1/2/3; L11 wraps to 1 (5-cycle)', () => {
+    expect(skeletonOf(endlessConfig(6).layout)).toBe(1);
+    expect(skeletonOf(endlessConfig(7).layout)).toBe(2);
+    expect(skeletonOf(endlessConfig(8).layout)).toBe(3);
+    expect(skeletonOf(endlessConfig(11).layout)).toBe(1);
     void LEVELS;
   });
 });
 
 describe('T-EN-3 entering endless from GAME_COMPLETE', () => {
-  it('after the confirm window: PLAYING L4, banked snapshot, lives kept', () => {
+  it('after the confirm window: PLAYING L6, banked snapshot, lives kept', () => {
     const world = completeRun();
     world.players[0].lives = 2;
     const banked = world.bankedScore;
     enterEndless(world, world.gameCompleteWallMs + ENDLESS_CONFIRM_DELAY_MS + 100);
     expect(world.state).toBe(GameState.PLAYING);
-    expect(world.level).toBe(4);
+    expect(world.level).toBe(6); // R17: 无尽起点 L4→L6
     expect(world.endlessStartBanked).toBe(banked);
     expect(world.players[0].lives).toBe(2); // not reset (consensus §3.13)
     expect(world.map.terrainAt(12, 6)).toBe(Terrain.BASE); // L1 layout loaded
@@ -137,7 +142,7 @@ describe('T-EN-6 endless death settles the endless segment', () => {
     world.spawnedCount = world.enemyTotal;
     judge(world); // LEVEL_CLEAR, banks 500
     world.state = GameState.PLAYING;
-    loadLevel(world, 5);
+    loadLevel(world, 7); // R17: next endless level (L5 now campaign; >LEVEL_COUNT needed)
     world.score = 300;
     world.players[0].lives = 0;
     world.players[0].alive = false;

@@ -90,10 +90,11 @@ describe('T-GRD-5 guardian neither sprays nor summons (guard)', () => {
   });
 });
 
-describe('T-GRD-6 loadLevel milestone — L18 is a GUARDIAN', () => {
-  it('endless milestone index 3 rotates to GUARDIAN (L8 BOSS / L13 SUMMONER / L18 GUARDIAN)', () => {
+// R17 基线修订（LEVEL_COUNT 3→5）：里程碑平移，GUARDIAN（idx3）L18→L20。
+describe('T-GRD-6 loadLevel milestone — L20 is a GUARDIAN', () => {
+  it('endless milestone index 3 rotates to GUARDIAN (L10 BOSS / L15 SUMMONER / L20 GUARDIAN)', () => {
     const world = makeWorld();
-    loadLevel(world, 18);
+    loadLevel(world, 20);
     expect(world.spawnSequence[world.spawnSequence.length - 1]).toBe(EnemyType.GUARDIAN);
   });
 });

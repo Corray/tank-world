@@ -98,6 +98,43 @@ const L3_LAYOUT: number[][] = [
   [0, 0, 0, 0, 1, 1, 3, 1, 1, 0, 0, 0, 0],
 ];
 
+// R17 §3.29: campaign L4 — steel-heavy, water/ice channels. Base (12,6) + ring,
+// spawns (0,0)/(0,6)/(0,12) & player (12,2) clear; ≥1 bush/water/ice (AC-35).
+// prettier-ignore
+const L4_LAYOUT: number[][] = [
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 1, 1, 0, 2, 0, 1, 0, 2, 0, 1, 1, 0],
+  [0, 1, 0, 0, 0, 4, 0, 4, 0, 0, 0, 1, 0],
+  [0, 0, 0, 1, 1, 0, 2, 0, 1, 1, 0, 0, 0],
+  [2, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2],
+  [0, 5, 0, 1, 2, 0, 0, 0, 2, 1, 0, 5, 0],
+  [0, 0, 0, 1, 0, 0, 6, 0, 0, 1, 0, 0, 0],
+  [0, 1, 1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0],
+  [2, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 2],
+  [0, 0, 1, 0, 0, 0, 2, 0, 0, 0, 1, 0, 0],
+  [0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0],
+  [0, 1, 2, 0, 1, 1, 1, 1, 1, 0, 2, 1, 0],
+  [0, 0, 0, 0, 1, 1, 3, 1, 1, 0, 0, 0, 0],
+];
+
+// R17 §3.29: campaign L5 — climax, dense steel maze + corridors.
+// prettier-ignore
+const L5_LAYOUT: number[][] = [
+  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+  [0, 2, 1, 0, 1, 0, 1, 0, 1, 0, 1, 2, 0],
+  [0, 0, 1, 0, 1, 0, 6, 0, 1, 0, 1, 0, 0],
+  [1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 1],
+  [1, 0, 1, 1, 0, 0, 5, 0, 0, 1, 1, 0, 1],
+  [0, 0, 4, 0, 2, 0, 0, 0, 2, 0, 4, 0, 0],
+  [0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0],
+  [0, 1, 0, 1, 0, 0, 2, 0, 0, 1, 0, 1, 0],
+  [0, 0, 0, 1, 0, 4, 0, 4, 0, 1, 0, 0, 0],
+  [2, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 2],
+  [0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0],
+  [0, 1, 0, 2, 1, 1, 1, 1, 1, 2, 0, 1, 0],
+  [0, 0, 0, 0, 1, 1, 3, 1, 1, 0, 0, 0, 0],
+];
+
 // R8 §3.21: VERSUS arena — vertically symmetric (row r mirrors 12-r), two
 // bases: P2 (0,6) top / P1 (12,6) bottom, each with a brick shell. Player
 // spawns (0,10)/(12,2) and mid-line powerup cells (6,2)/(6,10) kept clear.
@@ -125,6 +162,10 @@ const VARIANT_SLOTS: ReadonlyArray<ReadonlyArray<readonly [number, number]>> = [
   [[2, 0], [2, 12], [4, 4], [4, 6], [4, 8], [5, 3], [5, 9], [6, 7], [7, 6], [8, 0], [9, 2], [9, 10]],
   [[2, 0], [2, 12], [3, 4], [3, 8], [5, 5], [5, 7], [6, 0], [6, 12], [7, 5], [7, 7], [9, 1], [9, 9]],
   [[1, 4], [1, 8], [2, 4], [2, 8], [3, 6], [4, 4], [4, 8], [5, 6], [8, 5], [8, 7], [9, 4], [9, 8]],
+  // R17: L4 safe EMPTY cells (verified 0 in L4_LAYOUT, off spawn/ring/player).
+  [[2, 0], [2, 12], [3, 0], [3, 12], [4, 4], [4, 8], [6, 1], [6, 11], [7, 4], [7, 8], [8, 5], [8, 7]],
+  // R17: L5 safe EMPTY cells (verified 0 in L5_LAYOUT).
+  [[2, 0], [2, 12], [3, 1], [3, 11], [5, 0], [5, 12], [6, 2], [6, 10], [7, 4], [7, 8], [8, 0], [8, 12]],
 ];
 
 /** Per-level configs (consensus §3.7 table). */
@@ -132,6 +173,8 @@ export const LEVELS: readonly LevelConfig[] = [
   { layout: L1_LAYOUT, enemyCounts: { BASIC: 4, FAST: 3, ARMORED: 3 }, spawnIntervalMs: 3000 },
   { layout: L2_LAYOUT, enemyCounts: { BASIC: 5, FAST: 5, ARMORED: 4 }, spawnIntervalMs: 2500 },
   { layout: L3_LAYOUT, enemyCounts: { BASIC: 6, FAST: 6, ARMORED: 6 }, spawnIntervalMs: 2000 },
+  { layout: L4_LAYOUT, enemyCounts: { BASIC: 7, FAST: 7, ARMORED: 8 }, spawnIntervalMs: 1800 },
+  { layout: L5_LAYOUT, enemyCounts: { BASIC: 8, FAST: 9, ARMORED: 9 }, spawnIntervalMs: 1600 },
 ];
 
 /**
@@ -372,7 +415,8 @@ export function startNextWave(world: World): void {
  * level (data-model §25). Same level → same variant; LCG, no Math.random.
  */
 export function variantLayout(level: number): number[][] {
-  const baseIdx = (level - 4) % LEVELS.length;
+  // R17: first endless level = LEVEL_COUNT+1 (was hardcoded 4); derive baseIdx.
+  const baseIdx = (level - LEVEL_COUNT - 1) % LEVELS.length;
   const base = LEVELS[baseIdx].layout.map((row) => [...row]);
   const slots = VARIANT_SLOTS[baseIdx];
   const lcg = (1103515245 * level + 12345) % 2147483648;
@@ -386,9 +430,10 @@ export function variantLayout(level: number): number[][] {
   return base;
 }
 
-/** Dynamic config for endless levels (level ≥ 4) — data-model §19 formula. */
+/** Dynamic config for endless levels (level > LEVEL_COUNT) — data-model §19. */
 export function endlessConfig(level: number): LevelConfig {
-  const k = level - 3;
+  // R17: endless depth = levels past the campaign (was hardcoded `level - 3`).
+  const k = level - LEVEL_COUNT;
   const layout = variantLayout(level); // R4: rotation + deterministic variant
   const total = 18 + ENDLESS_TOTAL_STEP * k;
   const armoredRatio = Math.min(ENDLESS_ARMOR_CAP, ENDLESS_ARMOR_BASE + ENDLESS_ARMOR_STEP * k);
@@ -411,6 +456,6 @@ export function enterEndless(world: World, wallNowMs: number): void {
   // R7 §3.19: co-op endless OPEN（v5 门控按清单 §35.1-7 移除）。
   if (wallNowMs - world.gameCompleteWallMs <= ENDLESS_CONFIRM_DELAY_MS) return;
   world.endlessStartBanked = world.bankedScore;
-  loadLevel(world, 4);
+  loadLevel(world, LEVEL_COUNT + 1); // R17: endless starts after the campaign (was hardcoded 4)
   world.state = GameState.PLAYING;
 }

@@ -51,9 +51,10 @@ describe('T-LVL-2 advancing to the next level', () => {
 });
 
 describe('T-LVL-3 clearing the last level completes the run', () => {
-  it('L3 clear → GAME_COMPLETE (not LEVEL_CLEAR)', () => {
+  it('L5 clear → GAME_COMPLETE (not LEVEL_CLEAR)', () => {
+    // R17 基线修订（LEVEL_COUNT 3→5）：战役终点 L3→L5。
     const world = createWorld();
-    loadLevel(world, 3);
+    loadLevel(world, 5);
     world.state = GameState.PLAYING;
     world.bankedScore = 1000;
     world.score = 700;
@@ -111,8 +112,9 @@ describe('T-LVL-6 LEVELS config matches consensus §3.7', () => {
     const totals = LEVELS.map(
       (l) => l.enemyCounts.BASIC + l.enemyCounts.FAST + l.enemyCounts.ARMORED,
     );
-    expect(totals).toEqual([10, 14, 18]);
-    expect(LEVELS.map((l) => l.spawnIntervalMs)).toEqual([3000, 2500, 2000]);
+    // R17 基线修订（LEVEL_COUNT 3→5）：+L4(22)/L5(26)，间隔 1800/1600。
+    expect(totals).toEqual([10, 14, 18, 22, 26]);
+    expect(LEVELS.map((l) => l.spawnIntervalMs)).toEqual([3000, 2500, 2000, 1800, 1600]);
     expect(LEVELS).toHaveLength(LEVEL_COUNT);
   });
 
@@ -132,7 +134,7 @@ describe('T-LVL-6 LEVELS config matches consensus §3.7', () => {
       expect(l.layout[0][6]).toBe(Terrain.EMPTY);
       expect(l.layout[0][12]).toBe(Terrain.EMPTY);
     }
-    expect(seen.size).toBe(3); // pairwise different
+    expect(seen.size).toBe(5); // pairwise different (R17: 5 campaign levels)
   });
 });
 

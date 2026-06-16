@@ -2,6 +2,7 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
+| v16 | 2026-06-16 | R17 范围并入（战役扩展 L4/L5，LEVEL_COUNT 3→5，F29）；新增 §3.29 与 AC-106~109；决议：5 关递进 / 终点 L5 + 无尽 L6 起里程碑 L10/L15/L20（LEVEL_COUNT 派生）/ 硬编码债修正（enterEndless/variantLayout/endlessConfig）/ ENDLESS_8 保字面 8 |
 | v15 | 2026-06-15 | R16 范围并入（GUARDIAN 第三 Boss·防御型，F28）；新增 §3.28 与 AC-102~105；决议：GUARDIAN 高 HP 12 慢速 0.6× / 周期自我护盾免疫子弹（狂暴缩周期）/ 三循环轮换 [BOSS,SUMMONER,GUARDIAN] |
 | v14 | 2026-06-12 | R15 范围并入（Boss 扩展·召唤型 SUMMONER + 里程碑轮换，F27）；新增 §3.27 与 AC-96~101；决议：+1 SUMMONER / 按序交替（奇 BOSS 偶 SUMMONER，战役恒 BOSS）/ 召唤兵须清完（fieldClear 涌现）/ HP 调参搭车（BOSS 10→8） |
 | v13 | 2026-06-12 | audit R14 取代标注族回补 ×8（§3.1/§3.3/§3.6/§3.7/§3.8/§3.9/§3.10/§3.13 + §2.1 F9 + AC-2/AC-3）+ §3.4 键位总表 + §3.5 PvP 弹×弹声明（按实现回写：互不相消），refs F-SPEC-20260611 |
@@ -65,6 +66,7 @@
 | F26 | 波次防御（R13） | 同图连续守基生存：波次递增+5 波 Boss+倒计时自动开波，第七/八档 best-wave 分离，见 §3.26 |
 | F27 | Boss 扩展·SUMMONER（R15） | 召唤型 Boss（周期召唤小弟+须清完）+ 里程碑按序交替 + BOSS_HP 调参 10→8，见 §3.27 |
 | F28 | GUARDIAN 第三 Boss（R16） | 防御型 Boss（高 HP 慢速+周期自我护盾免疫子弹）+ 三循环轮换，见 §3.28 |
+| F29 | 战役扩展 L4/L5（R17） | 战役 3→5 关（LEVEL_COUNT 派生）；终点 L5、无尽 L6 起、里程碑 L10/L15/L20；硬编码债修正，见 §3.29 |
 
 ### 2.2 范围外（Out of Scope，MVP 不做）
 
@@ -433,6 +435,16 @@ Boss 谱系第三维度——防御型肉盾，迫使持续输出。BOSS=火力�
 - **周期自我护盾（OPEN-R16-2 决议）**：每 `GUARD_CYCLE_MS`〔默认 5s〕开盾，持续 `GUARD_ACTIVE_MS`〔默认 2s〕；护盾期免疫玩家子弹（combat C5 扣血前判 `guardUntil`，子弹消失不扣血）。**狂暴（HP≤50%）**：周期缩至 `GUARD_RAGE_CYCLE_MS`〔默认 3s〕（与 BOSS 弹幕/SUMMONER 召唤差异化）。常规射击单发周期，不弹幕不召唤。
 - **三循环轮换（OPEN-R16-3 决议）**：`bossTypeFor(idx)=[BOSS,SUMMONER,GUARDIAN][(idx-1)%3]`。战役 L3 恒 BOSS（idx1）；无尽 L18 首见 GUARDIAN；波次 wave15 首见。
 
+### 3.29 战役扩展 L4/L5（R17 / F29）
+
+战役 3→5 关。核心是 `LEVEL_COUNT` 这一地基常量的**影响面（blast radius）压测**——验证派生项零改、硬编码债修正。
+
+- **关卡扩展**：`LEVEL_COUNT` 3→5；`LEVELS` +L4/L5。难度延续递进〔默认〕：L4=22 敌（7/7/8）/间隔 1800ms；L5=26 敌（8/9/9）/间隔 1600ms。两新 13×13 布局守 (12,6) 基地+护圈、出生点清空、玩家 (12,2)、各含 ≥1 草/水/冰。
+- **派生项零改（红利验证）**：update.ts 无尽判定 `level>LEVEL_COUNT`/GAME_COMPLETE 触发 `level===LEVEL_COUNT`、level.ts isBossLevel 终点+里程碑、achievements FULL_CLEAR、hud 关卡显示——8 处 LEVEL_COUNT 表达自动跟随。
+- **硬编码债修正**：`enterEndless` loadLevel(4)→loadLevel(LEVEL_COUNT+1)；`variantLayout` `(level-4)`→`(level-LEVEL_COUNT-1)`；`endlessConfig` `(level-3)`→`(level-LEVEL_COUNT)`。
+- **里程碑平移**：战役终点 boss L3→**L5**；无尽里程碑 L8/L13/L18→**L10/L15/L20**（无尽 L6 起，每 5 关）。三循环序数不变（L5/L10=idx1 BOSS，L15=SUMMONER，L20=GUARDIAN）。
+- **ENDLESS_8 例外**：成就「Endless Eight」保字面 `level≥8`，不派生（名称绑定数字 8；副作用略易达成，已知接受）。
+
 ## 4. 非功能约束
 
 | # | 约束 |
@@ -552,6 +564,10 @@ Boss 谱系第三维度——防御型肉盾，迫使持续输出。BOSS=火力�
 | AC-103 | GUARDIAN 周期护盾：每 GUARD_CYCLE_MS 开盾 GUARD_ACTIVE_MS；护盾期玩家子弹免疫（不扣血、子弹消失） |
 | AC-104 | GUARDIAN 狂暴 HP≤50% 护盾周期缩至 GUARD_RAGE_CYCLE_MS；不弹幕不召唤（与 BOSS/SUMMONER 差异化） |
 | AC-105 | 三循环轮换 [BOSS,SUMMONER,GUARDIAN][(idx-1)%3]；既有 288 测试零回归（仅 T-SUM-2 bossTypeFor 内容断言修订，预判内）；G3 产出「分叉清单 v9」 |
+| AC-106 | LEVEL_COUNT 3→5；LEVELS +L4/L5（22/26 敌递进）；战役 5 关可通，L5 终点 GAME_COMPLETE |
+| AC-107 | 硬编码债修正：enterEndless 无尽起点=LEVEL_COUNT+1（L6）；variantLayout/endlessConfig 基数 LEVEL_COUNT 派生 |
+| AC-108 | 里程碑平移：战役终点 boss L5；无尽 boss L10/L15/L20（三循环序数不变）；ENDLESS_8 保字面 level≥8 |
+| AC-109 | 8 处 LEVEL_COUNT 派生项零改（红利验证）；既有 296 测试基线冲击全部在 G3 预判清单内（blast radius 方法核心）；tsc 净 |
 
 ## 6. 待确认项（已全部收敛 — 2026-06-04 评审）
 

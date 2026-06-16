@@ -75,7 +75,7 @@ describe('T-ACH-2 NO_DEATH_LEVEL', () => {
 describe('T-ACH-3 FULL_CLEAR on campaign completion', () => {
   it('L3 settle unlocks', () => {
     const world = createWorld();
-    loadLevel(world, 3);
+    loadLevel(world, 5);
     clearLevel(world);
     expect(world.state).toBe(GameState.GAME_COMPLETE);
     expect(isUnlocked(AchievementId.FULL_CLEAR)).toBe(true);
@@ -137,14 +137,14 @@ describe('T-ACH-6 DEMOLITION when the last brick falls', () => {
 describe('T-ACH-7 PURIST: full clear with zero pickups', () => {
   it('clean run unlocks both FULL_CLEAR and PURIST', () => {
     const world = createWorld();
-    loadLevel(world, 3);
+    loadLevel(world, 5);
     clearLevel(world);
     expect(isUnlocked(AchievementId.PURIST)).toBe(true);
   });
 
   it('any pickup forfeits PURIST but not FULL_CLEAR', () => {
     const world = createWorld();
-    loadLevel(world, 3);
+    loadLevel(world, 5);
     onPickup(world, PowerupType.SHIELD);
     clearLevel(world);
     expect(isUnlocked(AchievementId.FULL_CLEAR)).toBe(true);

@@ -63,14 +63,15 @@ describe('T-SUM-2 bossTypeFor — three-cycle BOSS/SUMMONER/GUARDIAN', () => {
   });
 });
 
+// R17 基线修订（LEVEL_COUNT 3→5）：里程碑平移 L3/L8/L13 → L5/L10/L15（序数不变）。
 describe('T-SUM-3 loadLevel milestone rotation', () => {
-  it('L3 and L8 end with BOSS; L13 ends with SUMMONER', () => {
+  it('L5 and L10 end with BOSS; L15 ends with SUMMONER', () => {
     const world = makeWorld();
-    loadLevel(world, 3);
+    loadLevel(world, 5);
     expect(world.spawnSequence[world.spawnSequence.length - 1]).toBe(EnemyType.BOSS);
-    loadLevel(world, 8);
+    loadLevel(world, 10);
     expect(world.spawnSequence[world.spawnSequence.length - 1]).toBe(EnemyType.BOSS);
-    loadLevel(world, 13);
+    loadLevel(world, 15);
     expect(world.spawnSequence[world.spawnSequence.length - 1]).toBe(EnemyType.SUMMONER);
   });
 });
