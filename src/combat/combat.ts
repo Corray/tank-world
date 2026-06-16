@@ -222,6 +222,10 @@ function advanceBullet(world: World, b: Bullet, dtMs: number): boolean {
     if (b.owner === BulletOwner.PLAYER) {
       const hit = world.enemies.find((e) => e.alive && bulletHitsTank(b, e));
       if (hit) {
+        // R16 §3.28: guardian self-shield absorbs the hit (no damage, bullet gone).
+        if (hit.guardUntil !== undefined && world.clock < hit.guardUntil) {
+          return false;
+        }
         hit.hp -= 1;
         if (hit.hp <= 0) {
           hit.alive = false;

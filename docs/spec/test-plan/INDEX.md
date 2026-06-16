@@ -14,4 +14,5 @@
 | R11（Boss 战） | [test-plan-r11.md](./test-plan-r11.md) | v1.1 执行完毕（249/249 含 8 boss，PR #21 合入）；后续轮回归基线 |
 | R12（道具补全·经典三件） | [test-plan-r12.md](./test-plan-r12.md) | v1.1 执行完毕（263/263 含 14 道具，PR #22 合入）；后续轮回归基线 |
 | R13（波次防御） | [test-plan-r13.md](./test-plan-r13.md) | v1.1 执行完毕（277/277 含 14 波次，零基线修订）；PR #23 已合入，作后续轮回归基线 |
-| R15（Boss 扩展·SUMMONER） | [test-plan-r15.md](./test-plan-r15.md) | v1.1 执行完毕（288/288 含 11 召唤，零基线修订）；待 PR 合入 |
+| R15（Boss 扩展·SUMMONER） | [test-plan-r15.md](./test-plan-r15.md) | v1.1 执行完毕（288/288 含 11 召唤，零基线修订）；已合入 |
+| R16（GUARDIAN 第三 Boss） | [test-plan-r16.md](./test-plan-r16.md) | v1.1 执行完毕（296/296 含 8 GUARDIAN，唯一修订 T-SUM-2 预判内）；待 PR 合入 |
