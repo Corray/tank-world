@@ -41,9 +41,9 @@ export const LOGIC_HZ = 60;
 export const STEP_MS = 1000 / LOGIC_HZ;
 
 /** Enemy hit points by type (data-model §3; R11 §3.24 adds BOSS). */
-export const ENEMY_HP = { BASIC: 1, FAST: 1, ARMORED: 3, BOSS: 8, SUMMONER: 6 } as const; // R15: BOSS 10→8 (R11 stalemate debt)
+export const ENEMY_HP = { BASIC: 1, FAST: 1, ARMORED: 3, BOSS: 8, SUMMONER: 6, GUARDIAN: 12 } as const; // R15: BOSS 10→8; R16: GUARDIAN tank
 /** Score awarded per destroyed enemy by type (consensus §3.3; R11 BOSS). */
-export const ENEMY_SCORE = { BASIC: 100, FAST: 200, ARMORED: 400, BOSS: 1000, SUMMONER: 800 } as const;
+export const ENEMY_SCORE = { BASIC: 100, FAST: 200, ARMORED: 400, BOSS: 1000, SUMMONER: 800, GUARDIAN: 1200 } as const;
 
 /** Enemy AI: ms between direction re-rolls. */
 export const ENEMY_TURN_INTERVAL_MS = 1500;
@@ -204,3 +204,14 @@ export const SUMMON_MS = 4_000;
 export const SUMMON_RAGE_MS = 2_000;
 export const SUMMONER_HP = ENEMY_HP.SUMMONER;
 export const SUMMONER_SCORE = ENEMY_SCORE.SUMMONER;
+
+// --- R16 additions (consensus §3.28, guardian boss) ---
+
+/** Guardian moves at 0.6x base speed (slow tank). */
+export const GUARDIAN_SPEED_FACTOR = 0.6;
+export const GUARDIAN_HP = ENEMY_HP.GUARDIAN;
+export const GUARDIAN_SCORE = ENEMY_SCORE.GUARDIAN;
+/** Self-shield: ms between shield raises (normal / rage HP≤50%) + active span. */
+export const GUARD_CYCLE_MS = 5_000;
+export const GUARD_RAGE_CYCLE_MS = 3_000;
+export const GUARD_ACTIVE_MS = 2_000;

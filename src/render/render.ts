@@ -16,7 +16,7 @@ const COLOR = {
   base: '#ffd700',
   player: '#4caf50',
   player2: '#7986cb',
-  enemy: { BASIC: '#bdbdbd', FAST: '#42a5f5', ARMORED: '#ef5350', BOSS: '#ab47bc', SUMMONER: '#ff7043' },
+  enemy: { BASIC: '#bdbdbd', FAST: '#42a5f5', ARMORED: '#ef5350', BOSS: '#ab47bc', SUMMONER: '#ff7043', GUARDIAN: '#26a69a' },
   bulletPlayer: '#ffffff',
   bulletEnemy: '#ff9800',
   overlayBg: 'rgba(0, 0, 0, 0.65)',
@@ -33,6 +33,7 @@ export function render(ctx: CanvasRenderingContext2D, world: World): void {
     const flicker = e.carrier && Math.floor(world.clock / 150) % 2 === 0;
     drawTank(ctx, e, flicker ? '#ffd700' : COLOR.enemy[e.type as EnemyType]);
     if (isBossType(e.type)) drawBossHp(ctx, e); // R11 boss / R15 summoner HP bar
+    if (e.guardUntil !== undefined && world.clock < e.guardUntil) drawGuardRing(ctx, e); // R16
   }
   for (const p of world.players) if (p.alive) drawPlayer(ctx, world, p);
   drawBullets(ctx, world);
@@ -242,6 +243,16 @@ function drawTank(ctx: CanvasRenderingContext2D, tank: Tank, color: string): voi
 }
 
 /** R11 §3.24 / R15: boss-family HP bar (hp / per-type max). */
+/** R16 §3.28: guardian active-shield ring (cyan, reuses shield visual idiom). */
+function drawGuardRing(ctx: CanvasRenderingContext2D, e: EnemyTank): void {
+  ctx.strokeStyle = '#80cbc4';
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(e.pos.x, e.pos.y, TANK_SIZE / 2 + 3, 0, Math.PI * 2);
+  ctx.stroke();
+  ctx.lineWidth = 1;
+}
+
 function drawBossHp(ctx: CanvasRenderingContext2D, boss: EnemyTank): void {
   const w = TANK_SIZE;
   const x = boss.pos.x - w / 2;

@@ -78,11 +78,17 @@ export enum EnemyType {
   BOSS = 'BOSS',
   /** R15 §3.27: summoner boss — periodically calls in BASIC reinforcements. */
   SUMMONER = 'SUMMONER',
+  /** R16 §3.28: guardian boss — high HP, slow, periodic self-shield. */
+  GUARDIAN = 'GUARDIAN',
 }
 
 /** R15 §3.27: boss-family types (HP bar + boss AI routing) — single anchor. */
 export function isBossType(type: EnemyType): boolean {
-  return type === EnemyType.BOSS || type === EnemyType.SUMMONER;
+  return (
+    type === EnemyType.BOSS ||
+    type === EnemyType.SUMMONER ||
+    type === EnemyType.GUARDIAN
+  );
 }
 
 export enum Direction {
@@ -155,7 +161,9 @@ export interface EnemyTank extends Tank {
   hp: number;
   score: number;
   /** AI timers, ms remaining. */
-  ai: { turnMs: number; fireMs: number; summonMs?: number };
+  ai: { turnMs: number; fireMs: number; summonMs?: number; guardMs?: number };
+  /** R16 §3.28: guardian self-shield deadline (game clock, ms); 0/undef = none. */
+  guardUntil?: number;
   /** R2: carries a powerup; flickers and drops it on death (consensus §3.8). */
   carrier: boolean;
 }

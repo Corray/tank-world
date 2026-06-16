@@ -324,10 +324,11 @@ export function isBossWave(wave: number): boolean {
   return wave > 0 && wave % WAVE_BOSS_EVERY === 0;
 }
 
-/** R15 §3.27: milestone boss rotation — odd index → BOSS, even → SUMMONER
+/** R16 §3.28: milestone boss rotation — three-cycle BOSS → SUMMONER → GUARDIAN
  *  (deterministic; campaign L3 is always index 1). */
 export function bossTypeFor(milestoneIdx: number): EnemyType {
-  return milestoneIdx % 2 === 1 ? EnemyType.BOSS : EnemyType.SUMMONER;
+  const cycle = [EnemyType.BOSS, EnemyType.SUMMONER, EnemyType.GUARDIAN];
+  return cycle[(milestoneIdx - 1) % 3];
 }
 
 /**

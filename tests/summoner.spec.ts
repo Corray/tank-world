@@ -52,12 +52,14 @@ describe('T-SUM-1 summoner attributes (structure guard)', () => {
   });
 });
 
-describe('T-SUM-2 bossTypeFor — odd BOSS / even SUMMONER', () => {
+// R16 基线修订（预判内，test-plan-r16 §2）：bossTypeFor 二循环→三循环
+// [BOSS,SUMMONER,GUARDIAN]——(3)/(4) 断言由 BOSS/SUMMONER 改 GUARDIAN/BOSS。
+describe('T-SUM-2 bossTypeFor — three-cycle BOSS/SUMMONER/GUARDIAN', () => {
   it('rotates deterministically by milestone index', () => {
     expect(bossTypeFor(1)).toBe(EnemyType.BOSS);
     expect(bossTypeFor(2)).toBe(EnemyType.SUMMONER);
-    expect(bossTypeFor(3)).toBe(EnemyType.BOSS);
-    expect(bossTypeFor(4)).toBe(EnemyType.SUMMONER);
+    expect(bossTypeFor(3)).toBe(EnemyType.GUARDIAN);
+    expect(bossTypeFor(4)).toBe(EnemyType.BOSS);
   });
 });
 
