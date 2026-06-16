@@ -4,6 +4,7 @@ import { PLAYER_LIVES, PLAYER_SPEED, CELL } from './constants';
 import {
   GameState,
   GameMode,
+  Difficulty,
   Direction,
   type PlayerTank,
   type EnemyTank,
@@ -81,6 +82,8 @@ export interface World {
   comboCount: number;
   /** R18 §3.30: deadline (game clock, ms) for the next kill to extend the combo. */
   comboUntil: number;
+  /** R19 §3.31: difficulty tier (READY-selectable; scales enemy pace/speed). */
+  difficulty: Difficulty;
 }
 
 /** Player spawn cells: P1 (12,2) / P2 (12,10) — data-model §11/§31. */
@@ -147,5 +150,6 @@ export function createWorld(): World {
     waveBreakMs: 0,
     comboCount: 0,
     comboUntil: 0,
+    difficulty: Difficulty.NORMAL,
   };
 }

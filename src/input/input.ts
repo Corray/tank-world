@@ -61,6 +61,8 @@ export class Keyboard {
   /** R13 §3.26: READY + "5" / "6" → wave defense (solo / co-op). */
   onWave: () => void = () => {};
   onCoopWave: () => void = () => {};
+  /** R19 §3.31: READY + "D" → cycle difficulty (EASY/NORMAL/HARD). */
+  onCycleDifficulty: () => void = () => {};
 
   attach(target: Window): void {
     target.addEventListener('keydown', (e) => {
@@ -84,6 +86,8 @@ export class Keyboard {
         this.onWave();
       } else if (e.code === 'Digit6') {
         this.onCoopWave();
+      } else if (e.code === 'KeyD') {
+        this.onCycleDifficulty();
       }
     });
     target.addEventListener('keyup', (e) => {
