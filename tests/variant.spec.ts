@@ -20,17 +20,19 @@ function assertInvariants(layout: number[][] | readonly number[][]): void {
 }
 
 describe('T-MAPV-1 variant determinism', () => {
+  // R17 基线修订（LEVEL_COUNT 3→5）：无尽起点 L6；L6/L11 同 L1 骨架（baseIdx 0）。
   it('same level → identical variant; same skeleton different level → different', () => {
-    expect(variantLayout(4)).toEqual(variantLayout(4));
-    expect(variantLayout(7)).toEqual(variantLayout(7));
-    // L4 and L7 share the L1 skeleton but must differ in terrain placement.
-    expect(variantLayout(4)).not.toEqual(variantLayout(7));
+    expect(variantLayout(6)).toEqual(variantLayout(6));
+    expect(variantLayout(11)).toEqual(variantLayout(11));
+    // L6 and L11 share the L1 skeleton but must differ in terrain placement.
+    expect(variantLayout(6)).not.toEqual(variantLayout(11));
   });
 });
 
 describe('T-MAPV-2 variants never touch protected cells', () => {
-  it('spawn cells / ring / base / player spawn survive variants L4~L9', () => {
-    for (let level = 4; level <= 9; level++) {
+  it('spawn cells / ring / base / player spawn survive variants L6~L11', () => {
+    // R17: endless starts at L6 (LEVEL_COUNT+1); L6~L11 covers the full 5-cycle.
+    for (let level = 6; level <= 11; level++) {
       assertInvariants(variantLayout(level));
     }
   });

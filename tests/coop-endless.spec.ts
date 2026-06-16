@@ -36,7 +36,7 @@ afterEach(() => {
 function coopComplete(): World {
   const world = createWorld();
   startCoop(world);
-  loadLevel(world, 3);
+  loadLevel(world, 5); // R17 基线修订（LEVEL_COUNT 3→5）：战役终点 L3→L5
   world.state = GameState.PLAYING;
   world.score = 100;
   world.spawnedCount = world.enemyTotal;
@@ -51,10 +51,10 @@ function intoEndless(world: World): void {
 }
 
 describe('T-CE-1 co-op endless entry', () => {
-  it('after the window: PLAYING L4 with both players, endless config live', () => {
+  it('after the window: PLAYING L6 with both players, endless config live', () => {
     const world = coopComplete();
     intoEndless(world);
-    expect(world.level).toBe(4);
+    expect(world.level).toBe(6); // R17: 无尽起点 L4→L6
     expect(world.players).toHaveLength(2);
     expect(world.enemyTotal).toBe(20);
     expect(world.mode).toBe(GameMode.COOP);
@@ -79,7 +79,7 @@ describe('T-CE-2 sixth bucket isolation (COOP endless → best-coop-endless only
 describe('T-CE-3 solo endless regression (still the solo bucket)', () => {
   it('solo endless death writes best-endless, not the sixth bucket', () => {
     const world = createWorld();
-    loadLevel(world, 3);
+    loadLevel(world, 5); // R17: 战役终点 L3→L5
     world.state = GameState.PLAYING;
     world.score = 100;
     world.spawnedCount = world.enemyTotal;
@@ -151,7 +151,7 @@ describe('T-ACH2 team-semantics achievement matrix', () => {
     store.clear();
     const w2 = createWorld();
     startCoop(w2);
-    loadLevel(w2, 3);
+    loadLevel(w2, 5); // R17: 战役终点 L3→L5（FULL_CLEAR 在 L5 触发）
     w2.state = GameState.PLAYING;
     onPickup(w2, PowerupType.SHIELD);
     w2.spawnedCount = w2.enemyTotal;

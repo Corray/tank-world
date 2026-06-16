@@ -24,25 +24,27 @@ afterEach(() => {
   delete (globalThis as Record<string, unknown>).localStorage;
 });
 
+// R17 基线修订（预判 §2，LEVEL_COUNT 3→5）：战役终点 L3→L5；无尽里程碑 L8/L13→L10/L15。
 describe('T-BOSS-1 isBossLevel — campaign end + endless milestones', () => {
-  it('L3 and every 5th endless level are boss levels; others are not', () => {
-    expect(isBossLevel(3)).toBe(true); // campaign climax
-    expect(isBossLevel(8)).toBe(true); // endless L8 (3+5)
-    expect(isBossLevel(13)).toBe(true);
+  it('L5 and every 5th endless level are boss levels; others are not', () => {
+    expect(isBossLevel(5)).toBe(true); // campaign climax (L5)
+    expect(isBossLevel(10)).toBe(true); // endless milestone (5+5)
+    expect(isBossLevel(15)).toBe(true);
     expect(isBossLevel(1)).toBe(false);
     expect(isBossLevel(2)).toBe(false);
+    expect(isBossLevel(3)).toBe(false); // no longer campaign end
     expect(isBossLevel(4)).toBe(false);
-    expect(isBossLevel(7)).toBe(false);
+    expect(isBossLevel(8)).toBe(false); // endless but not a milestone now
   });
 });
 
 describe('T-BOSS-2 loadLevel injects a BOSS as the last enemy on boss levels', () => {
-  it('L3 spawn sequence ends with BOSS and enemyTotal includes it', () => {
+  it('L5 spawn sequence ends with BOSS and enemyTotal includes it', () => {
     const world = makeWorld();
-    loadLevel(world, 3);
+    loadLevel(world, 5);
     const seq = world.spawnSequence;
     expect(seq[seq.length - 1]).toBe(EnemyType.BOSS);
-    expect(world.enemyTotal).toBe(19); // L3 base 18 + 1 boss
+    expect(world.enemyTotal).toBe(27); // L5 base 26 + 1 boss
   });
 });
 

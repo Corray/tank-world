@@ -2,6 +2,7 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
+| v10 | 2026-06-16 | R17 战役 L4/L5（LEVEL_COUNT 3→5）：level +L4/L5 布局+LEVELS+VARIANT_SLOTS；硬编码债修正（enterEndless/variantLayout/endlessConfig 改 LEVEL_COUNT 派生）；8 处派生项零改（红利）；里程碑平移 L5/L10/L15/L20 |
 | v9 | 2026-06-15 | R16 GUARDIAN：EnemyType+isBossType 三类；enemy guard AI（createEnemy guardMs init + 周期开盾 + 狂暴缩周期）；combat C5 guardUntil 免疫门控；bossTypeFor 三循环；render 护盾环+青绿 |
 | v8 | 2026-06-12 | R15 SUMMONER：EnemyType+isBossType 锚（types）；enemy.trySummon 召唤（不动 spawn 账目）；level.bossTypeFor 两注入点选型；render HP 条 per-type 分母；BOSS_HP 10→8 |
 | v7 | 2026-06-11 | R13 波次：GameMode.WAVE + WAVE_BREAK/OVER 状态；judgeWave 前拦（平行 judgeVersus）；advance 增 WAVE_BREAK 倒计时分支（首个自动间奏）；level.waveConfig/applyWave/setupWave/startNextWave；第七八档；main twoLane 改 players.length 判定 |

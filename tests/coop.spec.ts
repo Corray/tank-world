@@ -259,7 +259,7 @@ describe('T-2P-13 ARMORED hunts the nearest alive player', () => {
 describe('T-2P-14/15 best-coop bucket isolation', () => {
   it('co-op completion writes best-coop only', () => {
     const world = makeCoop();
-    loadLevel(world, 3);
+    loadLevel(world, 5); // R17: 战役终点 L3→L5
     world.state = GameState.PLAYING;
     world.score = 800;
     world.spawnedCount = world.enemyTotal;
@@ -271,7 +271,7 @@ describe('T-2P-14/15 best-coop bucket isolation', () => {
 
   it('solo completion never writes best-coop', () => {
     const world = makeWorld();
-    loadLevel(world, 3);
+    loadLevel(world, 5); // R17: 战役终点 L3→L5
     world.state = GameState.PLAYING;
     world.score = 500;
     world.spawnedCount = world.enemyTotal;
@@ -299,14 +299,14 @@ describe('T-2P-16 achievements OPEN in co-op (v6 reversal)', () => {
 describe('T-2P-17 endless entry OPEN for co-op (v6 reversal)', () => {
   it('enterEndless accepts COOP GAME_COMPLETE after the window', () => {
     const world = makeCoop();
-    loadLevel(world, 3);
+    loadLevel(world, 5); // R17: 战役终点 L3→L5
     world.state = GameState.PLAYING;
     world.spawnedCount = world.enemyTotal;
     judge(world);
     expect(world.state).toBe(GameState.GAME_COMPLETE);
     enterEndless(world, world.gameCompleteWallMs + ENDLESS_CONFIRM_DELAY_MS + 100);
     expect(world.state).toBe(GameState.PLAYING);
-    expect(world.level).toBe(4);
+    expect(world.level).toBe(6); // R17: 无尽起点 L4→L6（LEVEL_COUNT+1）
     expect(world.players).toHaveLength(2);
   });
 });
