@@ -438,14 +438,18 @@ export function endlessConfig(level: number): LevelConfig {
   // R17: endless depth = levels past the campaign (was hardcoded `level - 3`).
   const k = level - LEVEL_COUNT;
   const layout = variantLayout(level); // R4: rotation + deterministic variant
-  const total = 18 + ENDLESS_TOTAL_STEP * k;
+  // R20: difficulty bases derive from the LAST campaign level — endless
+  // continues the campaign peak and climbs (fixes the R17 dip; no 18/2000 magic).
+  const peak = LEVELS[LEVELS.length - 1];
+  const peakTotal = peak.enemyCounts.BASIC + peak.enemyCounts.FAST + peak.enemyCounts.ARMORED;
+  const total = peakTotal + ENDLESS_TOTAL_STEP * k;
   const armoredRatio = Math.min(ENDLESS_ARMOR_CAP, ENDLESS_ARMOR_BASE + ENDLESS_ARMOR_STEP * k);
   const ARMORED = Math.round(total * armoredRatio);
   const FAST = Math.round((total - ARMORED) / 2);
   const BASIC = total - ARMORED - FAST;
   const spawnIntervalMs = Math.max(
     ENDLESS_INTERVAL_MIN_MS,
-    2000 - ENDLESS_INTERVAL_STEP_MS * k,
+    peak.spawnIntervalMs - ENDLESS_INTERVAL_STEP_MS * k,
   );
   return { layout, enemyCounts: { BASIC, FAST, ARMORED }, spawnIntervalMs };
 }
