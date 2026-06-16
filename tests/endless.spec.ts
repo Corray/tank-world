@@ -12,6 +12,7 @@ import {
   KEY_BEST_TOTAL,
   KEY_BEST_ENDLESS,
   STEP_MS,
+  LEVEL_COUNT,
 } from '../src/core/constants';
 import { makeWorld } from './helpers';
 import { createWorld } from '../src/core/world';
@@ -42,14 +43,14 @@ function completeRun(world = createWorld()): typeof world {
 }
 
 describe('T-EN-1 endless config formula sampling', () => {
-  // R17 基线修订（LEVEL_COUNT 3→5）：endless 深度 k=level-LEVEL_COUNT，level 参数 +2
-  // 保持同 k → 同 total/interval（曲线不变，仅起点平移）。
+  // R20 基线修订：endless 基数改派生 LEVELS 末关（L5=26 敌/1600ms），接续战役峰值
+  // 并递增（修 R17 回落）。total=26+STEP×k，interval=max(MIN, 1600−STEP_MS×k)。
   const cases: Array<[number, number, number]> = [
     // [level, expected total, expected interval]
-    [6, 20, 1900], // k=1
-    [9, 26, 1600], // k=4
-    [13, 34, ENDLESS_INTERVAL_MIN_MS], // k=8, interval floor
-    [25, 58, ENDLESS_INTERVAL_MIN_MS], // k=20
+    [6, 28, 1500], // k=1（接续 L5=26，递增 +2）
+    [9, 34, 1200], // k=4
+    [13, 42, ENDLESS_INTERVAL_MIN_MS], // k=8, interval floor
+    [25, 66, ENDLESS_INTERVAL_MIN_MS], // k=20
   ];
   for (const [level, total, interval] of cases) {
     it(`L${level}: total ${total}, interval ${interval}`, () => {
@@ -67,6 +68,18 @@ describe('T-EN-1 endless config formula sampling', () => {
       c.ARMORED / (c.BASIC + c.FAST + c.ARMORED);
     expect(ratio(l4.enemyCounts)).toBeGreaterThan(1 / 3);
     expect(ratio(l23.enemyCounts)).toBeCloseTo(0.5, 1);
+  });
+
+  // R20: endless must continue the campaign difficulty, never dip below it.
+  it('T-EN-9 first endless level is no easier than the campaign peak', () => {
+    const peak = LEVELS[LEVELS.length - 1].enemyCounts;
+    const peakTotal = peak.BASIC + peak.FAST + peak.ARMORED;
+    const first = endlessConfig(LEVEL_COUNT + 1).enemyCounts;
+    const firstTotal = first.BASIC + first.FAST + first.ARMORED;
+    expect(firstTotal).toBeGreaterThanOrEqual(peakTotal);
+    expect(endlessConfig(LEVEL_COUNT + 1).spawnIntervalMs).toBeLessThanOrEqual(
+      LEVELS[LEVELS.length - 1].spawnIntervalMs,
+    );
   });
 });
 

@@ -2,6 +2,7 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
+| v18 | 2026-06-16 | R20 调参：无新模块；level.endlessConfig 难度基数派生 LEVELS 末关（去 18/2000 硬编码，修 R17 无尽回落）；曲线斜率不变 |
 | v17 | 2026-06-16 | R19 增量：无新模块；types（Difficulty enum）/core（World.difficulty + cycleDifficulty READY-only）/constants（DIFFICULTY_SPEED/INTERVAL_FACTOR 表）/enemy（trySpawnEnemy 缩放出生间隔+敌速）/input（KeyT）/hud（DIFF 显示）/render（READY D 提示）职责扩展；NORMAL=1.0 零回归锚（待 R19-G1/G2 确认） |
 | v16 | 2026-06-16 | R18 增量：无新模块；core（World.comboCount/comboUntil + 初始化）/constants（COMBO_WINDOW_MS/STEP/CAP）/combat（C5 击杀连击倍率计分）/player（damagePlayer 重置连击）/level（loadLevel 重置连击）/hud（COMBO ×N 显示）职责扩展；update 头注释收尾（F-ARCH-5d32）（待 R18-G1/G2 确认） |
 | v15 | 2026-06-16 | R17 增量：无新模块；constants（LEVEL_COUNT 3→5）/level（LEVELS +L4/L5 配置与布局；enterEndless/variantLayout/endlessConfig 三处硬编码债改 LEVEL_COUNT 派生）职责扩展；update/achievements/hud 经 LEVEL_COUNT 派生自动跟随（零改）；blast radius 影响面验证（待 R17-G1/G2 确认） |
