@@ -44,9 +44,15 @@ export function renderHud(el: HTMLElement, world: World): void {
     : wave
       ? `<div>WAVE&nbsp;&nbsp;${world.wave}${world.players.length > 1 ? '&nbsp;CO-OP' : ''}</div>`
       : `<div>LEVEL&nbsp;&nbsp;${levelLabel}${coop ? '&nbsp;CO-OP' : ''}</div>`;
+  // R18 §3.30: combo indicator while the streak is live (≥2 within the window).
+  const comboLine =
+    world.comboCount >= 2 && world.clock < world.comboUntil
+      ? `<div style="color:#ffd54f">COMBO&nbsp;&times;${world.comboCount}</div>`
+      : '';
   el.innerHTML = [
     topLine,
     `<div>SCORE&nbsp;&nbsp;${world.bankedScore + world.score}</div>`,
+    comboLine,
     playerRows,
     `<div>ENEMY&nbsp;&nbsp;${enemiesRemaining(world)}</div>`,
     `<hr/>`,

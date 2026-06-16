@@ -1,5 +1,7 @@
-// Per-frame pipeline (architecture §3.2):
-// input → player → enemies → combat → judge. Render/HUD happen outside.
+// Per-frame pipeline (architecture §3.3, current):
+// players → powerups (pickup) → updateShovel → spawnNeutralPowerup (VERSUS)
+// → trySpawn/enemies → combat → effects → judge (isPvP→judgeVersus /
+// WAVE→judgeWave / PvE). Render/HUD happen outside. (R18: F-ARCH-5d32 收尾)
 
 import { GameState, GameMode, isPvP } from './types';
 import type { World } from './world';

@@ -239,6 +239,9 @@ export function loadLevel(world: World, level: number): void {
   // fortification — only the clocks need clearing).
   world.freezeUntil = 0;
   world.shovelUntil = { 1: 0, 2: 0 };
+  // R18 §3.30: a fresh level starts with no kill streak.
+  world.comboCount = 0;
+  world.comboUntil = 0;
 
   // R5: reset EVERY player (positions/invincibility); lives carry per player.
   for (const p of world.players) {
