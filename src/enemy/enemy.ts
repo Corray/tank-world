@@ -26,6 +26,8 @@ import {
   GUARD_CYCLE_MS,
   GUARD_RAGE_CYCLE_MS,
   GUARD_ACTIVE_MS,
+  DIFFICULTY_SPEED_FACTOR,
+  DIFFICULTY_INTERVAL_FACTOR,
 } from '../core/constants';
 import { moveTank, fireEnemyBullet, tankAreaFree } from '../combat/combat';
 
@@ -86,10 +88,13 @@ export function trySpawnEnemy(world: World, dtMs: number): void {
   const enemy = createEnemy(world.spawnSequence[world.spawnedCount], pos);
   // R2: 1-based positions 4/8/12 carry a powerup (consensus §3.8).
   enemy.carrier = CARRIER_POSITIONS.includes(world.spawnedCount + 1);
+  // R19 §3.31: difficulty scales spawned enemy speed (NORMAL=1.0 → no change).
+  enemy.speed *= DIFFICULTY_SPEED_FACTOR[world.difficulty];
   world.enemies.push(enemy);
   world.spawnedCount += 1;
   world.spawnCursor = (world.spawnCursor + 1) % cells.length;
-  world.spawnCooldownMs = world.spawnIntervalMs;
+  // R19 §3.31: difficulty scales the spawn interval (HARD<1 → faster spawns).
+  world.spawnCooldownMs = world.spawnIntervalMs * DIFFICULTY_INTERVAL_FACTOR[world.difficulty];
 }
 
 /** Per-step AI for all alive enemies: roam (re-roll on block/timer) + periodic fire. */

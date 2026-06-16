@@ -55,6 +55,7 @@ export function renderHud(el: HTMLElement, world: World): void {
     comboLine,
     playerRows,
     `<div>ENEMY&nbsp;&nbsp;${enemiesRemaining(world)}</div>`,
+    `<div>DIFF&nbsp;&nbsp;${world.difficulty}</div>`,
     `<hr/>`,
     `<div style="font-size:11px;color:#aaa">BEST TOTAL&nbsp;&nbsp;${getBestTotal()}<br/>BEST LEVEL&nbsp;&nbsp;${getBestLevel()}<br/>BEST ENDLESS&nbsp;&nbsp;${getBestEndless()}<br/>BEST CO-OP&nbsp;&nbsp;${getBestCoop()}<br/>BEST CO-OP&infin;&nbsp;&nbsp;${getBestCoopEndless()}<br/>BEST WAVE&nbsp;&nbsp;${getBestWave()}<br/>BEST CO-OP WAVE&nbsp;&nbsp;${getBestCoopWave()}</div>`,
     `<hr/>`,

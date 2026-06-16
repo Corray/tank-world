@@ -2,6 +2,7 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
+| v18 | 2026-06-16 | R19 范围并入（难度选择系统 Difficulty，F31）；新增 §3.31 与 AC-114~117；决议：三档 EASY/NORMAL/HARD 默认 NORMAL / 缩放出生间隔+敌速（NORMAL=1.0 零回归锚）/ READY 按 T 循环 PLAYING 锁定 / 全模式正交 |
 | v17 | 2026-06-16 | R18 范围并入（连击计分 Combo + 技术债收尾，F30）；新增 §3.30 与 AC-110~113；决议：3s 窗口 / 倍率 1+0.1×min(combo-1,9) 封顶 ×2 首杀 ×1 / 死亡+换关重置 / 敌人击杀 per-world 共享；清 F-ARCH-5d32 |
 | v16 | 2026-06-16 | R17 范围并入（战役扩展 L4/L5，LEVEL_COUNT 3→5，F29）；新增 §3.29 与 AC-106~109；决议：5 关递进 / 终点 L5 + 无尽 L6 起里程碑 L10/L15/L20（LEVEL_COUNT 派生）/ 硬编码债修正（enterEndless/variantLayout/endlessConfig）/ ENDLESS_8 保字面 8 |
 | v15 | 2026-06-15 | R16 范围并入（GUARDIAN 第三 Boss·防御型，F28）；新增 §3.28 与 AC-102~105；决议：GUARDIAN 高 HP 12 慢速 0.6× / 周期自我护盾免疫子弹（狂暴缩周期）/ 三循环轮换 [BOSS,SUMMONER,GUARDIAN] |
@@ -69,6 +70,7 @@
 | F28 | GUARDIAN 第三 Boss（R16） | 防御型 Boss（高 HP 慢速+周期自我护盾免疫子弹）+ 三循环轮换，见 §3.28 |
 | F29 | 战役扩展 L4/L5（R17） | 战役 3→5 关（LEVEL_COUNT 派生）；终点 L5、无尽 L6 起、里程碑 L10/L15/L20；硬编码债修正，见 §3.29 |
 | F30 | 连击计分（R18） | 时间窗内连续击杀累积倍率（封顶 ×2，首杀 ×1）；死亡/换关重置；per-world 共享 streak，见 §3.30 |
+| F31 | 难度选择（R19） | 三档 EASY/NORMAL/HARD（缩放敌速+出生间隔，NORMAL=1.0）；READY 按 T 循环；全模式正交，见 §3.31 |
 
 ### 2.2 范围外（Out of Scope，MVP 不做）
 
@@ -457,6 +459,15 @@ Boss 谱系第三维度——防御型肉盾，迫使持续输出。BOSS=火力�
 - **作用范围**：敌人击杀（PvE/COOP/WAVE/MELEE NPC）；per-world 共享 streak（co-op 协作累积）；VS 无敌人 N/A。
 - **HUD**：连击激活（clock<comboUntil 且 comboCount≥2）显示 `COMBO ×N`。
 
+### 3.31 难度选择系统·Difficulty（R19 / F31）
+
+与模式正交的横向难度维度（难度 × 模式任意组合）。
+
+- **档位**：`Difficulty { EASY, NORMAL, HARD }`，`World.difficulty` 默认 NORMAL。缩放因子用 `Record<Difficulty,number>` 表（穷举三档齐全）。
+- **缩放（trySpawnEnemy 单点应用）**：`DIFFICULTY_SPEED_FACTOR {EASY:0.85, NORMAL:1.0, HARD:1.2}`（新生敌速）+ `DIFFICULTY_INTERVAL_FACTOR {EASY:1.3, NORMAL:1.0, HARD:0.75}`（出生间隔，HARD 更快）。**NORMAL=1.0 双维 = 零回归锚**；createEnemy 保持纯（缩放在 spawn 点）。
+- **切换**：READY 按 **T** 循环 EASY→NORMAL→HARD→EASY；**PLAYING 中锁定**（不允许局内改难度）。
+- **范围**：全模式正交（SOLO/COOP/VS/MELEE/WAVE 均叠加）。HUD 显示 `DIFF: <档>`；READY overlay 加 D 提示。
+
 ## 4. 非功能约束
 
 | # | 约束 |
@@ -584,6 +595,10 @@ Boss 谱系第三维度——防御型肉盾，迫使持续输出。BOSS=火力�
 | AC-111 | 首杀 mult=1（单杀零回归）；窗外击杀 comboCount lazy 重置为 1 |
 | AC-112 | 玩家死亡 + loadLevel 重置 comboCount/comboUntil 为 0 |
 | AC-113 | 既有 301 测试零回归（首杀 ×1 保证）；HUD 连击激活显示 COMBO ×N；F-ARCH-5d32 清理 |
+| AC-114 | Difficulty 三档默认 NORMAL；缩放因子表三档齐全；HARD 出生间隔<NORMAL<EASY、敌速 HARD>NORMAL>EASY |
+| AC-115 | trySpawnEnemy 应用 INTERVAL/SPEED 因子；NORMAL=1.0 双维零缩放 |
+| AC-116 | T 键 READY 循环三档；PLAYING 中切换被拒（难度锁定） |
+| AC-117 | 既有 308 测试零回归（NORMAL=1.0 锚）；tsc 净；HUD 显示 DIFF |
 
 ## 6. 待确认项（已全部收敛 — 2026-06-04 评审）
 

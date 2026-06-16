@@ -1,7 +1,7 @@
 // Game core: fixed-timestep main loop + game state machine (architecture §3.1).
 
 import { STEP_MS } from './constants';
-import { GameState, GameMode } from './types';
+import { GameState, GameMode, Difficulty } from './types';
 import { createWorld, createPlayer, type World } from './world';
 import { setupVersus, setupMelee, setupWave, startNextWave } from '../level/level';
 
@@ -46,6 +46,13 @@ export function startWave(world: World, coop: boolean): void {
   if (coop) world.players.push(createPlayer(2));
   setupWave(world);
   world.state = GameState.PLAYING;
+}
+
+/** R19 §3.31: cycle difficulty (READY only — locked once a game starts). */
+export function cycleDifficulty(world: World): void {
+  if (world.state !== GameState.READY) return;
+  const order = [Difficulty.EASY, Difficulty.NORMAL, Difficulty.HARD];
+  world.difficulty = order[(order.indexOf(world.difficulty) + 1) % order.length];
 }
 
 export function togglePause(world: World): void {

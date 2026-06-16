@@ -1,6 +1,8 @@
 // All tunable game constants live here (architecture N4: no magic values).
 // Default values are defined in docs/spec/data-model.md §1 — keep in sync.
 
+import { Difficulty } from './types';
+
 /** Logical grid dimension (cells per side). */
 export const GRID = 13;
 /** Cell edge length in pixels. */
@@ -224,3 +226,18 @@ export const COMBO_WINDOW_MS = 3_000;
 export const COMBO_STEP = 0.1;
 /** Combo: cap on the multiplier steps (CAP=10 → max ×2.0). */
 export const COMBO_CAP = 10;
+
+// --- R19 additions (consensus §3.31, difficulty) ---
+
+/** Enemy speed multiplier by difficulty (NORMAL=1.0 → zero-regression anchor). */
+export const DIFFICULTY_SPEED_FACTOR: Record<Difficulty, number> = {
+  [Difficulty.EASY]: 0.85,
+  [Difficulty.NORMAL]: 1.0,
+  [Difficulty.HARD]: 1.2,
+};
+/** Spawn-interval multiplier by difficulty (HARD<1 → faster spawns). */
+export const DIFFICULTY_INTERVAL_FACTOR: Record<Difficulty, number> = {
+  [Difficulty.EASY]: 1.3,
+  [Difficulty.NORMAL]: 1.0,
+  [Difficulty.HARD]: 0.75,
+};

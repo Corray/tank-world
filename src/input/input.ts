@@ -61,6 +61,8 @@ export class Keyboard {
   /** R13 §3.26: READY + "5" / "6" → wave defense (solo / co-op). */
   onWave: () => void = () => {};
   onCoopWave: () => void = () => {};
+  /** R19 §3.31: READY + "T" → cycle difficulty tier (EASY/NORMAL/HARD). */
+  onCycleDifficulty: () => void = () => {};
 
   attach(target: Window): void {
     target.addEventListener('keydown', (e) => {
@@ -84,6 +86,9 @@ export class Keyboard {
         this.onWave();
       } else if (e.code === 'Digit6') {
         this.onCoopWave();
+      } else if (e.code === 'KeyT') {
+        // R19: 'T' (tier) — 'D' collides with WASD-right movement (smoke-caught).
+        this.onCycleDifficulty();
       }
     });
     target.addEventListener('keyup', (e) => {

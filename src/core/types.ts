@@ -115,6 +115,13 @@ export enum GameMode {
   WAVE = 'WAVE',
 }
 
+/** R19 §3.31: difficulty tier — orthogonal to mode (scales enemy pace/speed). */
+export enum Difficulty {
+  EASY = 'EASY',
+  NORMAL = 'NORMAL',
+  HARD = 'HARD',
+}
+
 /** R9: PvP-family modes (friendly fire reversed + arena win logic) — §3.22. */
 export function isPvP(mode: GameMode): boolean {
   return mode === GameMode.VERSUS || mode === GameMode.MELEE;
