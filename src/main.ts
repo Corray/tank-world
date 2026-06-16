@@ -50,7 +50,7 @@ keyboard.onVersus = () => startVersus(loop.world); // READY + "3" (AC-52)
 keyboard.onMelee = () => startMelee(loop.world); // READY + "4" (AC-60)
 keyboard.onWave = () => startWave(loop.world, false); // READY + "5" (AC-88)
 keyboard.onCoopWave = () => startWave(loop.world, true); // READY + "6" (AC-88)
-keyboard.onCycleDifficulty = () => cycleDifficulty(loop.world); // READY + "D" (AC-116)
+keyboard.onCycleDifficulty = () => cycleDifficulty(loop.world); // READY + "T" (AC-116)
 keyboard.onRestart = () => {
   if (loop.world.state === GameState.DEFEAT) {
     retryLevel(loop.world); // R2: retry current level (AC-15)

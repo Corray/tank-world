@@ -324,6 +324,7 @@ export function overlayLines(world: World): string[] | null {
       'Press any move/fire key to start',
       'Press 2 CO-OP / 3 VERSUS / 4 MELEE',
       'Press 5 WAVE / 6 CO-OP WAVE',
+      `Press T: difficulty (${world.difficulty})`,
       `Achievements: ${unlockedCount()}/${ACHIEVEMENT_COUNT}`,
     ],
     [GameState.PAUSED]: ['PAUSED', 'Press P to resume'],

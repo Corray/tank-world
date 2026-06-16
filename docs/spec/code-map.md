@@ -2,6 +2,7 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
+| v12 | 2026-06-16 | R19 难度选择：types.Difficulty；world.difficulty；constants 因子表（NORMAL=1.0 锚）；enemy.trySpawnEnemy 缩放敌速+出生间隔；game.cycleDifficulty（READY-only）；input KeyT；hud DIFF |
 | v11 | 2026-06-16 | R18 连击计分：world.comboCount/comboUntil；combat C5 击杀连击倍率（首杀 ×1 封顶 ×2）；damagePlayer/loadLevel 重置；hud COMBO ×N；update 头注释收尾（5d32）|
 | v10 | 2026-06-16 | R17 战役 L4/L5（LEVEL_COUNT 3→5）：level +L4/L5 布局+LEVELS+VARIANT_SLOTS；硬编码债修正（enterEndless/variantLayout/endlessConfig 改 LEVEL_COUNT 派生）；8 处派生项零改（红利）；里程碑平移 L5/L10/L15/L20 |
 | v9 | 2026-06-15 | R16 GUARDIAN：EnemyType+isBossType 三类；enemy guard AI（createEnemy guardMs init + 周期开盾 + 狂暴缩周期）；combat C5 guardUntil 免疫门控；bossTypeFor 三循环；render 护盾环+青绿 |

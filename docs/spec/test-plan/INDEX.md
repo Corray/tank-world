@@ -18,4 +18,4 @@
 | R16（GUARDIAN 第三 Boss） | [test-plan-r16.md](./test-plan-r16.md) | v1.1 执行完毕（296/296 含 8 GUARDIAN，唯一修订 T-SUM-2 预判内）；已合入 |
 | R17（战役扩展 L4/L5） | [test-plan-r17.md](./test-plan-r17.md) | v1.1 执行完毕（301/301，35 基线修订 + campaign.spec 5 新；预判 14/实测 35，method-miss 已记）；已合入 |
 | R18（连击计分 Combo） | [test-plan-r18.md](./test-plan-r18.md) | v1.1 执行完毕（308/308，零基线修订；含 5d32 收尾）；已合入 |
-| R19（难度选择 Difficulty） | [test-plan-r19.md](./test-plan-r19.md) | G3 产出（影响面 + 零修订预判 + T-DIF-* 用例）；待 G4 骨架 |
+| R19（难度选择 Difficulty） | [test-plan-r19.md](./test-plan-r19.md) | v1.1 执行完毕（315/315，零基线修订；冒烟捕 D/WASD 冲突→改 KeyT）；待 PR 合入 |

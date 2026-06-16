@@ -48,9 +48,11 @@ export function startWave(world: World, coop: boolean): void {
   world.state = GameState.PLAYING;
 }
 
-/** R19 §3.31: cycle difficulty in READY only（G4 桩：impl 阶段填充）. */
-export function cycleDifficulty(_world: World): void {
-  void Difficulty;
+/** R19 §3.31: cycle difficulty (READY only — locked once a game starts). */
+export function cycleDifficulty(world: World): void {
+  if (world.state !== GameState.READY) return;
+  const order = [Difficulty.EASY, Difficulty.NORMAL, Difficulty.HARD];
+  world.difficulty = order[(order.indexOf(world.difficulty) + 1) % order.length];
 }
 
 export function togglePause(world: World): void {
