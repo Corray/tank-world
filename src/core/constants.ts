@@ -215,3 +215,12 @@ export const GUARDIAN_SCORE = ENEMY_SCORE.GUARDIAN;
 export const GUARD_CYCLE_MS = 5_000;
 export const GUARD_RAGE_CYCLE_MS = 3_000;
 export const GUARD_ACTIVE_MS = 2_000;
+
+// --- R18 additions (consensus §3.30, combo scoring) ---
+
+/** Combo: ms window between kills to keep the streak alive. */
+export const COMBO_WINDOW_MS = 3_000;
+/** Combo: score multiplier step per combo level (mult = 1 + STEP*min(n-1, CAP)). */
+export const COMBO_STEP = 0.1;
+/** Combo: cap on the multiplier steps (CAP=10 → max ×2.0). */
+export const COMBO_CAP = 10;

@@ -77,6 +77,10 @@ export interface World {
   wave: number;
   /** R13 §3.26: WAVE_BREAK countdown remainder, ms (advance-layer, not clock). */
   waveBreakMs: number;
+  /** R18 §3.30: current kill-streak combo (0 = none); per-world shared. */
+  comboCount: number;
+  /** R18 §3.30: deadline (game clock, ms) for the next kill to extend the combo. */
+  comboUntil: number;
 }
 
 /** Player spawn cells: P1 (12,2) / P2 (12,10) — data-model §11/§31. */
@@ -141,5 +145,7 @@ export function createWorld(): World {
     shovelUntil: { 1: 0, 2: 0 },
     wave: 1,
     waveBreakMs: 0,
+    comboCount: 0,
+    comboUntil: 0,
   };
 }
