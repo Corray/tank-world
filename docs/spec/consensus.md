@@ -2,6 +2,7 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
+| v17 | 2026-06-16 | R18 范围并入（连击计分 Combo + 技术债收尾，F30）；新增 §3.30 与 AC-110~113；决议：3s 窗口 / 倍率 1+0.1×min(combo-1,9) 封顶 ×2 首杀 ×1 / 死亡+换关重置 / 敌人击杀 per-world 共享；清 F-ARCH-5d32 |
 | v16 | 2026-06-16 | R17 范围并入（战役扩展 L4/L5，LEVEL_COUNT 3→5，F29）；新增 §3.29 与 AC-106~109；决议：5 关递进 / 终点 L5 + 无尽 L6 起里程碑 L10/L15/L20（LEVEL_COUNT 派生）/ 硬编码债修正（enterEndless/variantLayout/endlessConfig）/ ENDLESS_8 保字面 8 |
 | v15 | 2026-06-15 | R16 范围并入（GUARDIAN 第三 Boss·防御型，F28）；新增 §3.28 与 AC-102~105；决议：GUARDIAN 高 HP 12 慢速 0.6× / 周期自我护盾免疫子弹（狂暴缩周期）/ 三循环轮换 [BOSS,SUMMONER,GUARDIAN] |
 | v14 | 2026-06-12 | R15 范围并入（Boss 扩展·召唤型 SUMMONER + 里程碑轮换，F27）；新增 §3.27 与 AC-96~101；决议：+1 SUMMONER / 按序交替（奇 BOSS 偶 SUMMONER，战役恒 BOSS）/ 召唤兵须清完（fieldClear 涌现）/ HP 调参搭车（BOSS 10→8） |
@@ -67,6 +68,7 @@
 | F27 | Boss 扩展·SUMMONER（R15） | 召唤型 Boss（周期召唤小弟+须清完）+ 里程碑按序交替 + BOSS_HP 调参 10→8，见 §3.27 |
 | F28 | GUARDIAN 第三 Boss（R16） | 防御型 Boss（高 HP 慢速+周期自我护盾免疫子弹）+ 三循环轮换，见 §3.28 |
 | F29 | 战役扩展 L4/L5（R17） | 战役 3→5 关（LEVEL_COUNT 派生）；终点 L5、无尽 L6 起、里程碑 L10/L15/L20；硬编码债修正，见 §3.29 |
+| F30 | 连击计分（R18） | 时间窗内连续击杀累积倍率（封顶 ×2，首杀 ×1）；死亡/换关重置；per-world 共享 streak，见 §3.30 |
 
 ### 2.2 范围外（Out of Scope，MVP 不做）
 
@@ -445,6 +447,16 @@ Boss 谱系第三维度——防御型肉盾，迫使持续输出。BOSS=火力�
 - **里程碑平移**：战役终点 boss L3→**L5**；无尽里程碑 L8/L13/L18→**L10/L15/L20**（无尽 L6 起，每 5 关）。三循环序数不变（L5/L10=idx1 BOSS，L15=SUMMONER，L20=GUARDIAN）。
 - **ENDLESS_8 例外**：成就「Endless Eight」保字面 `level≥8`，不派生（名称绑定数字 8；副作用略易达成，已知接受）。
 
+### 3.30 连击计分·Combo（R18 / F30）
+
+为「枪杀」加节奏维度——时间窗内连续击杀累积分数倍率（与炸弹清场零分对照的正向激励）。
+
+- **状态**：`World.comboCount`（连击数）/ `comboUntil`（延续截止 game-clock）。常量 `COMBO_WINDOW_MS`〔默认 3s〕/ `COMBO_STEP`〔默认 0.1〕/ `COMBO_CAP`〔默认 9〕。
+- **计分（combat C5 击杀）**：`comboCount = clock<comboUntil ? +1 : 1`；`comboUntil = clock+WINDOW`；`mult = 1+STEP×min(comboCount-1, CAP)`（**首杀 ×1，单杀零回归**；封顶 ×2）；`awarded = round(hit.score×mult)` 计入 world+killer 分 + 飘字。
+- **重置**：玩家死亡（damagePlayer）+ loadLevel（换关）→ comboCount/comboUntil 清零；时间窗过期 → 下次击杀 lazy 重置为 1。
+- **作用范围**：敌人击杀（PvE/COOP/WAVE/MELEE NPC）；per-world 共享 streak（co-op 协作累积）；VS 无敌人 N/A。
+- **HUD**：连击激活（clock<comboUntil 且 comboCount≥2）显示 `COMBO ×N`。
+
 ## 4. 非功能约束
 
 | # | 约束 |
@@ -568,6 +580,10 @@ Boss 谱系第三维度——防御型肉盾，迫使持续输出。BOSS=火力�
 | AC-107 | 硬编码债修正：enterEndless 无尽起点=LEVEL_COUNT+1（L6）；variantLayout/endlessConfig 基数 LEVEL_COUNT 派生 |
 | AC-108 | 里程碑平移：战役终点 boss L5；无尽 boss L10/L15/L20（三循环序数不变）；ENDLESS_8 保字面 level≥8 |
 | AC-109 | 8 处 LEVEL_COUNT 派生项零改（红利验证）；既有 296 测试基线冲击全部在 G3 预判清单内（blast radius 方法核心）；tsc 净 |
+| AC-110 | 窗内连续击杀 comboCount 递增；mult=1+0.1×min(combo-1,9) 封顶 ×2；awarded 计入 world+killer 分 |
+| AC-111 | 首杀 mult=1（单杀零回归）；窗外击杀 comboCount lazy 重置为 1 |
+| AC-112 | 玩家死亡 + loadLevel 重置 comboCount/comboUntil 为 0 |
+| AC-113 | 既有 301 测试零回归（首杀 ×1 保证）；HUD 连击激活显示 COMBO ×N；F-ARCH-5d32 清理 |
 
 ## 6. 待确认项（已全部收敛 — 2026-06-04 评审）
 

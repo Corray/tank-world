@@ -45,6 +45,8 @@ export function damagePlayer(world: World, player: PlayerTank): void {
   flashPlayer(world);
   playSound(SoundEvent.PLAYER_DOWN);
   player.lives -= 1;
+  world.comboCount = 0; // R18 §3.30: death breaks the kill streak
+  world.comboUntil = 0;
   player.doubleFire = false; // R2: double fire is lost on death (AC-18)
   player.level = 1; // R10 §3.23: tank upgrade lost on death (resets to L1)
   player.shieldUntil = 0;

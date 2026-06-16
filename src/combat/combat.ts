@@ -12,6 +12,9 @@ import {
   PLAYER_BULLETS_DOUBLE,
   ICE_DECAY,
   ICE_STOP_THRESHOLD,
+  COMBO_WINDOW_MS,
+  COMBO_STEP,
+  COMBO_CAP,
 } from '../core/constants';
 import { dropFromCarrier } from '../powerup/powerup';
 import { spawnExplosion, spawnBaseExplosion, spawnSpark, spawnScoreFloat } from '../effects/effects';
@@ -229,15 +232,21 @@ function advanceBullet(world: World, b: Bullet, dtMs: number): boolean {
         hit.hp -= 1;
         if (hit.hp <= 0) {
           hit.alive = false;
-          world.score += hit.score;
+          // R18 §3.30: combo — consecutive kills within the window scale score;
+          // the first kill of a streak is ×1 (single kills are unchanged).
+          world.comboCount = world.clock < world.comboUntil ? world.comboCount + 1 : 1;
+          world.comboUntil = world.clock + COMBO_WINDOW_MS;
+          const mult = 1 + COMBO_STEP * Math.min(world.comboCount - 1, COMBO_CAP);
+          const awarded = Math.round(hit.score * mult);
+          world.score += awarded;
           // R5: personal score attribution via bullet.playerId (§31).
           const killer = world.players.find((p) => p.id === b.playerId);
-          if (killer) killer.score += hit.score;
+          if (killer) killer.score += awarded;
           // R2: carriers drop the next cycle powerup at the death spot (§3.8).
           if (hit.carrier) dropFromCarrier(world, hit.pos);
           // R3: kill feedback (AC-23/24).
           spawnExplosion(world, hit.pos, EXPLOSION_COLOR_ENEMY);
-          spawnScoreFloat(world, hit.pos, hit.score);
+          spawnScoreFloat(world, hit.pos, awarded);
           playSound(SoundEvent.ENEMY_DOWN);
           onEnemyKilled(world); // R4: FIRST_BLOOD / CENTURION (§26)
         }
