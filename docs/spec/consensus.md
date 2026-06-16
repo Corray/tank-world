@@ -2,6 +2,7 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
+| v20 | 2026-06-16 | R21 难度持久化（localStorage KEY_DIFFICULTY，createWorld 读取/cycleDifficulty 写入，fail-silent NORMAL）；§3.31 amend + AC-119 |
 | v19 | 2026-06-16 | R20 无尽曲线接续修正（endlessConfig 基数派生 LEVELS 末关，修 R17 难度回落 + 去 18/2000 魔法值）；§3.13 amend + AC-118；不动纯体验数值 |
 | v18 | 2026-06-16 | R19 范围并入（难度选择系统 Difficulty，F31）；新增 §3.31 与 AC-114~117；决议：三档 EASY/NORMAL/HARD 默认 NORMAL / 缩放出生间隔+敌速（NORMAL=1.0 零回归锚）/ READY 按 T 循环 PLAYING 锁定 / 全模式正交 |
 | v17 | 2026-06-16 | R18 范围并入（连击计分 Combo + 技术债收尾，F30）；新增 §3.30 与 AC-110~113；决议：3s 窗口 / 倍率 1+0.1×min(combo-1,9) 封顶 ×2 首杀 ×1 / 死亡+换关重置 / 敌人击杀 per-world 共享；清 F-ARCH-5d32 |
@@ -471,6 +472,8 @@ Boss 谱系第三维度——防御型肉盾，迫使持续输出。BOSS=火力�
 - **切换**：READY 按 **T** 循环 EASY→NORMAL→HARD→EASY；**PLAYING 中锁定**（不允许局内改难度）。
 - **范围**：全模式正交（SOLO/COOP/VS/MELEE/WAVE 均叠加）。HUD 显示 `DIFF: <档>`；READY overlay 加 D 提示。
 
+> **R21 amend（2026-06-16）**：难度选择经 localStorage 持久（KEY_DIFFICULTY）——createWorld 读取、cycleDifficulty 写入，fail-silent 默认 NORMAL（AC-119）。
+
 ## 4. 非功能约束
 
 | # | 约束 |
@@ -603,6 +606,7 @@ Boss 谱系第三维度——防御型肉盾，迫使持续输出。BOSS=火力�
 | AC-116 | T 键 READY 循环三档；PLAYING 中切换被拒（难度锁定） |
 | AC-117 | 既有 308 测试零回归（NORMAL=1.0 锚）；tsc 净；HUD 显示 DIFF |
 | AC-118 | 无尽曲线接续：endlessConfig 基数派生 LEVELS 末关（敌数/间隔），endlessConfig(LEVEL_COUNT+1) 总数 ≥ 战役末关（无回落不变量）；斜率不变；无 18/2000 硬编码 |
+| AC-119 | 难度持久化：setDifficulty/getDifficulty localStorage round-trip；createWorld 恢复持久难度；cycleDifficulty 写入；空/非法 fail-silent → NORMAL |
 
 ## 6. 待确认项（已全部收敛 — 2026-06-04 评审）
 
