@@ -2,6 +2,7 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
+| v15 | 2026-06-16 | R17 增量：无新模块；constants（LEVEL_COUNT 3→5）/level（LEVELS +L4/L5 配置与布局；enterEndless/variantLayout/endlessConfig 三处硬编码债改 LEVEL_COUNT 派生）职责扩展；update/achievements/hud 经 LEVEL_COUNT 派生自动跟随（零改）；blast radius 影响面验证（待 R17-G1/G2 确认） |
 | v14 | 2026-06-15 | R16 增量：无新模块；types（EnemyType.GUARDIAN + isBossType 扩三类 + ai.guardUntil? 字段）/constants（GUARDIAN HP 12/SCORE 1200 + GUARD_CYCLE/ACTIVE/RAGE_CYCLE + GUARDIAN_SPEED_FACTOR）/enemy（GUARDIAN 护盾计时 AI + 慢速）/combat（C5 扣血前 guardUntil 免疫门控）/level（bossTypeFor 三循环）/render（COLOR.enemy.GUARDIAN + 护盾环 + HP 条经 isBossType）职责扩展；judge/powerup/storage 零改（待 R16-G1/G2 确认） |
 | v13 | 2026-06-12 | R15 增量：无新模块；types（EnemyType.SUMMONER + isBossType 锚）/constants（SUMMONER HP/SCORE/SUMMON_MS/RAGE + BOSS_HP 10→8）/enemy（SUMMONER 召唤 AI：周期召唤 BASIC+同屏上限+狂暴加速）/level（bossTypeFor 注入选型，loadLevel/applyWave 两处）/render（COLOR.enemy.SUMMONER + HP 条经 isBossType）职责扩展；combat/judge/powerup/storage 零改（召唤兵 fieldClear 涌现）（待 R15-G1/G2 确认） |
 | v12 | 2026-06-12 | audit R14 fix 轮：覆盖性自检段扩展至 F1~F26 / AC-1~95（F-SPEC-39bc / F-ARCH-2016）；combat 依赖列修正（map → 实际六依赖 + combat↔player 运行时互依标注，F-ARCH-608f）；依赖图补 judge 路由与环标注 |
