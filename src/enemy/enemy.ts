@@ -21,6 +21,8 @@ import {
   SUMMONER_HP,
   SUMMON_MS,
   SUMMON_RAGE_MS,
+  GUARDIAN_SPEED_FACTOR,
+  GUARD_CYCLE_MS,
 } from '../core/constants';
 import { moveTank, fireEnemyBullet, tankAreaFree } from '../combat/combat';
 
@@ -39,7 +41,12 @@ export function createEnemy(type: EnemyType, pos: Vec): EnemyTank {
   return {
     pos: { ...pos },
     dir: Direction.DOWN,
-    speed: type === EnemyType.FAST ? ENEMY_SPEED * ENEMY_FAST_FACTOR : ENEMY_SPEED,
+    speed:
+      type === EnemyType.FAST
+        ? ENEMY_SPEED * ENEMY_FAST_FACTOR
+        : type === EnemyType.GUARDIAN
+          ? ENEMY_SPEED * GUARDIAN_SPEED_FACTOR
+          : ENEMY_SPEED,
     alive: true,
     type,
     hp: ENEMY_HP[type],
@@ -49,6 +56,7 @@ export function createEnemy(type: EnemyType, pos: Vec): EnemyTank {
       fireMs: ENEMY_FIRE_INTERVAL_MS,
       // R15 §3.27: summoners carry a reinforcement clock.
       ...(type === EnemyType.SUMMONER ? { summonMs: SUMMON_MS } : {}),
+      ...(type === EnemyType.GUARDIAN ? { guardMs: GUARD_CYCLE_MS } : {}),
     },
     carrier: false,
   };
