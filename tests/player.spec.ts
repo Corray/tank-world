@@ -2,7 +2,8 @@
 
 import { describe, it, expect } from 'vitest';
 import { GameState, Terrain, Direction, BulletOwner, EnemyType } from '../src/core/types';
-import { updatePlayer, damagePlayer } from '../src/player/player';
+import { updatePlayer } from '../src/player/player';
+import { damagePlayer } from '../src/combat/combat';
 import { judge } from '../src/core/update';
 import { STEP_MS, INVINCIBLE_MS } from '../src/core/constants';
 import {

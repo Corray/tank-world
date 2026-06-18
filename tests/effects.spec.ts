@@ -3,7 +3,7 @@
 import { describe, it, expect } from 'vitest';
 import { EffectKind, EnemyType, Terrain, Direction, BulletOwner, GameState } from '../src/core/types';
 import { updateEffects } from '../src/effects/effects';
-import { damagePlayer } from '../src/player/player';
+import { damagePlayer } from '../src/combat/combat';
 import { GameLoop } from '../src/core/game';
 import { updateWorld } from '../src/core/update';
 import {

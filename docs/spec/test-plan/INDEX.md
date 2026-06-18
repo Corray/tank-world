@@ -20,4 +20,5 @@
 | R18（连击计分 Combo） | [test-plan-r18.md](./test-plan-r18.md) | v1.1 执行完毕（308/308，零基线修订；含 5d32 收尾）；已合入 |
 | R19（难度选择 Difficulty） | [test-plan-r19.md](./test-plan-r19.md) | v1.1 执行完毕（315/315，零基线修订；冒烟捕 D/WASD 冲突→改 KeyT）；已合入 |
 | R20（无尽曲线接续修正） | [test-plan-r20.md](./test-plan-r20.md) | v1.1 执行完毕（316/316，修 R17 回落 + 去 18/2000 魔法值）；已合入 |
-| R21（难度持久化） | [test-plan-r21.md](./test-plan-r21.md) | v1.1 执行完毕（321/321，零基线修订；刷新恢复冒烟通过）；待 PR 合入 |
+| R21（难度持久化） | [test-plan-r21.md](./test-plan-r21.md) | v1.1 执行完毕（321/321，零基线修订；刷新恢复冒烟通过）；已合入 |
+| R22（拆 combat↔player 循环依赖） | [test-plan-r22.md](./test-plan-r22.md) | v1.1 执行完毕（323/323，行为零变更，F-ARCH-608f 代码清除）；待 PR 合入 |

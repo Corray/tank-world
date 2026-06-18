@@ -2,11 +2,12 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
+| v4 | 2026-06-18 | R22 依赖治理：拆 combat↔player 循环依赖（damagePlayer 归位 combat），§3.5 更新，ADR-004，T-ARCH-1 不变量守护 |
 | v3 | 2026-06-12 | F-ARCH-e75d 修复：R7~R13 七轮回填（状态机 7→11 态、六模式、管线补 shovel/中立道具/judge 路由、advance 间奏分支）+ **维护约定入档（根治）**+ ADR-002/003 关联 |
 | v2 | 2026-06-05 | F-ARCH-4c50 修复：目录结构更新至 14 模块、管线补 powerups/effects 与 players[] 复数化、CI 管道补录（R2~R5 增量一次性回填） |
 | v1 | 2026-06-04 | 初版（G2 评审通过：组合 A——TS + 裸 Canvas + Vite singlefile + Vitest） |
 
-> 关联：共识文档 v13 / 模块清单 v12 / ADR-001-tech-stack / ADR-002-judge-mode-fork / ADR-003-advance-interlude-branch
+> 关联：共识文档 v13 / 模块清单 v12 / ADR-001-tech-stack / ADR-002-judge-mode-fork / ADR-003-advance-interlude-branch / ADR-004-combat-player-decouple
 >
 > **维护约定（2026-06-12 起，F-ARCH-e75d 根治）：** 凡某轮触及 GameState/GameMode 枚举、每帧管线（update.ts updateWorld 顺序）、GameLoop.advance 结构、模块新增/依赖方向之一，**该轮收尾文档 commit 必须同步本文件**（对照 code-map「关键链路变更时更新」同款约定——code-map 七轮全跟上，本文件两度停更，差异即约定有无）。
 
@@ -101,7 +102,7 @@ input(双通道采集) → updatePlayers(逐玩家) → updatePowerups(拾取，
 - **core 持有唯一 world state**，各模块通过显式参数读写，禁止模块间隐式全局引用
 - render / hud 对实体状态**只读**
 - 碰撞判定集中在 combat（单一职责），不散落在各实体内
-- **已知技术债（F-ARCH-608f）**：combat ↔ player 存在运行时值导入互依（damagePlayer ↔ moveTank/firePlayerBullet），现靠 ESM 函数提升工作；重构方向（事件回调或 core 中介）待独立 ADR，本档先显式登记
+- **依赖治理（F-ARCH-608f 已拆，R22/ADR-004）**：原 combat ↔ player 运行时互依已解——damagePlayer 归位 combat（碰撞伤害解算 SSoT），player→combat 单向。依赖无环由 T-ARCH-1 不变量守护
 
 ## 4. 非功能映射
 

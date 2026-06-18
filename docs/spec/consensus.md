@@ -2,6 +2,7 @@
 
 | 版本 | 日期 | 变更摘要 |
 |------|------|---------|
+| v21 | 2026-06-18 | R22 重构轮（拆 combat↔player 循环依赖，清 F-ARCH-608f）：damagePlayer 归位 combat，行为零变更，ADR-004；新增 AC-120 依赖无环不变量 |
 | v20 | 2026-06-16 | R21 难度持久化（localStorage KEY_DIFFICULTY，createWorld 读取/cycleDifficulty 写入，fail-silent NORMAL）；§3.31 amend + AC-119 |
 | v19 | 2026-06-16 | R20 无尽曲线接续修正（endlessConfig 基数派生 LEVELS 末关，修 R17 难度回落 + 去 18/2000 魔法值）；§3.13 amend + AC-118；不动纯体验数值 |
 | v18 | 2026-06-16 | R19 范围并入（难度选择系统 Difficulty，F31）；新增 §3.31 与 AC-114~117；决议：三档 EASY/NORMAL/HARD 默认 NORMAL / 缩放出生间隔+敌速（NORMAL=1.0 零回归锚）/ READY 按 T 循环 PLAYING 锁定 / 全模式正交 |
@@ -607,6 +608,7 @@ Boss 谱系第三维度——防御型肉盾，迫使持续输出。BOSS=火力�
 | AC-117 | 既有 308 测试零回归（NORMAL=1.0 锚）；tsc 净；HUD 显示 DIFF |
 | AC-118 | 无尽曲线接续：endlessConfig 基数派生 LEVELS 末关（敌数/间隔），endlessConfig(LEVEL_COUNT+1) 总数 ≥ 战役末关（无回落不变量）；斜率不变；无 18/2000 硬编码 |
 | AC-119 | 难度持久化：setDifficulty/getDifficulty localStorage round-trip；createWorld 恢复持久难度；cycleDifficulty 写入；空/非法 fail-silent → NORMAL |
+| AC-120 | combat 不再 import player（循环依赖已拆，依赖无环不变量机器可验）；damagePlayer 归位 combat 行为零变更；既有 321 测试零回归 |
 
 ## 6. 待确认项（已全部收敛 — 2026-06-04 评审）
 

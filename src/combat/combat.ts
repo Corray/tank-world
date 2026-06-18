@@ -15,18 +15,19 @@ import {
   COMBO_WINDOW_MS,
   COMBO_STEP,
   COMBO_CAP,
+  INVINCIBLE_MS,
 } from '../core/constants';
 import { dropFromCarrier } from '../powerup/powerup';
-import { spawnExplosion, spawnBaseExplosion, spawnSpark, spawnScoreFloat } from '../effects/effects';
+import { spawnExplosion, spawnBaseExplosion, spawnSpark, spawnScoreFloat, flashPlayer } from '../effects/effects';
 import { playSound, SoundEvent } from '../audio/audio';
 import { onEnemyKilled, onBrickDestroyed } from '../achievements/achievements';
 
 /** Explosion primary colors (enemy vs player — consensus §3.11). */
 const EXPLOSION_COLOR_ENEMY = '#ff7043';
-import { Terrain, BulletOwner, isPvP, DIR_VEC } from '../core/types';
+const EXPLOSION_COLOR_PLAYER = '#aeea00';
+import { Terrain, BulletOwner, isPvP, DIR_VEC, Direction } from '../core/types';
 import type { World } from '../core/world';
-import type { Bullet, EnemyTank, PlayerTank, Tank, Direction, Vec } from '../core/types';
-import { damagePlayer } from '../player/player';
+import type { Bullet, EnemyTank, PlayerTank, Tank, Vec } from '../core/types';
 
 /** Max pixels a bullet moves per inner sub-step (anti-tunneling, risk §8.3). */
 const BULLET_SUBSTEP_PX = 4;
@@ -307,4 +308,32 @@ function annihilate(bullets: Bullet[]): Bullet[] {
     }
   }
   return dead.size === 0 ? bullets : bullets.filter((b) => !dead.has(b));
+}
+
+/**
+ * R22/ADR-004: a player got hit by an enemy bullet (C6′, non-invincible path) —
+ * lose one life and respawn at own spawn point, or stay dead on the last life.
+ * judge() handles defeat once ALL players are dead (consensus §3.17). Lives here
+ * (not player.ts) so collision-damage resolution stays in combat — the SSoT for
+ * both enemy and player hit damage; this breaks the old combat↔player cycle.
+ */
+export function damagePlayer(world: World, player: PlayerTank): void {
+  // R3: hit feedback at the death spot, before any respawn move (AC-23/25).
+  spawnExplosion(world, player.pos, EXPLOSION_COLOR_PLAYER);
+  flashPlayer(world);
+  playSound(SoundEvent.PLAYER_DOWN);
+  player.lives -= 1;
+  world.comboCount = 0; // R18 §3.30: death breaks the kill streak
+  world.comboUntil = 0;
+  player.doubleFire = false; // R2: double fire is lost on death (AC-18)
+  player.level = 1; // R10 §3.23: tank upgrade lost on death (resets to L1)
+  player.shieldUntil = 0;
+  player.slide = null; // R4: respawn never carries momentum (T-TER-6)
+  if (player.lives > 0) {
+    player.pos = { ...player.spawnPos };
+    player.dir = Direction.UP;
+    player.invincibleUntil = world.clock + INVINCIBLE_MS;
+  } else {
+    player.alive = false;
+  }
 }

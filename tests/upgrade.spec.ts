@@ -9,7 +9,7 @@ import { createWorld } from '../src/core/world';
 import { firePlayerBullet } from '../src/combat/combat';
 import { updatePowerups, dropFromCarrier } from '../src/powerup/powerup';
 import { loadLevel, retryLevel, setupVersus, setupMelee } from '../src/level/level';
-import { damagePlayer } from '../src/player/player';
+import { damagePlayer } from '../src/combat/combat';
 import { renderHud } from '../src/hud/hud';
 import { makeWorld, emptyLayout, cellCenter, makeBullet, runCombat } from './helpers';
 

@@ -5,7 +5,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { EnemyType, BulletOwner, Direction } from '../src/core/types';
 import { loadLevel } from '../src/level/level';
-import { damagePlayer } from '../src/player/player';
+import { damagePlayer } from '../src/combat/combat';
 import {
   ENEMY_SCORE,
   COMBO_WINDOW_MS,

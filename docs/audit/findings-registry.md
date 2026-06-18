@@ -20,7 +20,7 @@
 | F-SPEC-20260611-2625 | LOW | 风险 | PvP 玩家弹×玩家弹相消/穿透行为共识全文未声明，需按实现回写 | 2026-06-11-spec.md | resolved（R14-fix 直修，commit 见 git log） |
 | F-SPEC-20260611-39bc | LOW | 缺失 | modules.md 覆盖性自检段停更于 v1.1（仅 F1~F6/AC-1~11） | 2026-06-11-spec.md | resolved（R14-fix 直修，commit 见 git log） |
 | F-ARCH-20260611-e75d | MEDIUM | 偏差（复发） | architecture.md 停更 v2：R7~R13 七轮欠账（状态机 7→11 态/管线缺步骤/五模式零提及）；F-ARCH-4c50 同模式复发，根治=补维护约定 | 2026-06-11-architecture.md | resolved（R14-fix 直修，commit 见 git log） |
-| F-ARCH-20260611-608f | MEDIUM | 风险 | combat↔player 运行时值导入循环依赖，无文档标注；modules combat 依赖列仅写 map 实际六依赖 | 2026-06-11-architecture.md | resolved（文档化：architecture v3 §3.5 + modules 依赖列；代码重构 deferred 待独立 ADR） |
+| F-ARCH-20260611-608f | MEDIUM | 风险 | combat↔player 运行时值导入循环依赖，无文档标注；modules combat 依赖列仅写 map 实际六依赖 | 2026-06-11-architecture.md | resolved（R22 代码层拆除：damagePlayer 归位 combat，ADR-004，T-ARCH-1 不变量守护；文档已 deferred 段同步清） |
 | F-ARCH-20260611-dd56 | MEDIUM | 缺失 | ADR 缺口：R8 judgeVersus/isPvP 家族抽象 + R13 advance WAVE_BREAK 分支（修订 AC-11 冻结原则）均达 LMP §四 触发，docs/adr 仅 ADR-001 | 2026-06-11-architecture.md | resolved（ADR-002/ADR-003 回溯落档） |
 | F-ARCH-20260611-291d | LOW | 偏差 | code-map v7 查找表「五档+muted」与自身 v7 变更行「第七八档」内部不一致 | 2026-06-11-architecture.md | resolved（R14-fix 直修，commit 见 git log） |
 | F-ARCH-20260611-2016 | LOW | 偏差 | modules.md 自检段停更 + 模块依赖图 R6 后七轮未更新 | 2026-06-11-architecture.md | resolved（R14-fix 直修，commit 见 git log） |

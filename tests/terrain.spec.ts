@@ -3,7 +3,8 @@
 import { describe, it, expect } from 'vitest';
 import { Terrain, Direction, BulletOwner, EnemyType } from '../src/core/types';
 import { moveTank } from '../src/combat/combat';
-import { updatePlayer, damagePlayer } from '../src/player/player';
+import { updatePlayer } from '../src/player/player';
+import { damagePlayer } from '../src/combat/combat';
 import { updateEnemies } from '../src/enemy/enemy';
 import { loadLevel } from '../src/level/level';
 import { createWorld } from '../src/core/world';
