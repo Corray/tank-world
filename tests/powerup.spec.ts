@@ -3,7 +3,8 @@
 import { describe, it, expect } from 'vitest';
 import { GameState, EnemyType, Direction, BulletOwner, PowerupType } from '../src/core/types';
 import { dropFromCarrier, updatePowerups } from '../src/powerup/powerup';
-import { updatePlayer, damagePlayer } from '../src/player/player';
+import { updatePlayer } from '../src/player/player';
+import { damagePlayer } from '../src/combat/combat';
 import { judge, updateWorld } from '../src/core/update';
 import { advanceLevel } from '../src/level/level';
 import { SHIELD_MS, STEP_MS } from '../src/core/constants';

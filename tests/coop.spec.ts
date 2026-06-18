@@ -14,7 +14,8 @@ import {
 import { startGame, startCoop } from '../src/core/game';
 import { judge, updateWorld } from '../src/core/update';
 import { createWorld } from '../src/core/world';
-import { updatePlayer, damagePlayer } from '../src/player/player';
+import { updatePlayer } from '../src/player/player';
+import { damagePlayer } from '../src/combat/combat';
 import { firePlayerBullet, moveTank } from '../src/combat/combat';
 import { updatePowerups } from '../src/powerup/powerup';
 import { loadLevel, retryLevel, enterEndless } from '../src/level/level';
